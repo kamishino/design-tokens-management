@@ -9,6 +9,7 @@
 
 _This section highlights the business value extracted from completed tasks._
 
+- ✅ **2026-02-02 Task 004:** build-output-redirection-asset-management - Moved build artifacts to public folder and implemented dynamic manifest discovery for the UI.
 - ✅ **2026-02-02 Task 003:** hierarchical-restructuring-smart-build - Implemented nested physical folder structure and auto-resolving build logic for multi-tenant support.
 - 🚀 **2026-02-02 Release v0.1.0:** First stable foundation release.
 - ✅ **2026-02-02 Task 002:** token-migration-modular-scale - Migrated raw tokens to structured SSOT and automated typography scale generation.

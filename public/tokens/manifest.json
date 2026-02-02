@@ -1,0 +1,26 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2026-02-02T12:14:17.943Z",
+  "projects": {
+    "brand-a/app-1": {
+      "name": "brand-a/app-1",
+      "client": "brand-a",
+      "project": "app-1",
+      "path": "/tokens/brand-a/app-1/variables.css",
+      "files": [
+        "variables.css"
+      ],
+      "lastBuild": "2026-02-02T12:13:35.882Z"
+    },
+    "brand-b/demo": {
+      "name": "brand-b/demo",
+      "client": "brand-b",
+      "project": "demo",
+      "path": "/tokens/brand-b/demo/variables.css",
+      "files": [
+        "variables.css"
+      ],
+      "lastBuild": "2026-02-02T12:14:17.943Z"
+    }
+  }
+}
