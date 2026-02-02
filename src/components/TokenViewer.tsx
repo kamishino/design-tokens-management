@@ -22,7 +22,7 @@ interface TokenViewerProps {
   onProjectChange: (val: string) => void;
   onEnterStudio: () => void;
   overrides: any;
-  updateOverride: (name: string, value: string | number) => void;
+  updateOverride: (newValues: Record<string, any>, label?: string) => void;
   resetOverrides: () => void;
 }
 

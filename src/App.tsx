@@ -3,7 +3,7 @@ import { Box, Spinner, Center } from "@chakra-ui/react"
 import { TokenViewer } from "./components/TokenViewer"
 import { StudioView } from "./components/studio/StudioView"
 import { useTokenLoader } from './hooks/useTokenLoader'
-import { useTokenPlayground } from './hooks/useTokenPlayground'
+import { usePersistentPlayground } from './hooks/usePersistentPlayground'
 import { FloatingLab } from './components/playground/FloatingLab'
 
 type ViewMode = 'explorer' | 'studio';
@@ -25,8 +25,22 @@ function App() {
   const [selectedProject, setSelectedProject] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
-  // Playground & Loader
-  const { overrides, updateOverride, resetOverrides } = useTokenPlayground();
+  // Use Persistent History Hook
+  const { 
+    overrides, updateOverride, undo, redo, canUndo, canRedo, resetOverrides 
+  } = usePersistentPlayground();
+
+  // Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        if (e.shiftKey) redo(); else undo();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'y') redo();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [undo, redo]);
 
   useEffect(() => {
     fetch('/tokens/manifest.json')
@@ -56,7 +70,7 @@ function App() {
           selectedProject={selectedProject}
           onProjectChange={(val) => {
             setSelectedProject(val);
-            resetOverrides();
+            // We keep overrides across projects for experimentation
           }}
           onEnterStudio={() => setViewMode('studio')}
           overrides={overrides}
@@ -67,12 +81,16 @@ function App() {
         <StudioView onExit={() => setViewMode('explorer')} />
       )}
 
-      {/* Global Floating Lab (Always visible except maybe in some dashboard views, but here we want it) */}
       {selectedProject && (
         <FloatingLab 
           clientId={manifest?.projects[selectedProject]?.client || ''} 
           projectId={manifest?.projects[selectedProject]?.project || ''} 
-          onUpdate={updateOverride}
+          overrides={overrides}
+          updateOverride={updateOverride}
+          undo={undo}
+          redo={redo}
+          canUndo={canUndo}
+          canRedo={canRedo}
         />
       )}
     </Box>

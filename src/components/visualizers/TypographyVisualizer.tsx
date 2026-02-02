@@ -4,7 +4,7 @@ import {
 import { useState, useEffect } from 'react';
 
 interface TypographyVisualizerProps {
-  onUpdate: (name: string, value: string | number) => void;
+  onUpdate: (newValues: Record<string, any>, label?: string) => void;
 }
 
 const STEPS = ["minus2", "minus1", "0", "1", "2", "3", "4", "5", "6", "7", "8"];
@@ -14,13 +14,15 @@ export const TypographyVisualizer = ({ onUpdate }: TypographyVisualizerProps) =>
   const [ratio, setRatio] = useState(1.25);
 
   useEffect(() => {
+    const updates: Record<string, any> = {};
     STEPS.forEach((stepStr) => {
       const step = stepStr.startsWith('minus') ? -parseInt(stepStr.replace('minus', '')) : parseInt(stepStr);
       const val = Math.round(base * Math.pow(ratio, step));
-      onUpdate(`--fontSizeScale${stepStr.charAt(0).toUpperCase() + stepStr.slice(1)}`, `${val}px`);
+      updates[`--fontSizeScale${stepStr.charAt(0).toUpperCase() + stepStr.slice(1)}`] = `${val}px`;
     });
-    onUpdate('--typographyConfigScaleRatio', ratio);
-    onUpdate('--fontSizeRoot', `${base}px`);
+    updates['--typographyConfigScaleRatio'] = ratio;
+    updates['--fontSizeRoot'] = `${base}px`;
+    onUpdate(updates, 'Recalculated Typography Scale');
   }, [base, ratio, onUpdate]);
 
   return (

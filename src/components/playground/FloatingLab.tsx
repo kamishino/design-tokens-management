@@ -1,26 +1,35 @@
 import { 
-  Box, HStack, Text, VStack, Button, Badge, 
+  Box, HStack, Text, VStack, Button, 
   Popover, Portal
 } from "@chakra-ui/react";
-import { useState } from 'react';
-import { getContrastMetrics } from '../../utils/colors';
-import { prependFont } from '../../utils/fonts';
 import { StudioColorPicker } from './panels/StudioColorPicker';
 import { FontExplorer } from './panels/FontExplorer';
+import { TypeScaleSelector } from './panels/TypeScaleSelector';
 
 interface FloatingLabProps {
   clientId: string;
   projectId: string;
-  onUpdate: (name: string, value: string | number) => void;
+  overrides: Record<string, any>;
+  updateOverride: (newValues: Record<string, any>, label?: string) => void;
+  undo: () => void;
+  redo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
 }
 
-export const FloatingLab = ({ clientId, projectId, onUpdate }: FloatingLabProps) => {
-  const [primary, setPrimary] = useState('#a0544f');
-  const [fontFamily, setFontFamily] = useState('Inter, sans-serif');
-  const [spacingBase, setSpacingBase] = useState(4);
-  
-  const contrast = getContrastMetrics(primary, '#ffffff');
+const SEMANTIC_CHANNELS = [
+  { id: 'primary', variable: '--brandPrimary', label: 'Primary' },
+  { id: 'secondary', variable: '--brandSecondary', label: 'Secondary' },
+  { id: 'accent', variable: '--brandAccent', label: 'Accent' },
+  { id: 'text', variable: '--textPrimary', label: 'Text' },
+  { id: 'bg', variable: '--bgCanvas', label: 'Background' }
+];
 
+export const FloatingLab = ({ 
+  clientId, projectId, overrides, updateOverride, 
+  undo, redo, canUndo, canRedo 
+}: FloatingLabProps) => {
+  
   const handleApply = async () => {
     const response = await fetch('/api/save-token', {
       method: 'POST',
@@ -29,105 +38,110 @@ export const FloatingLab = ({ clientId, projectId, onUpdate }: FloatingLabProps)
         clientId,
         projectId,
         tokens: {
-          'brand.primary': { '$value': primary, '$type': 'color' },
-          'fontFamily.base': { '$value': fontFamily, '$type': 'fontFamily' },
-          'spacing.base': { '$value': `${spacingBase}px`, '$type': 'dimension' }
+          'brand.primary': { '$value': overrides['--brandPrimary'] },
+          'brand.secondary': { '$value': overrides['--brandSecondary'] },
+          'brand.accent': { '$value': overrides['--brandAccent'] },
+          'text.primary': { '$value': overrides['--textPrimary'] },
+          'bg.canvas': { '$value': overrides['--bgCanvas'] },
+          'fontFamily.base': { '$value': overrides['--fontFamilyBase'] },
+          'spacing.base': { '$value': overrides['--spacingBase'] },
+          'typography.config.scaleRatio': { '$value': overrides['--typographyConfigScaleRatio'] }
         }
       })
     });
     const result = await response.json();
     if (result.success) {
-      alert('✅ Studio changes permanently saved to project JSON!');
+      alert('✅ All tokens permanently saved to project JSON!');
     }
-  };
-
-  const handleFontSelect = (family: string) => {
-    const newStack = prependFont(family, fontFamily);
-    setFontFamily(newStack);
-    onUpdate('--fontFamilyBase', newStack);
   };
 
   return (
     <Box 
       position="fixed" bottom="8" left="50%" transform="translateX(-50%)" 
       zIndex={1000} bg="rgba(255, 255, 255, 0.9)" backdropFilter="blur(15px)"
-      p={3} borderRadius="full" boxShadow="2xl" border="1px solid" borderColor="gray.200"
-      w="auto" minW="650px"
+      p={2} borderRadius="full" boxShadow="2xl" border="1px solid" borderColor="gray.200"
+      w="auto" minW="800px"
     >
-      <HStack gap={6} px={2}>
-        {/* Color Control */}
-        <Popover.Root positioning={{ placement: 'top', gutter: 12 }}>
-          <Popover.Trigger asChild>
-            <HStack cursor="pointer" p={1} borderRadius="full" _hover={{ bg: "gray.100" }}>
-              <Box w="32px" h="32px" bg={primary} borderRadius="full" border="2px solid white" boxShadow="sm" />
-              <VStack align="start" gap={0} pr={2}>
-                <Text fontSize="10px" fontWeight="bold" color="gray.400" textTransform="uppercase">Primary</Text>
-                <Text fontSize="xs" fontWeight="bold">{primary.toUpperCase()}</Text>
-              </VStack>
+      <HStack gap={4} px={2} h="50px">
+        <HStack gap={1}>
+          <Button size="xs" variant="ghost" onClick={undo} disabled={!canUndo} title="Undo (Ctrl+Z)">↺</Button>
+          <Button size="xs" variant="ghost" onClick={redo} disabled={!canRedo} title="Redo (Ctrl+Y)">↻</Button>
+        </HStack>
+
+        <Box w="1px" h="24px" bg="gray.200" />
+
+        <HStack gap={3}>
+          {SEMANTIC_CHANNELS.map(channel => (
+            <Popover.Root key={channel.id} positioning={{ placement: 'top', gutter: 12 }}>
+              <Popover.Trigger asChild>
+                <VStack gap={0} cursor="pointer" p={1} borderRadius="md" _hover={{ bg: "gray.50" }} align="center">
+                  <Box 
+                    w="24px" h="24px" 
+                    bg={`var(${channel.variable})`} 
+                    borderRadius="full" border="2px solid white" boxShadow="sm" 
+                  />
+                  <Text fontSize="8px" fontWeight="bold" color="gray.400" textTransform="uppercase">{channel.label}</Text>
+                </VStack>
+              </Popover.Trigger>
+              <Portal>
+                <Popover.Positioner>
+                  <Popover.Content w="auto" borderRadius="xl" boxShadow="2xl" overflow="hidden" border="none">
+                    <StudioColorPicker 
+                      label={channel.label} 
+                      color={overrides[channel.variable] || '#000000'} 
+                      onChange={(c) => updateOverride({ [channel.variable]: c }, `Changed ${channel.label}`)} 
+                    />
+                  </Popover.Content>
+                </Popover.Positioner>
+              </Portal>
+            </Popover.Root>
+          ))}
+        </HStack>
+
+        <Box w="1px" h="24px" bg="gray.200" />
+
+        <TypeScaleSelector 
+          activeRatio={Number(overrides['--typographyConfigScaleRatio']) || 1.25}
+          onSelect={(val) => updateOverride({ '--typographyConfigScaleRatio': val }, 'Changed Type Scale')}
+        />
+
+        <Box w="1px" h="24px" bg="gray.200" />
+
+        <HStack gap={4}>
+          <Popover.Root positioning={{ placement: 'top', gutter: 12 }}>
+            <Popover.Trigger asChild>
+              <Button size="xs" variant="outline" borderRadius="full">Font</Button>
+            </Popover.Trigger>
+            <Portal>
+              <Popover.Positioner>
+                <Popover.Content w="auto" borderRadius="xl" boxShadow="2xl" overflow="hidden" border="none">
+                  <FontExplorer 
+                    currentFamily={overrides['--fontFamilyBase'] || 'Inter, sans-serif'} 
+                    onSelect={(f) => updateOverride({ '--fontFamilyBase': f }, 'Changed Font')} 
+                  />
+                </Popover.Content>
+              </Popover.Positioner>
+            </Portal>
+          </Popover.Root>
+
+          <VStack align="start" gap={0}>
+            <Text fontSize="8px" fontWeight="bold" color="gray.400" textTransform="uppercase">Spacing</Text>
+            <HStack gap={2}>
+              <input 
+                type="range" min="2" max="8" step="1" 
+                value={parseInt(overrides['--spacingBase']) || 4} 
+                onChange={(e) => updateOverride({ '--spacingBase': `${e.target.value}px` }, 'Changed Spacing')}
+                style={{ width: '50px' }}
+              />
+              <Text fontSize="xs" fontWeight="bold">{parseInt(overrides['--spacingBase']) || 4}px</Text>
             </HStack>
-          </Popover.Trigger>
-          <Portal>
-            <Popover.Positioner>
-              <Popover.Content w="auto" borderRadius="xl" boxShadow="2xl" overflow="hidden" border="none">
-                <StudioColorPicker label="Brand Primary" color={primary} onChange={(c) => { setPrimary(c); onUpdate('--brandPrimary', c); }} />
-              </Popover.Content>
-            </Popover.Positioner>
-          </Portal>
-        </Popover.Root>
+          </VStack>
+        </HStack>
 
-        <Box w="1px" h="30px" bg="gray.200" />
-
-        {/* Font Control */}
-        <Popover.Root positioning={{ placement: 'top', gutter: 12 }}>
-          <Popover.Trigger asChild>
-            <VStack align="start" gap={0} cursor="pointer" p={1} px={3} borderRadius="md" _hover={{ bg: "gray.100" }} maxW="150px">
-              <Text fontSize="10px" fontWeight="bold" color="gray.400" textTransform="uppercase">Typography</Text>
-              <Text fontSize="xs" fontWeight="bold" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}>
-                {fontFamily.split(',')[0]}
-              </Text>
-            </VStack>
-          </Popover.Trigger>
-          <Portal>
-            <Popover.Positioner>
-              <Popover.Content w="auto" borderRadius="xl" boxShadow="2xl" overflow="hidden" border="none">
-                <FontExplorer currentFamily={fontFamily} onSelect={handleFontSelect} />
-              </Popover.Content>
-            </Popover.Positioner>
-          </Portal>
-        </Popover.Root>
-
-        <Box w="1px" h="30px" bg="gray.200" />
-
-        {/* Spacing Control */}
-        <VStack align="start" gap={0} px={3}>
-          <Text fontSize="10px" fontWeight="bold" color="gray.400" textTransform="uppercase">Spacing</Text>
-          <HStack gap={3}>
-            <input 
-              type="range" min="2" max="8" step="1" value={spacingBase} 
-              onChange={(e) => { setSpacingBase(parseInt(e.target.value)); onUpdate('--spacingBase', `${e.target.value}px`); }}
-              style={{ width: '60px' }}
-            />
-            <Text fontSize="xs" fontWeight="bold" w="30px">{spacingBase}px</Text>
-          </HStack>
-        </VStack>
-
-        <Box w="1px" h="30px" bg="gray.200" />
-
-        {/* Contrast Badge Stack */}
-        <VStack align="start" gap={0}>
-          <Text fontSize="10px" fontWeight="bold" color="gray.400" textTransform="uppercase">Contrast</Text>
-          <HStack gap={2}>
-            <Badge colorScheme={contrast.isAccessible ? "green" : "red"} borderRadius="sm" fontSize="10px" title="WCAG 2.1">
-              {contrast.wcag.toFixed(1)}:1
-            </Badge>
-            <Badge variant="outline" colorScheme="blue" borderRadius="sm" fontSize="10px" title="WCAG 3.0 (APCA)">
-              Lc {contrast.apca}
-            </Badge>
-          </HStack>
-        </VStack>
+        <Box flex={1} />
 
         <Button 
-          colorScheme="blue" size="sm" borderRadius="full" px={6} ml={2}
+          colorScheme="blue" size="sm" borderRadius="full" px={6}
           onClick={handleApply}
           boxShadow="0 4px 14px 0 rgba(0,118,255,0.39)"
         >

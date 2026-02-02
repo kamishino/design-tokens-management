@@ -4,7 +4,7 @@ import {
 import { useState, useEffect } from 'react';
 
 interface GridLayoutVisualizerProps {
-  onUpdate: (name: string, value: string | number) => void;
+  onUpdate: (newValues: Record<string, any>, label?: string) => void;
 }
 
 export const GridLayoutVisualizer = ({ onUpdate }: GridLayoutVisualizerProps) => {
@@ -13,10 +13,12 @@ export const GridLayoutVisualizer = ({ onUpdate }: GridLayoutVisualizerProps) =>
   const [showOverlay, setShowOverlay] = useState(false);
 
   useEffect(() => {
-    onUpdate('--gridColumns', columns);
-    onUpdate('--gridGutterDesktop', `${gutter}px`);
-    onUpdate('--gridGutterMobile', `${gutter * 0.6}px`);
-    onUpdate('--gridGutterTablet', `${gutter * 0.8}px`);
+    onUpdate({
+      '--gridColumns': columns,
+      '--gridGutterDesktop': `${gutter}px`,
+      '--gridGutterMobile': `${gutter * 0.6}px`,
+      '--gridGutterTablet': `${gutter * 0.8}px`
+    }, 'Adjusted Grid System');
   }, [columns, gutter, onUpdate]);
 
   return (
