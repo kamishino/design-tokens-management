@@ -1,44 +1,138 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useReducer, useRef } from 'react';
 
-export interface HistoryState {
+// --- Types ---
+
+export interface HistoryEntry {
   overrides: Record<string, string | number>;
   label: string;
   timestamp: string;
 }
 
-const STORAGE_KEY = 'kami-design-playground-history';
+export interface PlaygroundState {
+  overrides: Record<string, string | number>;
+  history: HistoryEntry[];
+  currentIndex: number;
+}
+
+export type PlaygroundAction = 
+  | { type: 'SET_OVERRIDES', payload: Record<string, string | number>, label?: string }
+  | { type: 'PUSH_HISTORY', label?: string }
+  | { type: 'UNDO' }
+  | { type: 'REDO' }
+  | { type: 'RESET' }
+  | { type: 'HYDRATE', payload: Partial<PlaygroundState> };
+
+// --- Constants ---
+
+const STORAGE_KEY = 'kami-design-playground-history-v2';
 const MAX_HISTORY = 50;
 
-export const usePersistentPlayground = () => {
-  const [overrides, setOverrides] = useState<Record<string, string | number>>({});
-  const [history, setHistory] = useState<HistoryState[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(-1);
+const initialState: PlaygroundState = {
+  overrides: {},
+  history: [],
+  currentIndex: -1
+};
 
-  // Load from LocalStorage on mount
+// --- Reducer ---
+
+function playgroundReducer(state: PlaygroundState, action: PlaygroundAction): PlaygroundState {
+  switch (action.type) {
+    case 'SET_OVERRIDES': {
+      return {
+        ...state,
+        overrides: { ...state.overrides, ...action.payload }
+      };
+    }
+
+    case 'PUSH_HISTORY': {
+      // Don't push if nothing has changed since last entry
+      const lastEntry = state.history[state.currentIndex];
+      if (lastEntry && JSON.stringify(lastEntry.overrides) === JSON.stringify(state.overrides)) {
+        return state;
+      }
+
+      const newEntry: HistoryEntry = {
+        overrides: { ...state.overrides },
+        label: action.label || 'Update',
+        timestamp: new Date().toISOString()
+      };
+
+      const newHistory = [...state.history.slice(0, state.currentIndex + 1), newEntry].slice(-MAX_HISTORY);
+      
+      return {
+        ...state,
+        history: newHistory,
+        currentIndex: newHistory.length - 1
+      };
+    }
+
+    case 'UNDO': {
+      if (state.currentIndex > 0) {
+        const nextIndex = state.currentIndex - 1;
+        return {
+          ...state,
+          currentIndex: nextIndex,
+          overrides: state.history[nextIndex].overrides
+        };
+      }
+      return state;
+    }
+
+    case 'REDO': {
+      if (state.currentIndex < state.history.length - 1) {
+        const nextIndex = state.currentIndex + 1;
+        return {
+          ...state,
+          currentIndex: nextIndex,
+          overrides: state.history[nextIndex].overrides
+        };
+      }
+      return state;
+    }
+
+    case 'RESET': {
+      return initialState;
+    }
+
+    case 'HYDRATE': {
+      return { ...state, ...action.payload };
+    }
+
+    default:
+      return state;
+  }
+}
+
+// --- Hook ---
+
+export const usePersistentPlayground = () => {
+  const [state, dispatch] = useReducer(playgroundReducer, initialState);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 1. Hydration
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
-        const { history: savedHistory, currentIndex: savedIndex } = JSON.parse(saved);
-        setHistory(savedHistory);
-        setCurrentIndex(savedIndex);
-        if (savedIndex >= 0) {
-          setOverrides(savedHistory[savedIndex].overrides);
-        }
+        const parsed = JSON.parse(saved);
+        dispatch({ type: 'HYDRATE', payload: parsed });
       } catch (e) {
-        console.error('Failed to load history from localStorage', e);
+        console.error('Failed to hydrate state', e);
       }
     }
   }, []);
 
-  // Save to LocalStorage whenever history changes
+  // 2. Persistence
   useEffect(() => {
-    if (history.length > 0) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ history, currentIndex }));
+    if (state.history.length > 0) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        history: state.history,
+        currentIndex: state.currentIndex
+      }));
     }
-  }, [history, currentIndex]);
+  }, [state.history, state.currentIndex]);
 
-  // Inject Styles to :root
+  // 3. Inject CSS
   useEffect(() => {
     const styleId = 'token-playground-overrides';
     let styleTag = document.getElementById(styleId) as HTMLStyleElement;
@@ -48,60 +142,40 @@ export const usePersistentPlayground = () => {
       document.head.appendChild(styleTag);
     }
 
-    styleTag.innerHTML = `:root {\n${Object.entries(overrides)
+    const cssRules = Object.entries(state.overrides)
       .map(([name, value]) => `  ${name}: ${value} !important;`)
-      .join('\n')}\n}`;
-  }, [overrides]);
+      .join('\n');
 
-  const updateOverride = useCallback((newOverrides: Record<string, string | number>, label = 'Update') => {
-    setOverrides(prev => {
-      const updated = { ...prev, ...newOverrides };
-      
-      const newState: HistoryState = {
-        overrides: updated,
-        label,
-        timestamp: new Date().toISOString()
-      };
+    styleTag.innerHTML = `:root {\n${cssRules}\n}`;
+  }, [state.overrides]);
 
-      const newHistory = [...history.slice(0, currentIndex + 1), newState].slice(-MAX_HISTORY);
-      setHistory(newHistory);
-      setCurrentIndex(newHistory.length - 1);
-      
-      return updated;
-    });
-  }, [history, currentIndex]);
+  // 4. Stable Callbacks
+  const updateOverride = useCallback((newValues: Record<string, string | number>, label?: string) => {
+    // 4.1 Update UI immediately (Transient)
+    dispatch({ type: 'SET_OVERRIDES', payload: newValues });
 
-  const undo = useCallback(() => {
-    if (currentIndex > 0) {
-      const prevIndex = currentIndex - 1;
-      setCurrentIndex(prevIndex);
-      setOverrides(history[prevIndex].overrides);
-    }
-  }, [currentIndex, history]);
-
-  const redo = useCallback(() => {
-    if (currentIndex < history.length - 1) {
-      const nextIndex = currentIndex + 1;
-      setCurrentIndex(nextIndex);
-      setOverrides(history[nextIndex].overrides);
-    }
-  }, [currentIndex, history]);
-
-  const resetOverrides = useCallback(() => {
-    setOverrides({});
-    setHistory([]);
-    setCurrentIndex(-1);
-    localStorage.removeItem(STORAGE_KEY);
+    // 4.2 Debounce History Push (Persistent)
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      dispatch({ type: 'PUSH_HISTORY', label });
+    }, 500);
   }, []);
 
-  return { 
-    overrides, 
-    updateOverride, 
-    undo, 
-    redo, 
-    resetOverrides, 
-    canUndo: currentIndex > 0,
-    canRedo: currentIndex < history.length - 1,
-    history
+  const undo = useCallback(() => dispatch({ type: 'UNDO' }), []);
+  const redo = useCallback(() => dispatch({ type: 'REDO' }), []);
+  const resetOverrides = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEY);
+    dispatch({ type: 'RESET' });
+  }, []);
+
+  return {
+    overrides: state.overrides,
+    history: state.history,
+    updateOverride,
+    undo,
+    redo,
+    resetOverrides,
+    canUndo: state.currentIndex > 0,
+    canRedo: state.currentIndex < state.history.length - 1
   };
 };
