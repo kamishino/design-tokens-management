@@ -1,0 +1,82 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "KamiFlow Configuration Schema",
+  "description": "Validation and Intellisense for .kamirc.json",
+  "type": "object",
+  "properties": {
+    "$schema": { "type": "string" },
+    "language": {
+      "type": "string",
+      "description": "Preferred conversational language for the AI Agent.",
+      "default": "english"
+    },
+    "strategy": {
+      "type": "string",
+      "description": "Sniper Model execution strategy.",
+      "enum": ["FAST", "BALANCED", "AMBITIOUS"],
+      "default": "BALANCED"
+    },
+    "maxRetries": {
+      "type": "number",
+      "description": "Number of self-healing attempts for code implementation.",
+      "minimum": 0,
+      "maximum": 10,
+      "default": 3
+    },
+    "maxBackups": {
+      "type": "number",
+      "description": "Maximum number of historical versions to keep in .backup/",
+      "minimum": 1,
+      "maximum": 20,
+      "default": 5
+    },
+    "gatedAutomation": {
+      "type": "boolean",
+      "description": "If true, the AI MUST stop for user approval at strategic gates.",
+      "default": true
+    },
+    "executionMode": {
+      "type": "string",
+      "description": "Planner stops after specification; Implementer completes the task cycle.",
+      "enum": ["Planner", "Implementer"],
+      "default": "Implementer"
+    },
+    "currentEnv": {
+      "type": "string",
+      "description": "The active environment if KAMI_ENV is not provided.",
+      "default": "development"
+    },
+    "environments": {
+      "type": "object",
+      "description": "Environment-specific path configurations.",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "workspaceRoot": { "type": "string" },
+          "outputTargets": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "plugins": {
+      "type": "object",
+      "description": "Settings for built-in and 3rd-party plugins.",
+      "properties": {
+        "seed": {
+          "type": "object",
+          "properties": {
+            "minFeasibility": {
+              "type": "number",
+              "description": "Minimum feasibility score required to promote an idea.",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.7
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,8 @@
+!.kamiflow/archive/
+!.kamiflow/ideas/
+!.kamiflow/tasks/
+!.kamiflow/handoff_logs/
+!.kamiflow/docs/
+!.kamiflow/agents/
+!.temp/
+!.dist/

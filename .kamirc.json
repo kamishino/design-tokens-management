@@ -1,0 +1,12 @@
+{
+  "$schema": "./.kamiflow/schemas/kamirc.schema.json",
+  "language": "vietnamese",
+  "strategy": "BALANCED",
+  "maxRetries": 3,
+  "currentEnv": "production",
+  "plugins": {
+    "seed": {
+      "minFeasibility": 0.7
+    }
+  }
+}
