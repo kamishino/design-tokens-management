@@ -1,0 +1,203 @@
+{
+  "font": {
+    "family": {
+      "base": {
+        "$value": "-apple-system, BlinkMacSystemFont, sans-serif",
+        "$type": "fontFamilies",
+        "$description": "Standard system sans-serif font stack for UI"
+      },
+      "mono": {
+        "$value": "SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+        "$type": "fontFamilies",
+        "$description": "Monospace font stack for code blocks and technical data"
+      },
+      "serif": {
+        "$value": "Georgia, 'Times New Roman', Times, serif",
+        "$type": "fontFamilies",
+        "$description": "Classic serif font stack for long-form reading"
+      }
+    },
+    "size": {
+      "root": {
+        "$value": "16px",
+        "$type": "fontSizes",
+        "$description": "Browser default font size for rem calculations"
+      },
+      "basic": {
+        "xs": {
+          "$value": "12px",
+          "$type": "fontSizes",
+          "$description": "Extra small - captions, labels, helper text"
+        },
+        "sm": {
+          "$value": "14px",
+          "$type": "fontSizes",
+          "$description": "Small - button labels, form inputs, secondary text"
+        },
+        "base": {
+          "$value": "16px",
+          "$type": "fontSizes",
+          "$description": "Base - body text, standard UI components"
+        },
+        "lg": {
+          "$value": "18px",
+          "$type": "fontSizes",
+          "$description": "Large - emphasized text, section labels"
+        },
+        "xl": {
+          "$value": "20px",
+          "$type": "fontSizes",
+          "$description": "Extra large - subheadings, callouts"
+        },
+        "2xl": {
+          "$value": "24px",
+          "$type": "fontSizes",
+          "$description": "2X large - section headers, card titles"
+        },
+        "3xl": {
+          "$value": "30px",
+          "$type": "fontSizes",
+          "$description": "3X large - page titles, feature headlines"
+        },
+        "4xl": {
+          "$value": "36px",
+          "$type": "fontSizes",
+          "$description": "4X large - major section headers"
+        },
+        "5xl": {
+          "$value": "48px",
+          "$type": "fontSizes",
+          "$description": "5X large - hero elements, large displays"
+        },
+        "6xl": {
+          "$value": "60px",
+          "$type": "fontSizes",
+          "$description": "6X large - major hero text"
+        },
+        "7xl": {
+          "$value": "72px",
+          "$type": "fontSizes",
+          "$description": "7X large - giant displays, hero numbers"
+        }
+      }
+    },
+    "weight": {
+      "thin": {
+        "$value": "100",
+        "$type": "fontWeights",
+        "$description": "Thin weight (100)"
+      },
+      "extralight": {
+        "$value": "200",
+        "$type": "fontWeights",
+        "$description": "Extra light weight (200)"
+      },
+      "light": {
+        "$value": "300",
+        "$type": "fontWeights",
+        "$description": "Light weight (300)"
+      },
+      "normal": {
+        "$value": "400",
+        "$type": "fontWeights",
+        "$description": "Regular/Normal weight (400)"
+      },
+      "medium": {
+        "$value": "500",
+        "$type": "fontWeights",
+        "$description": "Medium weight (500)"
+      },
+      "semibold": {
+        "$value": "600",
+        "$type": "fontWeights",
+        "$description": "Semi-bold weight (600)"
+      },
+      "bold": {
+        "$value": "700",
+        "$type": "fontWeights",
+        "$description": "Bold weight (700)"
+      },
+      "extrabold": {
+        "$value": "800",
+        "$type": "fontWeights",
+        "$description": "Extra-bold weight (800)"
+      },
+      "black": {
+        "$value": "900",
+        "$type": "fontWeights",
+        "$description": "Black/Heavy weight (900)"
+      }
+    },
+    "leading": {
+      "none": {
+        "$value": "1",
+        "$type": "lineHeights",
+        "$description": "No line height (1.0) - for giant displays"
+      },
+      "tight": {
+        "$value": "1.25",
+        "$type": "lineHeights",
+        "$description": "Tight line height (1.25) - for headings"
+      },
+      "snug": {
+        "$value": "1.375",
+        "$type": "lineHeights",
+        "$description": "Snug line height (1.375) - for short text blocks"
+      },
+      "normal": {
+        "$value": "1.5",
+        "$type": "lineHeights",
+        "$description": "Default line height (1.5) - optimal for UI reading"
+      },
+      "relaxed": {
+        "$value": "1.625",
+        "$type": "lineHeights",
+        "$description": "Relaxed line height (1.625) - for long-form content"
+      },
+      "loose": {
+        "$value": "2",
+        "$type": "lineHeights",
+        "$description": "Loose line height (2.0) - for specific artistic layout"
+      }
+    },
+    "letterSpacing": {
+      "tighter": {
+        "$value": "-0.05em",
+        "$type": "dimension",
+        "$description": "For condensed fonts or tight tracking"
+      },
+      "tight": {
+        "$value": "-0.025em",
+        "$type": "dimension",
+        "$description": "Slightly tight tracking"
+      },
+      "normal": {
+        "$value": "0",
+        "$type": "dimension",
+        "$description": "Default letter spacing"
+      },
+      "wide": {
+        "$value": "0.025em",
+        "$type": "dimension",
+        "$description": "Slightly loose tracking"
+      },
+      "wider": {
+        "$value": "0.05em",
+        "$type": "dimension",
+        "$description": "Loose tracking"
+      },
+      "widest": {
+        "$value": "0.1em",
+        "$type": "dimension",
+        "$description": "Very loose tracking or all caps"
+      }
+    },
+    "spacing": {
+      "paragraph": {
+        "$value": "0px",
+        "$type": "dimension",
+        "$description": "Vertical spacing between paragraphs"
+      }
+    }
+  }
+}
