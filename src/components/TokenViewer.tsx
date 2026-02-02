@@ -7,12 +7,15 @@ import { useTokenLoader } from '../hooks/useTokenLoader';
 import { useTokenPlayground } from '../hooks/useTokenPlayground';
 import { TypographyVisualizer } from './visualizers/TypographyVisualizer';
 import { GridLayoutVisualizer } from './visualizers/GridLayoutVisualizer';
+import { FloatingLab } from './playground/FloatingLab';
 
 interface Manifest {
   projects: {
     [key: string]: {
       name: string;
       path: string;
+      client: string;
+      project: string;
     }
   }
 }
@@ -125,6 +128,14 @@ export const TokenViewer = () => {
           <GridLayoutVisualizer onUpdate={updateOverride} />
         </Tabs.Content>
       </Tabs.Root>
+
+      {selectedProject && (
+        <FloatingLab 
+          clientId={manifest?.projects[selectedProject]?.client || ''} 
+          projectId={manifest?.projects[selectedProject]?.project || ''} 
+          onUpdate={updateOverride}
+        />
+      )}
     </VStack>
   )
 }
