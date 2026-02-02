@@ -1,0 +1,338 @@
+/**
+ * Do not edit directly, this file was auto-generated.
+ */
+
+:root {
+  --bgCanvas: #f4f4f4; /** Page background - lightest neutral */
+  --bgSurface: #1d1d1d; /** Card and panel background for dark mode */
+  --bgSubtle: #e0e0e0; /** Sidebar/header background - subtle gray */
+  --bgBrandSection: #f0f6ff; /** Brand-colored section background */
+  --bgBody: #0a0a0a; /** Main page background for dark mode */
+  --bgMuted: #353535; /** Subtle/muted background for dark mode */
+  --textPrimary: #f4f4f4; /** Primary text color in dark mode (high contrast) */
+  --textSecondary: #aeaeae; /** Secondary/metadata text color in dark mode */
+  --textTertiary: #939393; /** Disabled/placeholder text */
+  --textInverse: #1d1d1d; /** Inverse text color for dark mode (dark on light elements) */
+  --textOnBrand: #ffffff; /** Text on brand-colored backgrounds */
+  --textMuted: #7f7f7f; /** Muted/disabled text color in dark mode */
+  --borderSubtle: #c9c9c9; /** Subtle borders - minimal contrast */
+  --borderDefault: #505050; /** Standard border color for dark mode */
+  --borderStrong: #7f7f7f; /** Strong borders - higher contrast */
+  --borderFocus: #2b4d86; /** Focus ring/outline color */
+  --borderMuted: #353535; /** Subtle border color for dark mode */
+  --actionPrimaryBg: #2b4d86; /** Primary action button background */
+  --actionPrimaryText: #ffffff; /** Text on primary action button */
+  --actionPrimaryHover: #0c2f68; /** Primary action button hover state */
+  --actionSecondaryBg: #e0e0e0; /** Secondary action button background */
+  --actionSecondaryText: #1d1d1d; /** Text on secondary action button */
+  --actionSecondaryHover: #c9c9c9; /** Secondary action button hover state */
+  --statusSuccessBg: #ddffea; /** Success message/banner background */
+  --statusSuccessText: #001e10; /** Success message text */
+  --statusSuccessBorder: #7ec09b; /** Success message border */
+  --statusSuccessIcon: #005e3b; /** Success icon color */
+  --statusWarningBg: #fff3e3; /** Warning message/banner background */
+  --statusWarningText: #060300; /** Warning message text */
+  --statusWarningBorder: #cea871; /** Warning message border */
+  --statusWarningIcon: #684812; /** Warning icon color */
+  --statusErrorBg: #fff2f0; /** Error message/banner background */
+  --statusErrorText: #360003; /** Error message text */
+  --statusErrorBorder: #eb938c; /** Error message border */
+  --statusErrorIcon: #7d3431; /** Error icon color */
+  --statusInfoBg: #f0f6ff; /** Info message/banner background */
+  --statusInfoText: #00143e; /** Info message text */
+  --statusInfoBorder: #87b0f3; /** Info message border */
+  --statusInfoIcon: #2b4d86; /** Info icon color */
+  --brandPrimary: #a0544f;
+  --brandSecondary: #4a6da7; /** Secondary brand color */
+  --brandAccent: #1f8055; /** Brand accent color */
+  --typographyConfigScaleRatio: 1.25; /** Modular scale ratio for content typography - change this to adjust heading sizes */
+  --typographyUiTextXs: 12px; /** Extra small UI text */
+  --typographyUiTextSm: 14px; /** Small UI text */
+  --typographyUiTextBody: 16px; /** Standard body text */
+  --typographyUiTextLg: 18px; /** Large UI text */
+  --typographyHeadingH1: 61px; /** H1 heading - largest heading level */
+  --typographyHeadingH2: 49px; /** H2 heading */
+  --typographyHeadingH3: 39px; /** H3 heading */
+  --typographyHeadingH4: 31px; /** H4 heading */
+  --typographyHeadingH5: 25px; /** H5 heading */
+  --typographyHeadingH6: 20px; /** H6 heading - smallest heading level */
+  --typographyHeadingDisplay: 76px; /** Display text - larger than H1 */
+  --typographyHeadingHero: 95px; /** Hero text - largest content text */
+  --easeLinear: cubic-bezier(0, 0, 1, 1);
+  --easeStandardDefault: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --easeStandardIn: cubic-bezier(0.42, 0, 1, 1);
+  --easeStandardOut: cubic-bezier(0, 0, 0.58, 1);
+  --easeStandardInOut: cubic-bezier(0.42, 0, 0.58, 1);
+  --easeSineIn: cubic-bezier(0.47, 0, 0.745, 0.715);
+  --easeSineOut: cubic-bezier(0.39, 0.575, 0.565, 1);
+  --easeSineInOut: cubic-bezier(0.445, 0.05, 0.55, 0.95);
+  --easeQuadIn: cubic-bezier(0.55, 0.085, 0.68, 0.53);
+  --easeQuadOut: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --easeQuadInOut: cubic-bezier(0.455, 0.03, 0.515, 0.955);
+  --easeCubicIn: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+  --easeCubicOut: cubic-bezier(0.215, 0.61, 0.355, 1);
+  --easeCubicInOut: cubic-bezier(0.645, 0.045, 0.355, 1);
+  --easeQuartIn: cubic-bezier(0.895, 0.03, 0.685, 0.22);
+  --easeQuartOut: cubic-bezier(0.165, 0.84, 0.44, 1);
+  --easeQuartInOut: cubic-bezier(0.77, 0, 0.175, 1);
+  --easeQuintIn: cubic-bezier(0.755, 0.05, 0.855, 0.06);
+  --easeQuintOut: cubic-bezier(0.23, 1, 0.32, 1);
+  --easeQuintInOut: cubic-bezier(0.86, 0, 0.07, 1);
+  --easeExpoIn: cubic-bezier(0.95, 0.05, 0.795, 0.035);
+  --easeExpoOut: cubic-bezier(0.19, 1, 0.22, 1);
+  --easeExpoInOut: cubic-bezier(1, 0, 0, 1);
+  --easeCircIn: cubic-bezier(0.6, 0.04, 0.98, 0.335);
+  --easeCircOut: cubic-bezier(0.075, 0.82, 0.165, 1);
+  --easeCircInOut: cubic-bezier(0.785, 0.135, 0.15, 0.86);
+  --easeBackIn: cubic-bezier(0.6, -0.28, 0.735, 0.045);
+  --easeBackOut: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --easeBackInOut: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --duration0: 0ms;
+  --duration75: 75ms;
+  --duration100: 100ms;
+  --duration150: 150ms;
+  --duration200: 200ms;
+  --duration300: 300ms;
+  --duration500: 500ms;
+  --duration700: 700ms;
+  --duration1000: 1000ms;
+  --durationInstant: 0ms;
+  --durationFast: 75ms;
+  --durationFaster: 100ms;
+  --durationNormal: 150ms;
+  --durationSlow: 200ms;
+  --durationSlower: 300ms;
+  --durationSlowest: 500ms;
+  --durationGentle: 700ms;
+  --durationSmooth: 1000ms;
+  --breakpointXs: 576px;
+  --breakpointSm: 768px;
+  --breakpointMd: 992px;
+  --breakpointLg: 1200px;
+  --breakpointXl: 1400px;
+  --breakpoint2xl: 1640px;
+  --colorWhite: #ffffff; /** Pure white */
+  --colorBlack: #000000; /** Pure black */
+  --colorNeutral50: #f4f4f4;
+  --colorNeutral100: #e0e0e0;
+  --colorNeutral200: #c9c9c9;
+  --colorNeutral300: #aeaeae;
+  --colorNeutral400: #939393;
+  --colorNeutral500: #7f7f7f; /** Base neutral gray */
+  --colorNeutral600: #6c6c6c;
+  --colorNeutral700: #505050;
+  --colorNeutral800: #353535;
+  --colorNeutral900: #1d1d1d;
+  --colorNeutral950: #0a0a0a;
+  --colorLime100: #e4ffd6;
+  --colorLime200: #b7e09f;
+  --colorLime300: #8fbf73;
+  --colorLime400: #6a9d48;
+  --colorLime500: #467e15; /** Base lime color */
+  --colorLime600: #2e5c00;
+  --colorLime700: #1c3c00;
+  --colorLime800: #0b1e00;
+  --colorLime900: #010500;
+  --colorOlive100: #fdf7c8;
+  --colorOlive200: #dad49c;
+  --colorOlive300: #b9b170;
+  --colorOlive400: #998f43;
+  --colorOlive500: #7a6f03; /** Base olive color */
+  --colorOlive600: #595000;
+  --colorOlive700: #393300;
+  --colorOlive800: #1c1800;
+  --colorOlive900: #040300;
+  --colorEmerald100: #ddffea;
+  --colorEmerald200: #a8e1c0;
+  --colorEmerald300: #7ec09b;
+  --colorEmerald400: #52a077;
+  --colorEmerald500: #1f8055; /** Base emerald color */
+  --colorEmerald600: #005e3b;
+  --colorEmerald700: #003d24;
+  --colorEmerald800: #001e10;
+  --colorEmerald900: #000502;
+  --colorGreen100: #e1ffe0;
+  --colorGreen200: #a0e6a1;
+  --colorGreen300: #82c184;
+  --colorGreen400: #649e65;
+  --colorGreen500: #447d47; /** Base green color */
+  --colorGreen600: #235d28;
+  --colorGreen700: #003e0a;
+  --colorGreen800: #001f03;
+  --colorGreen900: #000500;
+  --colorAmber100: #fff3e3;
+  --colorAmber200: #f5ca8c;
+  --colorAmber300: #cea871;
+  --colorAmber400: #aa8754;
+  --colorAmber500: #886735; /** Base amber color */
+  --colorAmber600: #684812;
+  --colorAmber700: #452d00;
+  --colorAmber800: #231500;
+  --colorAmber900: #060300;
+  --colorRed100: #fff2f0;
+  --colorRed200: #ffbfb9;
+  --colorRed300: #eb938c;
+  --colorRed400: #c4746e;
+  --colorRed500: #a0544f; /** Base red color */
+  --colorRed600: #7d3431;
+  --colorRed700: #5d1214;
+  --colorRed800: #360003;
+  --colorRed900: #0d0000;
+  --colorBlue100: #f0f6ff;
+  --colorBlue200: #b8d3ff;
+  --colorBlue300: #87b0f3;
+  --colorBlue400: #688ecc;
+  --colorBlue500: #4a6da7; /** Base blue color */
+  --colorBlue600: #2b4d86;
+  --colorBlue700: #0c2f68;
+  --colorBlue800: #00143e;
+  --colorBlue900: #000310;
+  --gridColumns: 12; /** Standard 12-column grid system */
+  --gridGutterMobile: 16px; /** Gutter for mobile devices (xs, sm breakpoints) */
+  --gridGutterTablet: 24px; /** Gutter for tablets (md breakpoint) */
+  --gridGutterDesktop: 32px; /** Gutter for desktops (lg, xl, 2xl breakpoints) - aligned to 8pt grid */
+  --gridContainerSm: 720px; /** sm: (52px × 12) + (16px × 11) = 624 + 176 = 800px → adjusted to 720px for standard Bootstrap alignment */
+  --gridContainerMd: 936px; /** md: (60px × 12) + (24px × 11) = 720 + 264 = 984px → adjusted to 936px (divisible by 12 and 8) */
+  --gridContainerLg: 1136px; /** lg: (72px × 12) + (32px × 11) = 864 + 352 = 1216px → adjusted to 1136px (divisible by 8) */
+  --gridContainerXl: 1312px; /** xl: (84px × 12) + (32px × 11) = 1008 + 352 = 1360px → adjusted to 1312px (divisible by 8) */
+  --gridContainer2xl: 1536px; /** 2xl: (100px × 12) + (32px × 11) = 1200 + 352 = 1552px → adjusted to 1536px (divisible by 8 and common 4K subdivision) */
+  --gridContainerFluidPaddingMobile: 16px; /** Horizontal padding for mobile fluid containers */
+  --gridContainerFluidPaddingTablet: 24px; /** Horizontal padding for tablet fluid containers */
+  --gridContainerFluidPaddingDesktop: 32px; /** Horizontal padding for desktop fluid containers */
+  --opacity0: 0; /** Fully transparent */
+  --opacity5: 0.05; /** Almost transparent */
+  --opacity10: 0.1; /** Very light */
+  --opacity20: 0.2; /** Light */
+  --opacity25: 0.25; /** Quarter opacity */
+  --opacity30: 0.3; /** Subtle */
+  --opacity40: 0.4; /** Moderate-low opacity */
+  --opacity50: 0.5; /** Half opacity */
+  --opacity60: 0.6; /** Moderate-high opacity */
+  --opacity70: 0.7; /** High opacity */
+  --opacity75: 0.75; /** Three-quarter opacity */
+  --opacity80: 0.8; /** Very high opacity */
+  --opacity90: 0.9; /** Nearly opaque */
+  --opacity95: 0.95; /** Almost opaque */
+  --opacity100: 1; /** Fully opaque */
+  --radius0: 0px; /** No rounding - sharp corners */
+  --radius1: 4px; /** Small radius (4px) - for buttons and small components */
+  --radius2: 8px; /** Medium radius (8px) - for cards and panels */
+  --radius3: 12px; /** Large radius (12px) - for large containers */
+  --radius4: 16px; /** Extra large radius (16px) */
+  --radius5: 20px; /** 20px radius */
+  --radius6: 24px; /** 24px radius */
+  --radius7: 28px; /** 28px radius */
+  --radius8: 32px; /** 32px radius */
+  --radius10: 40px; /** 40px radius */
+  --radius12: 48px; /** 48px radius */
+  --radius14: 56px; /** 56px radius */
+  --radius16: 64px; /** 64px radius */
+  --radius20: 80px; /** 80px radius */
+  --radius24: 96px; /** 96px radius */
+  --radius28: 112px; /** 112px radius */
+  --radius32: 128px; /** 128px radius */
+  --radiusPx: 1px; /** 1px hairline radius */
+  --radius05: 2px; /** Subtle rounding (2px) */
+  --radiusFull: 9999px; /** Pill shape - maximum possible rounding */
+  --scalePhi: 1.618; /** The Golden Ratio */
+  --scaleGolden: 1.618; /** The Golden Ratio */
+  --scaleDoubleOctave: 4; /** Double Octave scale (4.000) */
+  --scaleMajorTwelfth: 3; /** Major Twelfth scale (3.000) */
+  --scaleMajorEleventh: 2.667; /** Major Eleventh scale (2.667) */
+  --scaleMajorTenth: 2.5; /** Major Tenth scale (2.500) */
+  --scaleOctave: 2; /** Octave scale (2.000) */
+  --scaleMajorSeventh: 1.875; /** Major Seventh scale (1.875) */
+  --scaleMinorSeventh: 1.778; /** Minor Seventh scale (1.778) */
+  --scaleMajorSixth: 1.667; /** Major Sixth scale (1.667) */
+  --scaleMinorSixth: 1.6; /** Minor Sixth scale (1.600) */
+  --scaleFifth: 1.5; /** Perfect Fifth scale (1.500) */
+  --scaleAugmentedFourth: 1.414; /** Augmented Fourth scale (1.414) */
+  --scaleFourth: 1.333; /** Perfect Fourth scale (1.333) */
+  --scaleMajorThird: 1.25; /** Major Third scale (1.250) */
+  --scaleMinorThird: 1.2; /** Minor Third scale (1.200) */
+  --scaleMajorSecond: 1.125; /** Major Second scale (1.125) */
+  --scaleMinorSecond: 1.067; /** Minor Second scale (1.067) */
+  --shadowSm: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /** Small, subtle shadow for low-elevation elements like buttons */
+  --shadowBase: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); /** Standard shadow for common UI elements */
+  --shadowMd: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /** Medium shadow for elements that need more depth like dropdowns */
+  --shadowLg: 0 10px 12px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /** Large shadow for elevated components like modals */
+  --shadowXl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /** Extra large shadow for high-elevation floating elements */
+  --spacing0: 0px; /** No spacing (0px) */
+  --spacing1: 4px; /** Step 1: 4px base unit */
+  --spacing2: 8px; /** Step 2: 8px */
+  --spacing3: 12px; /** Step 3: 12px */
+  --spacing4: 16px; /** Step 4: 16px */
+  --spacing5: 20px; /** Step 5: 20px */
+  --spacing6: 24px; /** Step 6: 24px */
+  --spacing7: 28px; /** Step 7: 28px */
+  --spacing8: 32px; /** Step 8: 32px */
+  --spacing10: 40px; /** Step 10: 40px */
+  --spacing12: 48px; /** Step 12: 48px */
+  --spacing14: 56px; /** Step 14: 56px */
+  --spacing16: 64px; /** Step 16: 64px */
+  --spacing20: 80px; /** Step 20: 80px */
+  --spacing24: 96px; /** Step 24: 96px */
+  --spacing28: 112px; /** Step 28: 112px */
+  --spacing32: 128px; /** Step 32: 128px */
+  --spacingPx: 1px; /** Hairline spacing (1px) */
+  --spacing05: 2px; /** Step 0.5: 2px spacing */
+  --fontFamilyBase: -apple-system, BlinkMacSystemFont, sans-serif; /** Standard system sans-serif font stack for UI */
+  --fontFamilyMono: SFMono-Regular, Menlo, Monaco, Consolas, monospace; /** Monospace font stack for code blocks and technical data */
+  --fontFamilySerif: Georgia, 'Times New Roman', Times, serif; /** Classic serif font stack for long-form reading */
+  --fontSizeRoot: 16px; /** Browser default font size for rem calculations */
+  --fontSizeBasicXs: 12px; /** Extra small - captions, labels, helper text */
+  --fontSizeBasicSm: 14px; /** Small - button labels, form inputs, secondary text */
+  --fontSizeBasicBase: 16px; /** Base - body text, standard UI components */
+  --fontSizeBasicLg: 18px; /** Large - emphasized text, section labels */
+  --fontSizeBasicXl: 20px; /** Extra large - subheadings, callouts */
+  --fontSizeBasic2xl: 24px; /** 2X large - section headers, card titles */
+  --fontSizeBasic3xl: 30px; /** 3X large - page titles, feature headlines */
+  --fontSizeBasic4xl: 36px; /** 4X large - major section headers */
+  --fontSizeBasic5xl: 48px; /** 5X large - hero elements, large displays */
+  --fontSizeBasic6xl: 60px; /** 6X large - major hero text */
+  --fontSizeBasic7xl: 72px; /** 7X large - giant displays, hero numbers */
+  --fontSizeScale0: 16px; /** Step 0: 16px * 1.25^0 ≈ 16px */
+  --fontSizeScale1: 20px; /** Step 1: 16px * 1.25^1 ≈ 20px */
+  --fontSizeScale2: 25px; /** Step 2: 16px * 1.25^2 ≈ 25px */
+  --fontSizeScale3: 31px; /** Step 3: 16px * 1.25^3 ≈ 31px */
+  --fontSizeScale4: 39px; /** Step 4: 16px * 1.25^4 ≈ 39px */
+  --fontSizeScale5: 49px; /** Step 5: 16px * 1.25^5 ≈ 49px */
+  --fontSizeScale6: 61px; /** Step 6: 16px * 1.25^6 ≈ 61px */
+  --fontSizeScale7: 76px; /** Step 7: 16px * 1.25^7 ≈ 76px */
+  --fontSizeScale8: 95px; /** Step 8: 16px * 1.25^8 ≈ 95px */
+  --fontSizeScaleMinus2: 10px; /** Step -2: 16px * 1.25^-2 ≈ 10px */
+  --fontSizeScaleMinus1: 13px; /** Step -1: 16px * 1.25^-1 ≈ 13px */
+  --fontWeightThin: 100; /** Thin weight (100) */
+  --fontWeightExtralight: 200; /** Extra light weight (200) */
+  --fontWeightLight: 300; /** Light weight (300) */
+  --fontWeightNormal: 400; /** Regular/Normal weight (400) */
+  --fontWeightMedium: 500; /** Medium weight (500) */
+  --fontWeightSemibold: 600; /** Semi-bold weight (600) */
+  --fontWeightBold: 700; /** Bold weight (700) */
+  --fontWeightExtrabold: 800; /** Extra-bold weight (800) */
+  --fontWeightBlack: 900; /** Black/Heavy weight (900) */
+  --fontLeadingNone: 1; /** No line height (1.0) - for giant displays */
+  --fontLeadingTight: 1.25; /** Tight line height (1.25) - for headings */
+  --fontLeadingSnug: 1.375; /** Snug line height (1.375) - for short text blocks */
+  --fontLeadingNormal: 1.5; /** Default line height (1.5) - optimal for UI reading */
+  --fontLeadingRelaxed: 1.625; /** Relaxed line height (1.625) - for long-form content */
+  --fontLeadingLoose: 2; /** Loose line height (2.0) - for specific artistic layout */
+  --fontLetterSpacingTighter: -0.05em; /** For condensed fonts or tight tracking */
+  --fontLetterSpacingTight: -0.025em; /** Slightly tight tracking */
+  --fontLetterSpacingNormal: 0; /** Default letter spacing */
+  --fontLetterSpacingWide: 0.025em; /** Slightly loose tracking */
+  --fontLetterSpacingWider: 0.05em; /** Loose tracking */
+  --fontLetterSpacingWidest: 0.1em; /** Very loose tracking or all caps */
+  --fontSpacingParagraph: 0px; /** Vertical spacing between paragraphs */
+  --zIndex0: 0; /** Base layer */
+  --zIndex10: 10; /** Low elevation */
+  --zIndex20: 20; /** Medium-low elevation */
+  --zIndex30: 30; /** Medium elevation */
+  --zIndex40: 40; /** Medium-high elevation */
+  --zIndex50: 50; /** High elevation - dropdowns, tooltips */
+  --zIndex100: 100; /** Modal overlays */
+  --zIndex200: 200; /** Notifications, toasts */
+  --zIndex999: 999; /** Critical overlays */
+  --zIndex9999: 9999; /** Top layer - loading screens */
+  --zIndexAuto: auto; /** Browser default stacking */
+}

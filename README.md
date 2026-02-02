@@ -16,9 +16,10 @@ A Single Source of Truth (SSOT) for managing design tokens across projects.
    npm install
    ```
 
-2. **Build Tokens:**
+2. **Build Tokens for a Project:**
    ```bash
-   npm run build:tokens
+   # Syntax: npm run build:tokens -- --project=client/project
+   npm run build:tokens -- --project=brand-a/app-1
    ```
 
 3. **Run Dev Server:**
@@ -28,6 +29,9 @@ A Single Source of Truth (SSOT) for managing design tokens across projects.
 
 ## 🏗️ Architecture
 
-- `tokens/`: Source JSON files.
+- `tokens/global/`: Base, Alias, and Generated tokens (always included).
+- `tokens/clients/[client]/`: Client-specific theme tokens.
+- `tokens/clients/[client]/projects/[project]/`: Project-specific overrides.
 - `src/schemas/`: Zod validation logic.
+- `src/utils/lineage.ts`: Smart build path resolution.
 - `scripts/build-tokens.js`: Build pipeline script.

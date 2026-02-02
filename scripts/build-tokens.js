@@ -1,35 +1,47 @@
 import StyleDictionary from 'style-dictionary';
 import { register } from '@tokens-studio/sd-transforms';
-import { z } from 'zod';
-import { BaseTokenSchema } from '../src/schemas/tokens.ts'; // We might need to handle TS import in JS script or run via ts-node
-import fs from 'fs';
-import path from 'path';
-import { glob } from 'glob';
+import { resolveLineage } from '../src/utils/lineage.ts';
+import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
 
-// Since we are running in Node context (ESM), we need some adjustments if importing TS directly isn't set up.
-// For simplicity in this MVP step, I will inline a basic validation or assume tsx execution.
-// Let's implement a robust build script using pure JS for node execution to avoid compilation complexity for now.
-
-// Register tokens-studio transforms for W3C compatibility
+// Register tokens-studio transforms
 register(StyleDictionary);
 
-const run = async () => {
-  console.log('🏗️  Building Design Tokens...');
+const argv = yargs(hideBin(process.argv))
+  .option('project', {
+    type: 'string',
+    description: 'The project to build (client/project)'
+  })
+  .parse();
 
-  // 1. Define Hierarchy
-  const hierarchy = [
-    'tokens/global/**/*.json',
-    'tokens/client/**/*.json',
-    'tokens/project/**/*.json'
-  ];
+const targetProject = argv.project;
+
+const run = async () => {
+  if (!targetProject) {
+    console.error('❌ Error: Missing --project argument. Example: npm run build:tokens -- --project=brand-a/app-1');
+    process.exit(1);
+  }
+
+  console.log(`🏗️  Building Design Tokens for: ${targetProject}...`);
+
+  // 1. Resolve Lineage
+  let hierarchy;
+  try {
+    hierarchy = resolveLineage(targetProject);
+  } catch (e) {
+    console.error(`❌ ${e.message}`);
+    process.exit(1);
+  }
+
+  const [clientId, projectId] = targetProject.split('/');
 
   // 2. Initialize Style Dictionary
   const sd = new StyleDictionary({
     source: hierarchy,
     platforms: {
       css: {
-        transformGroup: 'tokens-studio', // Handles $value, references, etc.
-        buildPath: 'src/assets/',
+        transformGroup: 'tokens-studio',
+        buildPath: `src/assets/tokens/${clientId}/${projectId}/`,
         files: [{
           destination: 'variables.css',
           format: 'css/variables'
@@ -40,7 +52,7 @@ const run = async () => {
 
   // 3. Build
   await sd.buildAllPlatforms();
-  console.log('✅ Tokens built successfully!');
+  console.log(`✅ Tokens built successfully at: src/assets/tokens/${clientId}/${projectId}/`);
 };
 
 run();
