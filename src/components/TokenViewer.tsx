@@ -1,13 +1,9 @@
 import { 
-  Box, SimpleGrid, Text, VStack, Heading, Spinner, Center, 
-  Tabs, Button, HStack, Badge 
+  Box, SimpleGrid, Text, VStack, Heading, Badge,
+  Tabs, Button, HStack 
 } from "@chakra-ui/react"
-import { useState, useEffect } from 'react';
-import { useTokenLoader } from '../hooks/useTokenLoader';
-import { useTokenPlayground } from '../hooks/useTokenPlayground';
 import { TypographyVisualizer } from './visualizers/TypographyVisualizer';
 import { GridLayoutVisualizer } from './visualizers/GridLayoutVisualizer';
-import { FloatingLab } from './playground/FloatingLab';
 
 interface Manifest {
   projects: {
@@ -20,43 +16,31 @@ interface Manifest {
   }
 }
 
+interface TokenViewerProps {
+  manifest: Manifest;
+  selectedProject: string;
+  onProjectChange: (val: string) => void;
+  onEnterStudio: () => void;
+  overrides: any;
+  updateOverride: (name: string, value: string | number) => void;
+  resetOverrides: () => void;
+}
+
 const defaultColors = [
   { name: '--colorBlue500', label: 'Blue 500' },
   { name: '--colorRed500', label: 'Red 500' },
   { name: '--brandPrimary', label: 'Brand Primary' },
 ];
 
-export const TokenViewer = () => {
-  const [manifest, setManifest] = useState<Manifest | null>(null);
-  const [selectedProject, setSelectedProject] = useState<string>('');
-  const [loading, setLoading] = useState(true);
-
-  const { overrides, updateOverride, resetOverrides } = useTokenPlayground();
-
-  useEffect(() => {
-    fetch('/tokens/manifest.json')
-      .then(res => res.json())
-      .then(data => {
-        setManifest(data);
-        const firstProject = Object.keys(data.projects)[0];
-        if (firstProject) setSelectedProject(firstProject);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Failed to load manifest:', err);
-        setLoading(false);
-      });
-  }, []);
-
-  const currentPath = manifest?.projects[selectedProject]?.path;
-  useTokenLoader(currentPath);
-
-  if (loading) return <Center h="100vh"><Spinner size="xl" /></Center>;
+export const TokenViewer = ({ 
+  manifest, selectedProject, onProjectChange, onEnterStudio, 
+  overrides, updateOverride, resetOverrides 
+}: TokenViewerProps) => {
 
   const hasOverrides = Object.keys(overrides).length > 0;
 
   return (
-    <VStack align="stretch" gap={8} p={8} bg="#f7fafc" minH="100vh">
+    <VStack align="stretch" gap={8} p={8} bg="#f7fafc" minH="100vh" pb="120px">
       <Box display="flex" justifyContent="space-between" alignItems="center">
         <VStack align="start" gap={0}>
           <Heading size="xl">Design Token Manager</Heading>
@@ -67,14 +51,14 @@ export const TokenViewer = () => {
         </VStack>
 
         <HStack gap={4}>
-          <Box w="300px">
-            <Text fontSize="2xs" mb={1} fontWeight="bold" color="gray.500" textTransform="uppercase">Project Target</Text>
+          <Button colorScheme="blue" size="sm" borderRadius="full" onClick={onEnterStudio}>
+            Open Design Studio 🚀
+          </Button>
+          <Box w="250px">
+            <Text fontSize="10px" mb={1} fontWeight="bold" color="gray.400" textTransform="uppercase">Project Target</Text>
             <select 
               value={selectedProject} 
-              onChange={(e) => {
-                setSelectedProject(e.target.value);
-                resetOverrides();
-              }}
+              onChange={(e) => onProjectChange(e.target.value)}
               style={{ 
                 width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2E8F0', backgroundColor: 'white', fontSize: '14px'
               }}
@@ -92,7 +76,7 @@ export const TokenViewer = () => {
             disabled={!hasOverrides}
             mt={5}
           >
-            Reset Playground
+            Reset
           </Button>
         </HStack>
       </Box>
@@ -128,14 +112,6 @@ export const TokenViewer = () => {
           <GridLayoutVisualizer onUpdate={updateOverride} />
         </Tabs.Content>
       </Tabs.Root>
-
-      {selectedProject && (
-        <FloatingLab 
-          clientId={manifest?.projects[selectedProject]?.client || ''} 
-          projectId={manifest?.projects[selectedProject]?.project || ''} 
-          onUpdate={updateOverride}
-        />
-      )}
     </VStack>
   )
 }
