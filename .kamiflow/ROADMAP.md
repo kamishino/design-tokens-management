@@ -9,6 +9,7 @@
 
 _This section highlights the business value extracted from completed tasks._
 
+- 🚀 **2026-02-02 Release v0.1.0:** First stable foundation release.
 - ✅ **2026-02-02 Task 002:** token-migration-modular-scale - Migrated raw tokens to structured SSOT and automated typography scale generation.
 - ✅ **2026-02-02 Task 001:** architecture-schema-definition - Established SSOT architecture with W3C token format, Zod validation, and React Dashboard.
 - ✅ **Project Setup:** Initialized Context, Tech Stack, and Architecture Definition.
