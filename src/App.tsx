@@ -25,12 +25,10 @@ function App() {
   const [selectedProject, setSelectedProject] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
-  // Use Persistent History Hook
   const { 
     overrides, updateOverride, undo, redo, canUndo, canRedo, resetOverrides 
   } = usePersistentPlayground();
 
-  // Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
@@ -70,12 +68,15 @@ function App() {
           selectedProject={selectedProject}
           onProjectChange={(val) => {
             setSelectedProject(val);
-            // We keep overrides across projects for experimentation
           }}
           onEnterStudio={() => setViewMode('studio')}
           overrides={overrides}
           updateOverride={updateOverride}
           resetOverrides={resetOverrides}
+          undo={undo}
+          redo={redo}
+          canUndo={canUndo}
+          canRedo={canRedo}
         />
       ) : (
         <StudioView onExit={() => setViewMode('explorer')} />

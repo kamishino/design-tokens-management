@@ -1,6 +1,6 @@
 import { 
   Box, SimpleGrid, Text, VStack, Heading, Badge,
-  Tabs, Button, HStack 
+  Button, HStack, Tabs 
 } from "@chakra-ui/react"
 import { TypographyVisualizer } from './visualizers/TypographyVisualizer';
 import { GridLayoutVisualizer } from './visualizers/GridLayoutVisualizer';
@@ -23,6 +23,10 @@ interface TokenViewerProps {
   onEnterStudio: () => void;
   overrides: any;
   updateOverride: (newValues: Record<string, any>, label?: string) => void;
+  undo: () => void;
+  redo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
   resetOverrides: () => void;
 }
 
@@ -74,7 +78,6 @@ export const TokenViewer = ({
             size="sm" 
             onClick={resetOverrides}
             disabled={!hasOverrides}
-            mt={5}
           >
             Reset
           </Button>
