@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "build:tokens": "node scripts/build-tokens.js",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prebuild:tokens": "node scripts/generate-scale.js"
   },
   "dependencies": {
     "@tokens-studio/sd-transforms": "^2.0.3",
