@@ -52,11 +52,11 @@ export const FloatingLab = ({ clientId, projectId, onUpdate }: FloatingLabProps)
       position="fixed" bottom="8" left="50%" transform="translateX(-50%)" 
       zIndex={1000} bg="rgba(255, 255, 255, 0.9)" backdropFilter="blur(15px)"
       p={3} borderRadius="full" boxShadow="2xl" border="1px solid" borderColor="gray.200"
-      w="auto" minW="600px"
+      w="auto" minW="650px"
     >
       <HStack gap={6} px={2}>
         {/* Color Control */}
-        <Popover.Root positioning={{ gutter: 20 }}>
+        <Popover.Root positioning={{ placement: 'top', gutter: 12 }}>
           <Popover.Trigger asChild>
             <HStack cursor="pointer" p={1} borderRadius="full" _hover={{ bg: "gray.100" }}>
               <Box w="32px" h="32px" bg={primary} borderRadius="full" border="2px solid white" boxShadow="sm" />
@@ -67,16 +67,18 @@ export const FloatingLab = ({ clientId, projectId, onUpdate }: FloatingLabProps)
             </HStack>
           </Popover.Trigger>
           <Portal>
-            <Popover.Content w="auto" borderRadius="xl" boxShadow="2xl" overflow="hidden" bg="white">
-              <StudioColorPicker label="Brand Primary" color={primary} onChange={(c) => { setPrimary(c); onUpdate('--brandPrimary', c); }} />
-            </Popover.Content>
+            <Popover.Positioner>
+              <Popover.Content w="auto" borderRadius="xl" boxShadow="2xl" overflow="hidden" border="none">
+                <StudioColorPicker label="Brand Primary" color={primary} onChange={(c) => { setPrimary(c); onUpdate('--brandPrimary', c); }} />
+              </Popover.Content>
+            </Popover.Positioner>
           </Portal>
         </Popover.Root>
 
         <Box w="1px" h="30px" bg="gray.200" />
 
         {/* Font Control */}
-        <Popover.Root positioning={{ gutter: 20 }}>
+        <Popover.Root positioning={{ placement: 'top', gutter: 12 }}>
           <Popover.Trigger asChild>
             <VStack align="start" gap={0} cursor="pointer" p={1} px={3} borderRadius="md" _hover={{ bg: "gray.100" }} maxW="150px">
               <Text fontSize="10px" fontWeight="bold" color="gray.400" textTransform="uppercase">Typography</Text>
@@ -86,9 +88,11 @@ export const FloatingLab = ({ clientId, projectId, onUpdate }: FloatingLabProps)
             </VStack>
           </Popover.Trigger>
           <Portal>
-            <Popover.Content w="auto" borderRadius="xl" boxShadow="2xl" overflow="hidden" bg="white">
-              <FontExplorer currentFamily={fontFamily} onSelect={handleFontSelect} />
-            </Popover.Content>
+            <Popover.Positioner>
+              <Popover.Content w="auto" borderRadius="xl" boxShadow="2xl" overflow="hidden" border="none">
+                <FontExplorer currentFamily={fontFamily} onSelect={handleFontSelect} />
+              </Popover.Content>
+            </Popover.Positioner>
           </Portal>
         </Popover.Root>
 
@@ -109,12 +113,17 @@ export const FloatingLab = ({ clientId, projectId, onUpdate }: FloatingLabProps)
 
         <Box w="1px" h="30px" bg="gray.200" />
 
-        {/* Contrast Badge */}
-        <VStack align="center" gap={0}>
+        {/* Contrast Badge Stack */}
+        <VStack align="start" gap={0}>
           <Text fontSize="10px" fontWeight="bold" color="gray.400" textTransform="uppercase">Contrast</Text>
-          <Badge colorScheme={contrast.isAccessible ? "green" : "red"} borderRadius="full" px={2}>
-            {contrast.wcag.toFixed(1)}
-          </Badge>
+          <HStack gap={2}>
+            <Badge colorScheme={contrast.isAccessible ? "green" : "red"} borderRadius="sm" fontSize="10px" title="WCAG 2.1">
+              {contrast.wcag.toFixed(1)}:1
+            </Badge>
+            <Badge variant="outline" colorScheme="blue" borderRadius="sm" fontSize="10px" title="WCAG 3.0 (APCA)">
+              Lc {contrast.apca}
+            </Badge>
+          </HStack>
         </VStack>
 
         <Button 

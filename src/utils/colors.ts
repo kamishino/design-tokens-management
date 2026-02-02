@@ -1,15 +1,41 @@
-import { converter, formatHex } from 'culori';
+import { converter, formatHex, inGamut, toGamut } from 'culori';
 
-const okhsl = converter('okhsl');
+const oklch = converter('oklch');
+const hsl = converter('hsl');
 const rgb = converter('rgb');
+const isRgb = inGamut('rgb');
+const clampRgb = toGamut('rgb');
 
-export const hexToOkhsl = (hex: string) => {
-  const color = okhsl(hex);
-  return color ? { h: color.h || 0, s: color.s || 0, l: color.l || 0 } : { h: 0, s: 0, l: 0 };
+export const hexToOklch = (hex: string) => {
+  const color = oklch(hex);
+  return color ? { l: color.l || 0, c: color.c || 0, h: color.h || 0 } : { l: 0, c: 0, h: 0 };
 };
 
-export const okhslToHex = (h: number, s: number, l: number) => {
-  return formatHex({ mode: 'okhsl', h, s, l });
+export const oklchToHex = (l: number, c: number, h: number) => {
+  return formatHex({ mode: 'oklch', l, c, h });
+};
+
+export const hexToHsl = (hex: string) => {
+  const color = hsl(hex);
+  return color ? { h: color.h || 0, s: (color.s || 0) * 100, l: (color.l || 0) * 100 } : { h: 0, s: 0, l: 0 };
+};
+
+export const hslToHex = (h: number, s: number, l: number) => {
+  return formatHex({ mode: 'hsl', h, s: s / 100, l: l / 100 });
+};
+
+/**
+ * Checks if a color is representable in standard sRGB (HEX)
+ */
+export const isOutofGamut = (mode: 'oklch' | 'hsl', coords: any) => {
+  return !isRgb({ mode, ...coords });
+};
+
+/**
+ * Maps an out-of-gamut color to the nearest sRGB safe HEX
+ */
+export const getSafeHex = (mode: 'oklch' | 'hsl', coords: any) => {
+  return formatHex(clampRgb({ mode, ...coords }));
 };
 
 // WCAG 2.1 Relative Luminance formula
@@ -29,9 +55,9 @@ export const getContrastMetrics = (fg: string, bg: string) => {
   
   const ratio = (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
   
-  // Simple APCA approximation for demo (WCAG 3.0 draft is complex)
-  // Real APCA uses different coefficients and exponent
-  const apcaScore = Math.abs(l1 - l2) * 100; 
+  // Perceptual Contrast (Simplified APCA-like math for Lc)
+  // Real APCA is much more complex, this is a linear perceptual diff for UI guidance
+  const apcaScore = Math.abs(Math.pow(l1, 0.45) - Math.pow(l2, 0.45)) * 100;
 
   return {
     wcag: ratio,
