@@ -11,9 +11,9 @@
 
 > **INTEGRATOR RULE:** Always update all 4 fields (Phase, Last Action, Focus, Next Step) during `/kamiflow:ops:sync`.
 
-- **Last Completed Action:** Implemented Task 026 (Robust Hover Management)
+- **Last Completed Action:** Implemented Task 027 (UI Refinement & Floating Overlays)
 - **Current Focus:** Distribution & Versioning
-- **Next Step:** Task 027 - Implement automated versioning and NPM distribution pipeline
+- **Next Step:** Task 028 - Implement automated versioning and NPM distribution pipeline
 
 ## 3. Knowledge Map (Directory Guide)
 

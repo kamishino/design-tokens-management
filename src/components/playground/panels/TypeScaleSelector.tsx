@@ -34,6 +34,7 @@ export const TypeScaleSelector = ({ activeRatio, onSelect }: TypeScaleSelectorPr
           value={[activeRatio.toString()]}
           onValueChange={(e) => onSelect(parseFloat(e.value[0]))}
           variant="ghost"
+          positioning={{ strategy: "fixed" }}
         >
           <SelectTrigger px={0}>
             <SelectValueText placeholder="Select Scale" fontSize="12px" fontWeight="bold" />
