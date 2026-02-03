@@ -80,33 +80,32 @@ export const TokenViewer = ({
         position="sticky" top={0} zIndex={1000}
         bg="rgba(255, 255, 255, 0.85)" backdropFilter="blur(12px)"
         borderBottom="1px solid" borderColor="gray.200"
-        px={8} py={4} boxShadow="sm"
+        px={8} py={3} boxShadow="sm"
       >
-        <HStack justify="space-between" align="center">
-          <VStack align="start" gap={0}>
-            <Heading size="lg" letterSpacing="tight" fontWeight="extrabold" color="gray.800">Design Token Manager</Heading>
+        <HStack gap={8} align="center">
+          {/* Identity Cluster */}
+          <VStack align="start" gap={0} minW="max-content">
+            <Heading size="md" letterSpacing="tight" fontWeight="extrabold" color="gray.800">Design Token Manager</Heading>
             <HStack mt={0.5}>
-              <Text fontSize="sm" color="gray.500" fontWeight="medium">Explorer & Command Center</Text>
-              {hasOverrides && <Badge colorScheme="orange" variant="solid" fontSize="9px" px={2} borderRadius="full">Live Mode</Badge>}
+              <Text fontSize="10px" color="gray.500" fontWeight="bold" textTransform="uppercase" letterSpacing="widest">Explorer</Text>
+              {hasOverrides && <Badge colorScheme="orange" variant="solid" fontSize="8px" px={1.5} borderRadius="full">Live</Badge>}
             </HStack>
           </VStack>
 
-          <HStack gap={4}>
-            <Button colorScheme="blue" size="sm" borderRadius="full" px={6} onClick={onEnterStudio}>
-              Open Studio 🚀
-            </Button>
-            
-            <Box w="220px">
-              <Text fontSize="9px" mb={1} fontWeight="bold" color="gray.400" textTransform="uppercase" letterSpacing="widest">Target Project</Text>
+          {/* Context Cluster */}
+          <HStack gap={3} bg="gray.50" px={3} py={1.5} borderRadius="lg" border="1px solid" borderColor="gray.100">
+            <Text fontSize="9px" fontWeight="bold" color="gray.400" textTransform="uppercase" letterSpacing="widest">Target:</Text>
+            <Box w="160px">
               <SelectRoot 
                 collection={projectCollection} 
                 size="sm"
                 value={[selectedProject]}
                 onValueChange={(e) => onProjectChange(e.value[0])}
                 positioning={{ sameWidth: true, strategy: "fixed" }}
+                variant="ghost"
               >
-                <SelectTrigger>
-                  <SelectValueText placeholder="Select Project" />
+                <SelectTrigger px={0}>
+                  <SelectValueText placeholder="Project" fontSize="xs" fontWeight="bold" />
                 </SelectTrigger>
                 <SelectContent zIndex={2001}>
                   {projectCollection.items.map((item) => (
@@ -117,14 +116,43 @@ export const TokenViewer = ({
                 </SelectContent>
               </SelectRoot>
             </Box>
+          </HStack>
 
-            <HStack gap={2}>
+          {/* Discovery Cluster (Center) */}
+          <Box flex={1} display="flex" justifyContent="center">
+            <HStack w="full" maxW="400px" position="relative">
+              <Box position="absolute" left={3} color="gray.400" zIndex={1}>
+                <LuSearch size={14} />
+              </Box>
+              <Input 
+                placeholder="Search tokens across categories..." 
+                pl={9} 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                size="sm"
+                borderRadius="full"
+                bg="white"
+                border="1px solid"
+                borderColor="gray.200"
+                _focus={{ borderColor: "blue.400", boxShadow: "0 0 0 1px var(--chakra-colors-blue-400)" }}
+              />
+            </HStack>
+          </Box>
+
+          {/* Action Cluster */}
+          <HStack gap={3}>
+            <Button colorScheme="blue" size="sm" borderRadius="full" px={5} onClick={onEnterStudio}>
+              Studio 🚀
+            </Button>
+            <Box w="1px" h="20px" bg="gray.200" />
+            <HStack gap={1}>
               <Button 
                 colorScheme="red" 
                 variant="ghost" 
                 size="sm" 
                 onClick={resetOverrides}
                 disabled={!hasOverrides}
+                fontSize="xs"
               >
                 Reset
               </Button>
@@ -141,7 +169,7 @@ export const TokenViewer = ({
         </HStack>
       </Box>
 
-      <Box p={8} pt={8}>
+      <Box p={8}>
         <SettingsModal open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
 
         <Tabs.Root defaultValue="global" variant="enclosed" bg="white" p={6} borderRadius="xl" boxShadow="sm">
@@ -153,27 +181,12 @@ export const TokenViewer = ({
 
           <Tabs.Content value="global" pt={8}>
             <VStack align="stretch" gap={6}>
-              <HStack justify="space-between">
-                <HStack w="400px" position="relative">
-                  <Box position="absolute" left={3} color="gray.400" zIndex={1}>
-                    <LuSearch size={16} />
-                  </Box>
-                  <Input 
-                    placeholder="Search tokens by name or value..." 
-                    pl={10} 
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    size="sm"
-                    borderRadius="full"
-                    bg="gray.50"
-                    _focus={{ bg: "white" }}
-                  />
-                </HStack>
+              <HStack justify="flex-end">
                 <HStack gap={2}>
-                  <Button size="xs" variant="ghost" onClick={expandAll}>
+                  <Button size="xs" variant="ghost" onClick={expandAll} color="gray.500">
                     <LuChevronDown /> Expand All
                   </Button>
-                  <Button size="xs" variant="ghost" onClick={collapseAll}>
+                  <Button size="xs" variant="ghost" onClick={collapseAll} color="gray.500">
                     <LuChevronUp /> Collapse All
                   </Button>
                 </HStack>
