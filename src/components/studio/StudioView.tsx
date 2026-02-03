@@ -1,12 +1,29 @@
-import { Box, HStack, Button, Text, Heading } from "@chakra-ui/react";
+import { 
+  Box, HStack, Button, Text, Heading, 
+  createListCollection 
+} from "@chakra-ui/react";
 import { useState } from 'react';
 import { LandingPage } from './templates/LandingPage';
 import { Dashboard } from './templates/Dashboard';
+import {
+  SelectContent,
+  SelectItem,
+  SelectRoot,
+  SelectTrigger,
+  SelectValueText,
+} from "../ui/select";
 
 interface StudioViewProps {
   onExit: () => void;
   onOpenDocs: () => void;
 }
+
+const templates = createListCollection({
+  items: [
+    { label: "SaaS Landing Page", value: "landing" },
+    { label: "Admin Dashboard", value: "dashboard" },
+  ],
+})
 
 export const StudioView = ({ onExit, onOpenDocs }: StudioViewProps) => {
   const [template, setTemplate] = useState('landing');
@@ -25,14 +42,25 @@ export const StudioView = ({ onExit, onOpenDocs }: StudioViewProps) => {
           <Box w="1px" h="20px" bg="gray.300" />
           <HStack gap={2}>
             <Text fontSize="xs" fontWeight="bold" color="gray.500">Template:</Text>
-            <select 
-              value={template} 
-              onChange={(e) => setTemplate(e.target.value)}
-              style={{ padding: '4px 8px', borderRadius: '4px', border: '1px solid #E2E8F0', fontSize: '13px' }}
-            >
-              <option value="landing">SaaS Landing Page</option>
-              <option value="dashboard">Admin Dashboard</option>
-            </select>
+            <Box w="200px">
+              <SelectRoot 
+                collection={templates} 
+                size="sm"
+                value={[template]}
+                onValueChange={(e) => setTemplate(e.value[0])}
+              >
+                <SelectTrigger>
+                  <SelectValueText placeholder="Select Template" />
+                </SelectTrigger>
+                <SelectContent zIndex={2001}>
+                  {templates.items.map((item) => (
+                    <SelectItem item={item} key={item.value}>
+                      {item.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </SelectRoot>
+            </Box>
           </HStack>
         </HStack>
 

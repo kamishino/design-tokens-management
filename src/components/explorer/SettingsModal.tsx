@@ -1,27 +1,33 @@
 import { 
-  VStack, Text, Input, Field,
-  DrawerRoot, DrawerContent, DrawerHeader, DrawerBody, 
-  DrawerTitle, DrawerCloseTrigger
+  VStack, Text, Input, Field, Box
 } from "@chakra-ui/react";
+import { 
+  DialogRoot, 
+  DialogContent, 
+  DialogHeader, 
+  DialogBody, 
+  DialogTitle, 
+  DialogCloseTrigger 
+} from "../ui/dialog";
 import { NativeSelectRoot, NativeSelectField } from "../ui/native-select";
 import { SUPPORTED_IDES, useAppSettings } from "../../hooks/useAppSettings";
 
-interface SettingsDrawerProps {
+interface SettingsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export const SettingsDrawer = ({ open, onOpenChange }: SettingsDrawerProps) => {
+export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
   const { settings, updateSettings } = useAppSettings();
 
   return (
-    <DrawerRoot open={open} onOpenChange={(e) => onOpenChange(e.open)}>
-      <DrawerContent>
-        <DrawerHeader>
-          <DrawerTitle>Dev Environment Settings</DrawerTitle>
-          <DrawerCloseTrigger />
-        </DrawerHeader>
-        <DrawerBody>
+    <DialogRoot lazyMount open={open} onOpenChange={(e) => onOpenChange(e.open)} size="lg" placement="center">
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Dev Environment Settings</DialogTitle>
+          <DialogCloseTrigger />
+        </DialogHeader>
+        <DialogBody pb={8}>
           <VStack align="stretch" gap={6}>
             <Field.Root>
               <Field.Label fontSize="xs" fontWeight="bold" color="gray.500">PROJECT ROOT PATH</Field.Label>
@@ -61,10 +67,8 @@ export const SettingsDrawer = ({ open, onOpenChange }: SettingsDrawerProps) => {
               </Text>
             </Box>
           </VStack>
-        </DrawerBody>
-      </DrawerContent>
-    </DrawerRoot>
+        </DialogBody>
+      </DialogContent>
+    </DialogRoot>
   );
 };
-
-import { Box } from "@chakra-ui/react";

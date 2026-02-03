@@ -1,10 +1,20 @@
-import { Box, HStack, Heading, Spinner, Center, Button } from "@chakra-ui/react";
+import { 
+  Box, HStack, Heading, Spinner, Center, Button,
+  createListCollection
+} from "@chakra-ui/react";
 import { useState, useEffect, useMemo } from 'react';
 import { Sidebar } from './Sidebar';
 import { TokenTable } from './TokenTable';
 import { MarkdownView } from './MarkdownView';
 import { parseTokensToDocs } from '../../utils/token-parser';
 import { generateDocNav } from '../../utils/doc-nav';
+import {
+  SelectContent,
+  SelectItem,
+  SelectRoot,
+  SelectTrigger,
+  SelectValueText,
+} from "../ui/select";
 
 interface DocsPortalProps {
   manifest: any;
@@ -47,21 +57,40 @@ export const DocsPortal = ({ manifest, onExit }: DocsPortalProps) => {
     return [];
   }, [allTokens, activePage]);
 
+  const projectCollection = useMemo(() => {
+    return createListCollection({
+      items: Object.keys(manifest?.projects || {}).map(key => ({
+        label: key,
+        value: key
+      }))
+    });
+  }, [manifest]);
+
   return (
     <Box bg="white" minH="100vh">
       <HStack h="60px" px={8} borderBottom="1px solid" borderColor="gray.100" justify="space-between" bg="white" position="sticky" top={0} zIndex={10}>
         <HStack gap={4}>
           <Heading size="md" color="blue.600">Documentation</Heading>
           <Box w="1px" h="20px" bg="gray.200" />
-          <select 
-            value={selectedProject} 
-            onChange={(e) => setSelectedProject(e.target.value)}
-            style={{ fontSize: '13px', padding: '4px', borderRadius: '4px', border: '1px solid #E2E8F0' }}
-          >
-            {Object.keys(manifest.projects).map(k => (
-              <option key={k} value={k}>{k}</option>
-            ))}
-          </select>
+          <Box w="200px">
+            <SelectRoot 
+              collection={projectCollection} 
+              size="sm"
+              value={[selectedProject]}
+              onValueChange={(e) => setSelectedProject(e.value[0])}
+            >
+              <SelectTrigger>
+                <SelectValueText placeholder="Select Project" />
+              </SelectTrigger>
+              <SelectContent zIndex={2001}>
+                {projectCollection.items.map((item) => (
+                  <SelectItem item={item} key={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </SelectRoot>
+          </Box>
         </HStack>
         <Button size="xs" variant="outline" onClick={onExit}>Back to Studio</Button>
       </HStack>

@@ -1,6 +1,7 @@
 import { 
   Box, Text, VStack, Heading, Badge,
-  HStack, Tabs, Spinner, Center, Input, IconButton
+  HStack, Tabs, Spinner, Center, Input, IconButton,
+  createListCollection
 } from "@chakra-ui/react"
 import { useState, useMemo } from 'react';
 import { TypographyVisualizer } from './visualizers/TypographyVisualizer';
@@ -9,9 +10,16 @@ import { useGlobalTokens } from '../hooks/useGlobalTokens';
 import { groupTokensByFile } from '../utils/token-grouping';
 import { CategoryAccordion } from './explorer/CategoryAccordion';
 import { ToCOutline } from './explorer/ToCOutline';
-import { SettingsDrawer } from './explorer/SettingsDrawer';
+import { SettingsModal } from './explorer/SettingsModal';
 import { LuSearch, LuChevronDown, LuChevronUp, LuSettings } from "react-icons/lu";
 import { Button } from "./ui/button";
+import {
+  SelectContent,
+  SelectItem,
+  SelectRoot,
+  SelectTrigger,
+  SelectValueText,
+} from "./ui/select";
 
 interface Manifest {
   projects: {
@@ -54,6 +62,16 @@ export const TokenViewer = ({
   const expandAll = () => setOpenItems(categories.map(c => c.id));
   const collapseAll = () => setOpenItems([]);
 
+  // Create collection for Chakra Select
+  const projectCollection = useMemo(() => {
+    return createListCollection({
+      items: Object.keys(manifest?.projects || {}).map(key => ({
+        label: key,
+        value: key
+      }))
+    });
+  }, [manifest]);
+
   if (loading) return <Center h="100vh"><Spinner size="xl" /></Center>;
 
   return (
@@ -71,20 +89,28 @@ export const TokenViewer = ({
           <Button colorScheme="blue" size="sm" borderRadius="full" onClick={onEnterStudio}>
             Open Design Studio 🚀
           </Button>
+          
           <Box w="250px">
             <Text fontSize="10px" mb={1} fontWeight="bold" color="gray.400" textTransform="uppercase">Project Target</Text>
-            <select 
-              value={selectedProject} 
-              onChange={(e) => onProjectChange(e.target.value)}
-              style={{ 
-                width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #E2E8F0', backgroundColor: 'white', fontSize: '14px'
-              }}
+            <SelectRoot 
+              collection={projectCollection} 
+              size="sm"
+              value={[selectedProject]}
+              onValueChange={(e) => onProjectChange(e.value[0])}
             >
-              {manifest && Object.keys(manifest.projects).map(key => (
-                <option key={key} value={key}>{key}</option>
-              ))}
-            </select>
+              <SelectTrigger>
+                <SelectValueText placeholder="Select Project" />
+              </SelectTrigger>
+              <SelectContent zIndex={2001}>
+                {projectCollection.items.map((item) => (
+                  <SelectItem item={item} key={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </SelectRoot>
           </Box>
+
           <Button 
             colorScheme="red" 
             variant="outline" 
@@ -105,7 +131,7 @@ export const TokenViewer = ({
         </HStack>
       </Box>
 
-      <SettingsDrawer open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
+      <SettingsModal open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
 
       <Tabs.Root defaultValue="global" variant="enclosed" bg="white" p={6} borderRadius="xl" boxShadow="sm">
         <Tabs.List>
