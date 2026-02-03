@@ -40,7 +40,6 @@ export const IdeMenuButton = ({ filename }: IdeMenuButtonProps) => {
               color="blue.500"
               _hover={{ bg: "blue.50" }}
               borderLeftRadius={0}
-              ml="-1px"
               borderLeft="1px solid"
               borderColor="blue.100"
             >

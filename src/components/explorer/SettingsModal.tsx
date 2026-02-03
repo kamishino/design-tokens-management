@@ -65,6 +65,7 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
                 size="sm"
                 value={[settings.preferredIde]}
                 onValueChange={(e) => updateSettings({ preferredIde: e.value[0] })}
+                positioning={{ strategy: "fixed" }}
               >
                 <SelectTrigger>
                   <SelectValueText placeholder="Select IDE" />

@@ -78,6 +78,7 @@ export const DocsPortal = ({ manifest, onExit }: DocsPortalProps) => {
               size="sm"
               value={[selectedProject]}
               onValueChange={(e) => setSelectedProject(e.value[0])}
+              positioning={{ strategy: "fixed" }}
             >
               <SelectTrigger>
                 <SelectValueText placeholder="Select Project" />

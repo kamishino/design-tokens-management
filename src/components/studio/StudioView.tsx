@@ -48,6 +48,7 @@ export const StudioView = ({ onExit, onOpenDocs }: StudioViewProps) => {
                 size="sm"
                 value={[template]}
                 onValueChange={(e) => setTemplate(e.value[0])}
+                positioning={{ strategy: "fixed" }}
               >
                 <SelectTrigger>
                   <SelectValueText placeholder="Select Template" />
