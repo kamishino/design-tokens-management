@@ -17,13 +17,14 @@ export const ToCOutline = ({ categories }: ToCOutlineProps) => {
   return (
     <Box 
       position="sticky" 
-      top="100px" 
+      top="88px" 
       w="full" 
       p={4} 
       borderWidth="1px" 
       borderRadius="lg" 
       bg="white"
       display={{ base: 'none', lg: 'block' }}
+      boxShadow="sm"
     >
       <Text fontSize="xs" fontWeight="bold" color="gray.400" textTransform="uppercase" mb={4} letterSpacing="widest">
         File Outline

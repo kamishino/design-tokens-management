@@ -32,6 +32,7 @@ export const CategoryAccordion = ({ categories, value, onValueChange }: Category
           borderRadius="md"
           mb={4}
           bg="white"
+          scrollMarginTop="90px"
         >
           <AccordionItemTrigger px={6} py={4}>
             <HStack justify="space-between" flex={1} pr={4}>
