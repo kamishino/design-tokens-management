@@ -56,6 +56,11 @@ const CategoryAccordionItem = ({ category }: { category: FileCategory }) => {
           opacity={isHovered ? 1 : 0}
           visibility={isHovered ? "visible" : "hidden"}
           transition="all 0.2s ease-in-out"
+          height="24px"
+          width="24px"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
         >
           <IdeMenuButton filename={category.id} />
         </Box>

@@ -9,6 +9,11 @@
 
 _This section highlights the business value extracted from completed tasks._
 
+- ✅ **2026-02-03 Task 038:** fix-menu-positioning-context - Enforced local stacking context for IDE menu to ensure precise absolute positioning relative to the trigger.
+- ✅ **2026-02-03 Task 037:** fix-menu-position-absolute - Switched IDE menu to absolute positioning to fix scroll tracking issues.
+- ✅ **2026-02-03 Task 036:** fix-ide-menu-height-shift - Eliminated layout shift by enforcing strict dimensions on the menu trigger wrapper.
+- ✅ **2026-02-03 Task 035:** fix-portal-positioning-ide-menu - Fixed ghost rendering by using the framework's native portal logic instead of manual wrapping.
+- ✅ **2026-02-03 Task 034:** fix-ide-menu-scroll-visibility - Ensured menu remains visible during scroll by leveraging Portals to escape container clipping.
 - ✅ **2026-02-03 Task 033:** fix-chevron-click-toggle - Restored accordion toggling via chevron click by implementing a multi-trigger pattern.
 - ✅ **2026-02-03 Task 032:** fix-custom-chevron-rotation - Fixed static chevron issue by manually applying rotation props to the raw AccordionItemIndicator.
 - ✅ **2026-02-03 Task 031:** fix-dom-nesting-ide-menu - Resolved hydration errors by refactoring accordion headers to use valid DOM sibling layout for interactive buttons.
