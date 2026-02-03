@@ -25,7 +25,7 @@ export const TokenTable = ({ tokens }: { tokens: TokenDoc[] }) => {
       <Table.Root size="sm" tableLayout="fixed">
         <Table.Header bg="gray.50">
           <Table.Row>
-            <Table.ColumnHeader w="60px">Swatch</Table.ColumnHeader>
+            <Table.ColumnHeader w="80px">Swatch</Table.ColumnHeader>
             <Table.ColumnHeader w="30%">Token Name</Table.ColumnHeader>
             <Table.ColumnHeader w="20%">Value</Table.ColumnHeader>
             <Table.ColumnHeader>Usage</Table.ColumnHeader>

@@ -40,13 +40,25 @@ export const CategoryAccordion = ({ categories, value, onValueChange }: Category
             cursor="pointer" 
             _hover={{ bg: "gray.50" }}
             transition="background 0.2s"
+            position="relative"
+            role="group"
           >
-            <AccordionItemTrigger px={6} py={4} flex={1}>
+            <AccordionItemTrigger px={6} py={4} flex={1} pr="120px">
               <Heading size="sm">
                 {category.title} ({category.totalCount})
               </Heading>
             </AccordionItemTrigger>
-            <Box px={6}>
+            <Box 
+              position="absolute" 
+              right={6} 
+              top="50%" 
+              transform="translateY(-50%)" 
+              zIndex={2}
+              opacity={0}
+              visibility="hidden"
+              _groupHover={{ opacity: 1, visibility: "visible" }}
+              transition="all 0.2s ease-in-out"
+            >
               <IdeMenuButton filename={category.id} />
             </Box>
           </HStack>
