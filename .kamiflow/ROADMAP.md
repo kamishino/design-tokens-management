@@ -9,7 +9,9 @@
 
 _This section highlights the business value extracted from completed tasks._
 
-- ✅ **2026-02-03 Task 038:** fix-menu-positioning-context - Enforced local stacking context for IDE menu to ensure precise absolute positioning relative to the trigger.
+- ✅ **2026-02-03 Task 041:** fix-reference-error-token-viewer - Resolved a critical runtime crash by correctly mapping accordion state variables.
+- ✅ **2026-02-03 Task 039:** fix-toc-sticky-scroll - Restored ToC utility by fixing sticky behavior and scroll-to-anchor targeting.
+- ✅ **2026-02-03 Task 038:** fix-menu-positioning-context - Enforced local stacking context for IDE menu.
 - ✅ **2026-02-03 Task 037:** fix-menu-position-absolute - Switched IDE menu to absolute positioning to fix scroll tracking issues.
 - ✅ **2026-02-03 Task 036:** fix-ide-menu-height-shift - Eliminated layout shift by enforcing strict dimensions on the menu trigger wrapper.
 - ✅ **2026-02-03 Task 035:** fix-portal-positioning-ide-menu - Fixed ghost rendering by using the framework's native portal logic instead of manual wrapping.

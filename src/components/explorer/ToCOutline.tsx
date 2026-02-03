@@ -7,10 +7,10 @@ interface ToCOutlineProps {
 
 export const ToCOutline = ({ categories }: ToCOutlineProps) => {
   const scrollTo = (id: string) => {
-    // Escape ID for query selector if needed, but here we used replace in CategoryAccordion
-    const el = document.getElementById(`category-${id.replace('.', '-')}`);
+    // Escape ID matching the logic in CategoryAccordion (replace all dots)
+    const el = document.getElementById(`category-${id.replace(/\./g, '-')}`);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 

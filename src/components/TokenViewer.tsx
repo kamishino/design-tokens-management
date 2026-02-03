@@ -192,18 +192,18 @@ export const TokenViewer = ({
                 </HStack>
               </HStack>
 
-              <HStack align="start" gap={10}>
-                <Box flex={1}>
-                  <CategoryAccordion 
-                    categories={categories} 
-                    value={openItems} 
-                    onValueChange={setOpenItems} 
-                  />
-                </Box>
-                <Box w="200px">
-                  <ToCOutline categories={categories} />
-                </Box>
-              </HStack>
+      <HStack gap={8} align="flex-start" px={8} pb={20}>
+        <Box flex={1} minW={0}>
+          <CategoryAccordion 
+            categories={categories} 
+            value={openItems} 
+            onValueChange={setOpenItems} 
+          />
+        </Box>
+        <Box w="240px" display={{ base: 'none', lg: 'block' }}>
+          <ToCOutline categories={categories} />
+        </Box>
+      </HStack>
             </VStack>
           </Tabs.Content>
 

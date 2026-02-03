@@ -23,20 +23,19 @@ interface CategoryAccordionProps {
  */
 const CategoryAccordionItem = ({ category }: { category: FileCategory }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const scrollId = `category-${category.id.replace(/\./g, '-')}`;
 
   return (
-    <AccordionItem 
-      key={category.id} 
-      value={category.id} 
-      id={`category-${category.id.replace('.', '-')}`}
-      borderWidth="1px"
-      borderRadius="md"
-      mb={4}
-      bg="white"
-      scrollMarginTop="90px"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <Box id={scrollId} scrollMarginTop="120px" width="full" mb={4}>
+      <AccordionItem 
+        key={category.id} 
+        value={category.id} 
+        borderWidth="1px"
+        borderRadius="md"
+        bg="white"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
       <HStack 
         px={6} 
         py={4} 
@@ -102,6 +101,7 @@ const CategoryAccordionItem = ({ category }: { category: FileCategory }) => {
         </VStack>
       </AccordionItemContent>
     </AccordionItem>
+    </Box>
   );
 };
 
