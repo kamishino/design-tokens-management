@@ -11,9 +11,9 @@
 
 > **INTEGRATOR RULE:** Always update all 4 fields (Phase, Last Action, Focus, Next Step) during `/kamiflow:ops:sync`.
 
-- **Last Completed Action:** Refactored FloatingLab layout for better responsiveness and grouping (Task 030)
+- **Last Completed Action:** Restored chevron click toggle functionality (Task 033)
 - **Current Focus:** Distribution & Versioning
-- **Next Step:** Task 031 - Implement automated versioning and NPM distribution pipeline
+- **Next Step:** Task 034 - Implement automated versioning and NPM distribution pipeline
 
 ## 3. Knowledge Map (Directory Guide)
 
