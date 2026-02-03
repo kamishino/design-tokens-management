@@ -78,10 +78,11 @@ export const FloatingLab = ({
     <Box 
       position="fixed" bottom="8" left="50%" transform="translateX(-50%)" 
       zIndex={1000} bg="rgba(255, 255, 255, 0.9)" backdropFilter="blur(15px)"
-      p={2} borderRadius="full" boxShadow="2xl" border="1px solid" borderColor="gray.200"
-      w="auto" minW="850px"
+      p={2} px={6} borderRadius="full" boxShadow="2xl" border="1px solid" borderColor="gray.200"
+      w="fit-content" maxW="95vw"
     >
-      <HStack gap={4} px={3} h="52px">
+      <HStack gap={4} h="52px">
+        {/* GROUP 1: HISTORY */}
         <HStack gap={1} bg="gray.50" p={1} borderRadius="full">
           <Button size="xs" variant="ghost" onClick={undo} disabled={!canUndo} title="Undo (Ctrl+Z)" borderRadius="full">↺</Button>
           <Button size="xs" variant="ghost" onClick={redo} disabled={!canRedo} title="Redo (Ctrl+Y)" borderRadius="full">↻</Button>
@@ -89,6 +90,7 @@ export const FloatingLab = ({
 
         <Box w="1px" h="24px" bg="gray.200" />
 
+        {/* GROUP 2: COLORS */}
         <HStack gap={4}>
           {SEMANTIC_CHANNELS.map(channel => (
             <Popover.Root key={channel.id} positioning={{ placement: 'top', gutter: 12 }} lazyMount unmountOnExit>
@@ -131,28 +133,13 @@ export const FloatingLab = ({
 
         <Box w="1px" h="24px" bg="gray.200" />
 
+        {/* GROUP 3: TYPOGRAPHY (Scale + Font) */}
         <HStack gap={4}>
           <TypeScaleSelector 
             activeRatio={Number(overrides['--typographyConfigScaleRatio']) || 1.25}
             onSelect={(val) => updateOverride({ '--typographyConfigScaleRatio': val }, 'Changed Type Scale')}
           />
-
-          <VStack align="start" gap={0}>
-            <Text fontSize="8px" fontWeight="bold" color="gray.400" textTransform="uppercase">Main Contrast</Text>
-            <HStack gap={1}>
-              <Badge colorScheme={mainContrast.isAccessible ? "green" : "red"} size="sm" borderRadius="sm">
-                {mainContrast.wcag.toFixed(1)}:1
-              </Badge>
-              <Badge variant="outline" colorScheme="blue" size="sm" borderRadius="sm">
-                Lc {mainContrast.apca}
-              </Badge>
-            </HStack>
-          </VStack>
-        </HStack>
-
-        <Box flex={1} />
-
-        <HStack gap={2}>
+          
           <Popover.Root positioning={{ placement: 'top', gutter: 12 }} lazyMount unmountOnExit>
             <Popover.Trigger asChild>
               <Button size="xs" variant="outline" borderRadius="full">Font</Button>
@@ -168,15 +155,33 @@ export const FloatingLab = ({
               </Popover.Positioner>
             </Portal>
           </Popover.Root>
-
-          <Button 
-            colorScheme="blue" size="sm" borderRadius="full" px={6}
-            onClick={handleApply}
-            boxShadow="0 4px 14px 0 rgba(0,118,255,0.39)"
-          >
-            Apply
-          </Button>
         </HStack>
+
+        <Box w="1px" h="24px" bg="gray.200" />
+
+        {/* GROUP 4: VALIDATION */}
+        <VStack align="start" gap={0}>
+          <Text fontSize="8px" fontWeight="bold" color="gray.400" textTransform="uppercase">Main Contrast</Text>
+          <HStack gap={1}>
+            <Badge colorScheme={mainContrast.isAccessible ? "green" : "red"} size="sm" borderRadius="sm">
+              {mainContrast.wcag.toFixed(1)}:1
+            </Badge>
+            <Badge variant="outline" colorScheme="blue" size="sm" borderRadius="sm">
+              Lc {mainContrast.apca}
+            </Badge>
+          </HStack>
+        </VStack>
+
+        <Box flex={1} minW={4} />
+
+        {/* GROUP 5: ACTIONS */}
+        <Button 
+          colorScheme="blue" size="sm" borderRadius="full" px={6}
+          onClick={handleApply}
+          boxShadow="0 4px 14px 0 rgba(0,118,255,0.39)"
+        >
+          Apply
+        </Button>
       </HStack>
     </Box>
   );
