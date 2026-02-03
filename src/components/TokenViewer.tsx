@@ -13,10 +13,10 @@ import { ToCOutline } from './explorer/ToCOutline';
 import { SettingsModal } from './explorer/SettingsModal';
 import { LuSearch, LuChevronDown, LuChevronUp, LuSettings } from "react-icons/lu";
 import { Button } from "./ui/button";
+import { AppSelectRoot } from "./ui/AppSelect";
 import {
   SelectContent,
   SelectItem,
-  SelectRoot,
   SelectTrigger,
   SelectValueText,
 } from "./ui/select";
@@ -96,12 +96,12 @@ export const TokenViewer = ({
           <HStack gap={3} bg="gray.50" px={3} py={1.5} borderRadius="lg" border="1px solid" borderColor="gray.100">
             <Text fontSize="9px" fontWeight="bold" color="gray.400" textTransform="uppercase" letterSpacing="widest">Target:</Text>
             <Box w="160px">
-              <SelectRoot 
+              <AppSelectRoot 
                 collection={projectCollection} 
                 size="sm"
                 value={[selectedProject]}
                 onValueChange={(e) => onProjectChange(e.value[0])}
-                positioning={{ sameWidth: true, strategy: "fixed" }}
+                positioning={{ sameWidth: true }}
                 variant="ghost"
               >
                 <SelectTrigger px={0}>
@@ -114,7 +114,7 @@ export const TokenViewer = ({
                     </SelectItem>
                   ))}
                 </SelectContent>
-              </SelectRoot>
+              </AppSelectRoot>
             </Box>
           </HStack>
 

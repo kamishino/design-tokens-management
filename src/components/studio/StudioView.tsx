@@ -5,10 +5,10 @@ import {
 import { useState } from 'react';
 import { LandingPage } from './templates/LandingPage';
 import { Dashboard } from './templates/Dashboard';
+import { AppSelectRoot } from "../ui/AppSelect";
 import {
   SelectContent,
   SelectItem,
-  SelectRoot,
   SelectTrigger,
   SelectValueText,
 } from "../ui/select";
@@ -43,12 +43,11 @@ export const StudioView = ({ onExit, onOpenDocs }: StudioViewProps) => {
           <HStack gap={2}>
             <Text fontSize="xs" fontWeight="bold" color="gray.500">Template:</Text>
             <Box w="200px">
-              <SelectRoot 
+              <AppSelectRoot 
                 collection={templates} 
                 size="sm"
                 value={[template]}
                 onValueChange={(e) => setTemplate(e.value[0])}
-                positioning={{ strategy: "fixed" }}
               >
                 <SelectTrigger>
                   <SelectValueText placeholder="Select Template" />
@@ -60,7 +59,7 @@ export const StudioView = ({ onExit, onOpenDocs }: StudioViewProps) => {
                     </SelectItem>
                   ))}
                 </SelectContent>
-              </SelectRoot>
+              </AppSelectRoot>
             </Box>
           </HStack>
         </HStack>

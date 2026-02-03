@@ -38,6 +38,7 @@ export const FontExplorer = ({ onSelect, currentFamily }: FontExplorerProps) => 
         size="sm" 
         value={search} 
         onChange={(e) => setSearch(e.target.value)} 
+        bg="gray.50"
       />
 
       <Input 
@@ -45,6 +46,7 @@ export const FontExplorer = ({ onSelect, currentFamily }: FontExplorerProps) => 
         size="sm" 
         value={previewText} 
         onChange={(e) => setPreviewText(e.target.value)} 
+        bg="gray.50"
       />
 
       <Box overflowY="auto" flex={1}>

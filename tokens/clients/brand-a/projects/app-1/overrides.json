@@ -1,5 +1,23 @@
 {
   "brand": {
-    "primary": { "$value": "{color.red.500}", "$type": "color" }
+    "primary": {},
+    "secondary": {},
+    "accent": {}
+  },
+  "text": {
+    "primary": {}
+  },
+  "bg": {
+    "canvas": {}
+  },
+  "fontFamily": {
+    "base": {}
+  },
+  "typography": {
+    "config": {
+      "scaleRatio": {
+        "$value": 1.25
+      }
+    }
   }
 }

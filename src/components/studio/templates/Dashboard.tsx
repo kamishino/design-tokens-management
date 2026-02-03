@@ -1,4 +1,4 @@
-import { Box, SimpleGrid, VStack, HStack, Text, Heading, Button } from "@chakra-ui/react";
+import { Box, SimpleGrid, VStack, HStack, Text, Heading, Button, Badge } from "@chakra-ui/react";
 
 export const Dashboard = () => {
   return (
@@ -63,7 +63,7 @@ export const Dashboard = () => {
                       <Text fontSize="xs" color="gray.500">2 hours ago by Kami</Text>
                     </VStack>
                   </HStack>
-                  <Badge colorScheme="blue">v0.1.0</Badge>
+                  <Badge colorScheme="blue" variant="subtle" fontSize="10px">v0.1.0</Badge>
                 </HStack>
               ))}
             </VStack>
@@ -73,9 +73,3 @@ export const Dashboard = () => {
     </Box>
   );
 };
-
-const Badge = ({ children, colorScheme }: any) => (
-  <Box bg={`${colorScheme}.50`} color={`${colorScheme}.600`} px={2} borderRadius="sm" fontSize="10px" fontWeight="bold">
-    {children}
-  </Box>
-);

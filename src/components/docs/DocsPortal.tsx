@@ -8,10 +8,10 @@ import { TokenTable } from './TokenTable';
 import { MarkdownView } from './MarkdownView';
 import { parseTokensToDocs } from '../../utils/token-parser';
 import { generateDocNav } from '../../utils/doc-nav';
+import { AppSelectRoot } from "../ui/AppSelect";
 import {
   SelectContent,
   SelectItem,
-  SelectRoot,
   SelectTrigger,
   SelectValueText,
 } from "../ui/select";
@@ -73,12 +73,11 @@ export const DocsPortal = ({ manifest, onExit }: DocsPortalProps) => {
           <Heading size="md" color="blue.600">Documentation</Heading>
           <Box w="1px" h="20px" bg="gray.200" />
           <Box w="200px">
-            <SelectRoot 
+            <AppSelectRoot 
               collection={projectCollection} 
               size="sm"
               value={[selectedProject]}
               onValueChange={(e) => setSelectedProject(e.value[0])}
-              positioning={{ strategy: "fixed" }}
             >
               <SelectTrigger>
                 <SelectValueText placeholder="Select Project" />
@@ -90,7 +89,7 @@ export const DocsPortal = ({ manifest, onExit }: DocsPortalProps) => {
                   </SelectItem>
                 ))}
               </SelectContent>
-            </SelectRoot>
+            </AppSelectRoot>
           </Box>
         </HStack>
         <Button size="xs" variant="outline" onClick={onExit}>Back to Studio</Button>

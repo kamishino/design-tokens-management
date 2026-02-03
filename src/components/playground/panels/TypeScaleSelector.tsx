@@ -1,10 +1,10 @@
 import { Text, VStack, createListCollection, Box } from "@chakra-ui/react";
 import scaleData from '../../../../tokens/global/base/scale.json';
 import { useMemo } from 'react';
+import { AppSelectRoot } from "../../ui/AppSelect";
 import {
   SelectContent,
   SelectItem,
-  SelectRoot,
   SelectTrigger,
   SelectValueText,
 } from "../../ui/select";
@@ -28,13 +28,12 @@ export const TypeScaleSelector = ({ activeRatio, onSelect }: TypeScaleSelectorPr
     <VStack align="start" gap={0}>
       <Text fontSize="8px" fontWeight="bold" color="gray.400" textTransform="uppercase">Type Scale</Text>
       <Box w="140px">
-        <SelectRoot 
+        <AppSelectRoot 
           collection={collection} 
           size="xs"
           value={[activeRatio.toString()]}
           onValueChange={(e) => onSelect(parseFloat(e.value[0]))}
           variant="ghost"
-          positioning={{ strategy: "fixed" }}
         >
           <SelectTrigger px={0}>
             <SelectValueText placeholder="Select Scale" fontSize="12px" fontWeight="bold" />
@@ -46,7 +45,7 @@ export const TypeScaleSelector = ({ activeRatio, onSelect }: TypeScaleSelectorPr
               </SelectItem>
             ))}
           </SelectContent>
-        </SelectRoot>
+        </AppSelectRoot>
       </Box>
     </VStack>
   );

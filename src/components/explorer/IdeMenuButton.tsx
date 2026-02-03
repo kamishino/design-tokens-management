@@ -1,17 +1,18 @@
 import { 
-  MenuRoot, MenuTrigger, MenuContent, MenuItem,
+  MenuTrigger, MenuContent, MenuItem,
   IconButton, Link, Box
 } from "@chakra-ui/react";
 import { LuCode, LuChevronDown } from "react-icons/lu";
 import { SUPPORTED_IDES, useAppSettings } from "../../hooks/useAppSettings";
+import { AppMenuRoot } from "../ui/AppMenu";
 
 interface IdeMenuButtonProps {
   filename: string;
 }
 
 /**
- * Optimized IDE Menu Button with stable layout.
- * Uses a single border-boxed container to prevent layout shifts when opening the menu.
+ * Optimized IDE Menu Button with a "Frozen" Grid layout.
+ * Uses a fixed grid to ensure opening the menu content has 0.0px impact on the trigger's size.
  */
 export const IdeMenuButton = ({ filename }: IdeMenuButtonProps) => {
   const { settings, getFullIdePath } = useAppSettings();
@@ -21,14 +22,15 @@ export const IdeMenuButton = ({ filename }: IdeMenuButtonProps) => {
   return (
     <Box 
       onClick={(e) => e.stopPropagation()}
-      display="inline-flex"
+      display="inline-grid"
+      gridTemplateColumns="28px 1px 24px" // Strictly defined columns
       alignItems="stretch"
       borderRadius="md"
       border="1px solid"
       borderColor="blue.100"
       bg="white"
       overflow="hidden"
-      h="24px" // Fixed height for total stability
+      h="24px"
     >
       {/* Primary Action Button */}
       <Link 
@@ -54,7 +56,7 @@ export const IdeMenuButton = ({ filename }: IdeMenuButtonProps) => {
       <Box w="1px" bg="blue.100" />
 
       {/* Menu Trigger */}
-      <MenuRoot positioning={{ placement: "bottom-end", strategy: "fixed" }}>
+      <AppMenuRoot positioning={{ placement: "bottom-end" }}>
         <MenuTrigger asChild>
           <IconButton 
             size="xs" 
@@ -62,13 +64,17 @@ export const IdeMenuButton = ({ filename }: IdeMenuButtonProps) => {
             color="blue.500"
             _hover={{ bg: "blue.50" }}
             borderRadius={0}
-            w="20px"
+            w="24px"
             h="full"
           >
             <LuChevronDown />
           </IconButton>
         </MenuTrigger>
-        <MenuContent minW="180px" zIndex={2100}>
+        <MenuContent 
+          minW="180px" 
+          zIndex={2100}
+          css={{ position: "fixed !important" }} // Force fixed position to bypass local context
+        >
           {SUPPORTED_IDES.map((ide) => (
             <MenuItem 
               key={ide.id} 
@@ -82,7 +88,7 @@ export const IdeMenuButton = ({ filename }: IdeMenuButtonProps) => {
             </MenuItem>
           ))}
         </MenuContent>
-      </MenuRoot>
+      </AppMenuRoot>
     </Box>
   );
 };

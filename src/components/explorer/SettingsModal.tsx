@@ -9,10 +9,10 @@ import {
   DialogTitle, 
   DialogCloseTrigger 
 } from "../ui/dialog";
+import { AppSelectRoot } from "../ui/AppSelect";
 import {
   SelectContent,
   SelectItem,
-  SelectRoot,
   SelectTrigger,
   SelectValueText,
 } from "../ui/select";
@@ -60,12 +60,11 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
 
             <Field.Root>
               <Field.Label fontSize="xs" fontWeight="bold" color="gray.500">DEFAULT IDE</Field.Label>
-              <SelectRoot 
+              <AppSelectRoot 
                 collection={ideCollection} 
                 size="sm"
                 value={[settings.preferredIde]}
                 onValueChange={(e) => updateSettings({ preferredIde: e.value[0] })}
-                positioning={{ strategy: "fixed" }}
               >
                 <SelectTrigger>
                   <SelectValueText placeholder="Select IDE" />
@@ -77,7 +76,7 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
                     </SelectItem>
                   ))}
                 </SelectContent>
-              </SelectRoot>
+              </AppSelectRoot>
               <Field.HelperText fontSize="10px">
                 Default editor for "Jump to Code" actions.
               </Field.HelperText>
