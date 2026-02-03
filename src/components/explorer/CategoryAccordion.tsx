@@ -34,14 +34,22 @@ export const CategoryAccordion = ({ categories, value, onValueChange }: Category
           bg="white"
           scrollMarginTop="90px"
         >
-          <AccordionItemTrigger px={6} py={4}>
-            <HStack justify="space-between" flex={1} pr={4}>
+          <HStack 
+            justify="space-between" 
+            align="center" 
+            cursor="pointer" 
+            _hover={{ bg: "gray.50" }}
+            transition="background 0.2s"
+          >
+            <AccordionItemTrigger px={6} py={4} flex={1}>
               <Heading size="sm">
                 {category.title} ({category.totalCount})
               </Heading>
+            </AccordionItemTrigger>
+            <Box px={6}>
               <IdeMenuButton filename={category.id} />
-            </HStack>
-          </AccordionItemTrigger>
+            </Box>
+          </HStack>
           <AccordionItemContent px={6} pb={6}>
             <VStack align="stretch" gap={8} pt={4}>
               {category.subCategories.length > 0 ? (

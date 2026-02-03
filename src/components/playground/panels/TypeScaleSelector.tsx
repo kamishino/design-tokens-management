@@ -40,7 +40,7 @@ export const TypeScaleSelector = ({ activeRatio, onSelect }: TypeScaleSelectorPr
           </SelectTrigger>
           <SelectContent zIndex={2100}>
             {collection.items.map((item) => (
-              <SelectItem item={item} key={item.value}>
+              <SelectItem item={item} key={item.label}>
                 {item.label}
               </SelectItem>
             ))}
