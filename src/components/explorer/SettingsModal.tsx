@@ -1,5 +1,5 @@
 import { 
-  VStack, Text, Input, Field, Box
+  VStack, Text, Input, Field, Box, createListCollection
 } from "@chakra-ui/react";
 import { 
   DialogRoot, 
@@ -9,8 +9,15 @@ import {
   DialogTitle, 
   DialogCloseTrigger 
 } from "../ui/dialog";
-import { NativeSelectRoot, NativeSelectField } from "../ui/native-select";
+import {
+  SelectContent,
+  SelectItem,
+  SelectRoot,
+  SelectTrigger,
+  SelectValueText,
+} from "../ui/select";
 import { SUPPORTED_IDES, useAppSettings } from "../../hooks/useAppSettings";
+import { useMemo } from "react";
 
 interface SettingsModalProps {
   open: boolean;
@@ -19,6 +26,15 @@ interface SettingsModalProps {
 
 export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
   const { settings, updateSettings } = useAppSettings();
+
+  const ideCollection = useMemo(() => {
+    return createListCollection({
+      items: SUPPORTED_IDES.map(ide => ({
+        label: ide.name,
+        value: ide.id
+      }))
+    });
+  }, []);
 
   return (
     <DialogRoot lazyMount open={open} onOpenChange={(e) => onOpenChange(e.open)} size="lg" placement="center">
@@ -44,18 +60,23 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
 
             <Field.Root>
               <Field.Label fontSize="xs" fontWeight="bold" color="gray.500">DEFAULT IDE</Field.Label>
-              <NativeSelectRoot size="sm">
-                <NativeSelectField
-                  value={settings.preferredIde}
-                  onChange={(e) => updateSettings({ preferredIde: e.target.value })}
-                >
-                  {SUPPORTED_IDES.map((ide) => (
-                    <option key={ide.id} value={ide.id}>
-                      {ide.name}
-                    </option>
+              <SelectRoot 
+                collection={ideCollection} 
+                size="sm"
+                value={[settings.preferredIde]}
+                onValueChange={(e) => updateSettings({ preferredIde: e.value[0] })}
+              >
+                <SelectTrigger>
+                  <SelectValueText placeholder="Select IDE" />
+                </SelectTrigger>
+                <SelectContent zIndex={2100}>
+                  {ideCollection.items.map((item) => (
+                    <SelectItem item={item} key={item.value}>
+                      {item.label}
+                    </SelectItem>
                   ))}
-                </NativeSelectField>
-              </NativeSelectRoot>
+                </SelectContent>
+              </SelectRoot>
               <Field.HelperText fontSize="10px">
                 Default editor for "Jump to Code" actions.
               </Field.HelperText>

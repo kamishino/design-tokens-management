@@ -11,9 +11,9 @@
 
 > **INTEGRATOR RULE:** Always update all 4 fields (Phase, Last Action, Focus, Next Step) during `/kamiflow:ops:sync`.
 
-- **Last Completed Action:** Implemented Task 018 (Universal IDE Bridge & Settings)
+- **Last Completed Action:** Implemented Task 020 (UI Standardization & Floating Overlays)
 - **Current Focus:** Distribution & Versioning
-- **Next Step:** Task 019 - Implement automated versioning and NPM distribution pipeline
+- **Next Step:** Task 021 - Implement automated versioning and NPM distribution pipeline
 
 ## 3. Knowledge Map (Directory Guide)
 

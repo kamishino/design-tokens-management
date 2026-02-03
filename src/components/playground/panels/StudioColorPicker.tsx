@@ -1,7 +1,7 @@
 import { HexColorPicker } from "react-colorful";
 import { 
   Box, VStack, HStack, Text,
-  Heading, Badge, SimpleGrid, Tabs
+  Heading, Badge, SimpleGrid, Tabs, Input
 } from "@chakra-ui/react";
 import { useState, useEffect, useMemo, memo } from 'react';
 import { 
@@ -10,6 +10,7 @@ import {
 } from '../../../utils/colors';
 import { useColorWorker } from '../../../hooks/useColorWorker';
 import baseColors from '../../../../tokens/global/base/colors.json';
+import { Slider } from "../../ui/slider";
 
 interface StudioColorPickerProps {
   color: string;
@@ -89,7 +90,12 @@ export const StudioColorPicker = memo(({ color, onChange, label }: StudioColorPi
               {coords?.oklch && (
                 <VStack gap={2} align="stretch">
                   <HStack justify="space-between"><Text fontSize="2xs" fontWeight="bold">LIGHTNESS</Text><Text fontSize="2xs">{Math.round(coords.oklch.l * 100)}%</Text></HStack>
-                  <input type="range" min="0" max="1" step="0.01" value={coords.oklch.l} onChange={() => {}} style={{ width: '100%' }} disabled />
+                  <Slider 
+                    min={0} max={1} step={0.01} 
+                    value={[coords.oklch.l]} 
+                    disabled 
+                    size="sm"
+                  />
                   <Text fontSize="8px" color="gray.400">Optimized background processing active</Text>
                 </VStack>
               )}
@@ -98,11 +104,11 @@ export const StudioColorPicker = memo(({ color, onChange, label }: StudioColorPi
 
           <Tabs.Content value="swatches">
             <VStack gap={3} align="stretch">
-              <input 
+              <Input 
                 placeholder="Search base colors..." 
                 value={search} 
                 onChange={(e) => setSearch(e.target.value)} 
-                style={{ fontSize: '12px', padding: '4px 8px', border: '1px solid #E2E8F0', borderRadius: '4px' }}
+                size="xs"
               />
               <Box maxH="180px" overflowY="auto">
                 <SimpleGrid columns={5} gap={2}>

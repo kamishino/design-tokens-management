@@ -10,6 +10,8 @@
 _This section highlights the business value extracted from completed tasks._
 
 - 🚀 **2026-02-02 Release v0.2.0:** The "Design Studio" Release - High-performance interactive playground with Oklch, APCA, and full-page templates.
+- ✅ **2026-02-03 Task 020:** floating-overlays-standardization - Standardized all UI inputs/selects with Chakra v3 and optimized overlay positioning for a shift-free experience.
+- ✅ **2026-02-03 Task 019:** ui-polish-stabilization - Fixed event bubbling in Explorer, transitioned Settings to a centered Modal, and upgraded all native selects to Chakra UI v3 components.
 - ✅ **2026-02-03 Task 018:** universal-ide-bridge - Launched a multi-IDE bridge supporting Windsurf, VS Code, and Cursor with automated path detection and a local Settings drawer.
 - ✅ **2026-02-03 Task 017:** file-first-token-organization - Reorganized Global Explorer to match physical file structure and integrated VS Code deep links for instant editing.
 - ✅ **2026-02-03 Task 016:** deep-hierarchical-grouping - Implemented a 3-level token hierarchy (Category > Sub-category > Table) with accurate mapping and visual separators.
