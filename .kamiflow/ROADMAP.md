@@ -9,7 +9,9 @@
 
 _This section highlights the business value extracted from completed tasks._
 
-- ✅ **2026-02-03 Task 030:** floating-lab-layout-optimization - Refactored FloatingLab to use a responsive layout with semantic grouping for History, Colors, Typography, and Actions.
+- ✅ **2026-02-03 Task 033:** fix-chevron-click-toggle - Restored accordion toggling via chevron click by implementing a multi-trigger pattern.
+- ✅ **2026-02-03 Task 032:** fix-custom-chevron-rotation - Fixed static chevron issue by manually applying rotation props to the raw AccordionItemIndicator.
+- ✅ **2026-02-03 Task 031:** fix-dom-nesting-ide-menu - Resolved hydration errors by refactoring accordion headers to use valid DOM sibling layout for interactive buttons.
 - ✅ **2026-02-03 Task 029:** ui-refinement-ide-menu-layout - Simplified IDE menu to a minimalist '...' icon (LuEllipsis) and fixed layout alignment by integrating it into the document flow.
 - 🚀 **2026-02-02 Release v0.2.0:** The "Design Studio" Release - High-performance interactive playground with Oklch, APCA, and full-page templates.
 - ✅ **2026-02-03 Task 023:** token-explorer-ui-alignment - Enforced uniform column widths across all tables and optimized sticky outline navigation with precise scroll offsets.

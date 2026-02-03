@@ -1,10 +1,11 @@
-import { Box, Heading, Text, VStack, HStack } from "@chakra-ui/react";
+import { Box, Heading, Text, VStack, HStack, Accordion } from "@chakra-ui/react";
 import { 
   AccordionRoot, 
   AccordionItem, 
-  AccordionItemTrigger, 
-  AccordionItemContent 
+  AccordionItemContent,
+  AccordionItemIndicator
 } from "../ui/accordion";
+import { LuChevronDown } from "react-icons/lu";
 import type { FileCategory } from "../../utils/token-grouping";
 import { TokenTable } from "../docs/TokenTable";
 import { IdeMenuButton } from "./IdeMenuButton";
@@ -36,27 +37,35 @@ const CategoryAccordionItem = ({ category }: { category: FileCategory }) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <AccordionItemTrigger 
+      <HStack 
         px={6} 
         py={4} 
-        _hover={{ bg: "gray.50" }}
-        transition="background 0.2s"
+        _hover={{ bg: "gray.50" }} 
+        transition="background 0.2s" 
+        cursor="pointer"
       >
-        <HStack justify="space-between" flex={1} mr={4}>
+        <Accordion.ItemTrigger 
+          style={{ all: 'unset', flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', textAlign: 'start' }}
+        >
           <Heading size="sm">
             {category.title} ({category.totalCount})
           </Heading>
-          
-          <Box 
-            onClick={(e) => e.stopPropagation()}
-            opacity={isHovered ? 1 : 0}
-            visibility={isHovered ? "visible" : "hidden"}
-            transition="all 0.2s ease-in-out"
-          >
-            <IdeMenuButton filename={category.id} />
-          </Box>
-        </HStack>
-      </AccordionItemTrigger>
+        </Accordion.ItemTrigger>
+        
+        <Box 
+          opacity={isHovered ? 1 : 0}
+          visibility={isHovered ? "visible" : "hidden"}
+          transition="all 0.2s ease-in-out"
+        >
+          <IdeMenuButton filename={category.id} />
+        </Box>
+
+        <Accordion.ItemTrigger style={{ all: 'unset', display: 'flex', cursor: 'pointer', alignItems: 'center' }}>
+          <AccordionItemIndicator rotate={{ base: "0deg", _open: "-180deg" }}>
+            <LuChevronDown />
+          </AccordionItemIndicator>
+        </Accordion.ItemTrigger>
+      </HStack>
       
       <AccordionItemContent px={6} pb={6}>
         <VStack align="stretch" gap={8} pt={4}>
