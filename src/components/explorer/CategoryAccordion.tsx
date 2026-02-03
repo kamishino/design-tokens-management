@@ -1,0 +1,78 @@
+import { Box, Heading, Text, VStack, HStack } from "@chakra-ui/react";
+import { 
+  AccordionRoot, 
+  AccordionItem, 
+  AccordionItemTrigger, 
+  AccordionItemContent 
+} from "../ui/accordion";
+import type { FileCategory } from "../../utils/token-grouping";
+import { TokenTable } from "../docs/TokenTable";
+import { IdeMenuButton } from "./IdeMenuButton";
+
+interface CategoryAccordionProps {
+  categories: FileCategory[];
+  value: string[];
+  onValueChange: (value: string[]) => void;
+}
+
+export const CategoryAccordion = ({ categories, value, onValueChange }: CategoryAccordionProps) => {
+  return (
+    <AccordionRoot 
+      multiple 
+      value={value} 
+      onValueChange={(e) => onValueChange(e.value)}
+      variant="subtle"
+    >
+      {categories.map((category) => (
+        <AccordionItem 
+          key={category.id} 
+          value={category.id} 
+          id={`category-${category.id.replace('.', '-')}`}
+          borderWidth="1px"
+          borderRadius="md"
+          mb={4}
+          bg="white"
+        >
+          <AccordionItemTrigger px={6} py={4}>
+            <HStack justify="space-between" flex={1} pr={4}>
+              <Heading size="sm">
+                {category.title} ({category.totalCount})
+              </Heading>
+              <IdeMenuButton filename={category.id} />
+            </HStack>
+          </AccordionItemTrigger>
+          <AccordionItemContent px={6} pb={6}>
+            <VStack align="stretch" gap={8} pt={4}>
+              {category.subCategories.length > 0 ? (
+                category.subCategories.map((sub) => (
+                  <Box key={sub.id}>
+                    {/* Singleton suppression logic: hide header if only 1 subcategory */}
+                    {category.subCategories.length > 1 && (
+                      <Heading 
+                        size="xs" 
+                        textTransform="uppercase" 
+                        color="gray.500" 
+                        mb={4} 
+                        pb={2} 
+                        borderBottom="1px solid" 
+                        borderColor="gray.50"
+                        letterSpacing="wider"
+                      >
+                        {sub.name}
+                      </Heading>
+                    )}
+                    <TokenTable tokens={sub.tokens} />
+                  </Box>
+                ))
+              ) : (
+                <Box py={8} textAlign="center">
+                  <Text color="gray.400" fontSize="sm">No results found in this category.</Text>
+                </Box>
+              )}
+            </VStack>
+          </AccordionItemContent>
+        </AccordionItem>
+      ))}
+    </AccordionRoot>
+  );
+};

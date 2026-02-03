@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react'
 import { Box, Spinner, Center } from "@chakra-ui/react"
 import { TokenViewer } from "./components/TokenViewer"
 import { StudioView } from "./components/studio/StudioView"
+import { DocsPortal } from "./components/docs/DocsPortal"
 import { useTokenLoader } from './hooks/useTokenLoader'
 import { usePersistentPlayground } from './hooks/usePersistentPlayground'
 import { FloatingLab } from './components/playground/FloatingLab'
+import { useGlobalTokens } from './hooks/useGlobalTokens'
 
-type ViewMode = 'explorer' | 'studio';
+type ViewMode = 'explorer' | 'studio' | 'docs';
 
 interface Manifest {
   projects: {
@@ -28,6 +30,8 @@ function App() {
   const { 
     overrides, updateOverride, undo, redo, canUndo, canRedo, resetOverrides 
   } = usePersistentPlayground();
+
+  const { globalTokens } = useGlobalTokens();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -62,7 +66,7 @@ function App() {
 
   return (
     <Box minH="100vh">
-      {viewMode === 'explorer' ? (
+      {viewMode === 'explorer' && (
         <TokenViewer 
           manifest={manifest!}
           selectedProject={selectedProject}
@@ -73,16 +77,19 @@ function App() {
           overrides={overrides}
           updateOverride={updateOverride}
           resetOverrides={resetOverrides}
-          undo={undo}
-          redo={redo}
-          canUndo={canUndo}
-          canRedo={canRedo}
         />
-      ) : (
-        <StudioView onExit={() => setViewMode('explorer')} />
       )}
 
-      {selectedProject && (
+      {viewMode === 'studio' && (
+        <StudioView onExit={() => setViewMode('explorer')} onOpenDocs={() => setViewMode('docs')} />
+      )}
+
+      {viewMode === 'docs' && (
+        <DocsPortal manifest={manifest!} onExit={() => setViewMode('studio')} />
+      )}
+
+      {/* Global Floating Lab - Hidden in Docs mode for clarity */}
+      {selectedProject && viewMode !== 'docs' && (
         <FloatingLab 
           clientId={manifest?.projects[selectedProject]?.client || ''} 
           projectId={manifest?.projects[selectedProject]?.project || ''} 
@@ -92,6 +99,7 @@ function App() {
           redo={redo}
           canUndo={canUndo}
           canRedo={canRedo}
+          globalTokens={globalTokens}
         />
       )}
     </Box>

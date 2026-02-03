@@ -10,6 +10,12 @@
 _This section highlights the business value extracted from completed tasks._
 
 - 🚀 **2026-02-02 Release v0.2.0:** The "Design Studio" Release - High-performance interactive playground with Oklch, APCA, and full-page templates.
+- ✅ **2026-02-03 Task 018:** universal-ide-bridge - Launched a multi-IDE bridge supporting Windsurf, VS Code, and Cursor with automated path detection and a local Settings drawer.
+- ✅ **2026-02-03 Task 017:** file-first-token-organization - Reorganized Global Explorer to match physical file structure and integrated VS Code deep links for instant editing.
+- ✅ **2026-02-03 Task 016:** deep-hierarchical-grouping - Implemented a 3-level token hierarchy (Category > Sub-category > Table) with accurate mapping and visual separators.
+- ✅ **2026-02-03 Task 015:** global-primitives-ui-enhancement - Refactored Global Explorer with Accordion grouping, Global Search, and a sticky ToC outline for pro-grade navigation.
+- ✅ **2026-02-03 Task 014:** global-primitives-explorer - Automated global token discovery and implemented real-time reference linkage in the Floating Lab.
+- ✅ **2026-02-03 Task 013:** token-documentation-portal - Launched an automated documentation portal with Markdown support and code snippets.
 - ✅ **2026-02-02 Task 012:** loop-free-state-architecture - Resolved infinite render loops by refactoring playground state to useReducer with debounced history.
 - ✅ **2026-02-02 Task 011:** high-performance-studio-overhaul - Overhauled Studio UI with Web Workers for 60fps color math, lazy rendering, and smart contrast suggestions.
 - ✅ **2026-02-02 Task 010:** pro-floating-lab-persistent-history - Built a pro-grade Floating Lab with 5-channel control, persistent history, and searchable swatches.

@@ -4,6 +4,7 @@ import {
 import { useMemo } from 'react';
 import { getContrastMetrics } from '../../utils/colors';
 import { prependFont } from '../../utils/fonts';
+import { findReference } from '../../utils/token-parser';
 import { StudioColorPicker } from './panels/StudioColorPicker';
 import { FontExplorer } from './panels/FontExplorer';
 import { TypeScaleSelector } from './panels/TypeScaleSelector';
@@ -17,6 +18,7 @@ interface FloatingLabProps {
   redo: () => void;
   canUndo: boolean;
   canRedo: boolean;
+  globalTokens: any[];
 }
 
 const SEMANTIC_CHANNELS = [
@@ -29,7 +31,7 @@ const SEMANTIC_CHANNELS = [
 
 export const FloatingLab = ({ 
   clientId, projectId, overrides, updateOverride, 
-  undo, redo, canUndo, canRedo 
+  undo, redo, canUndo, canRedo, globalTokens
 }: FloatingLabProps) => {
   
   const mainContrast = useMemo(() => {
@@ -94,9 +96,16 @@ export const FloatingLab = ({
                   />
                   <VStack align="start" gap={0}>
                     <Text fontSize="8px" fontWeight="bold" color="gray.400" textTransform="uppercase">{channel.label}</Text>
-                    <Text fontSize="10px" fontWeight="bold" fontFamily="monospace">
-                      {(overrides[channel.variable] || '').toUpperCase() || '...'}
-                    </Text>
+                    <HStack gap={1}>
+                      <Text fontSize="10px" fontWeight="bold" fontFamily="monospace">
+                        {(overrides[channel.variable] || '').toUpperCase() || '...'}
+                      </Text>
+                      {findReference(overrides[channel.variable], globalTokens) && (
+                        <Badge variant="subtle" colorScheme="gray" fontSize="8px" borderRadius="xs">
+                          {findReference(overrides[channel.variable], globalTokens)?.id.split('.').pop()}
+                        </Badge>
+                      )}
+                    </HStack>
                   </VStack>
                 </HStack>
               </Popover.Trigger>

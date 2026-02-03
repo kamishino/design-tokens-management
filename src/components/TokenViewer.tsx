@@ -1,9 +1,17 @@
 import { 
-  Box, SimpleGrid, Text, VStack, Heading, Badge,
-  Button, HStack, Tabs 
+  Box, Text, VStack, Heading, Badge,
+  HStack, Tabs, Spinner, Center, Input, IconButton
 } from "@chakra-ui/react"
+import { useState, useMemo } from 'react';
 import { TypographyVisualizer } from './visualizers/TypographyVisualizer';
 import { GridLayoutVisualizer } from './visualizers/GridLayoutVisualizer';
+import { useGlobalTokens } from '../hooks/useGlobalTokens';
+import { groupTokensByFile } from '../utils/token-grouping';
+import { CategoryAccordion } from './explorer/CategoryAccordion';
+import { ToCOutline } from './explorer/ToCOutline';
+import { SettingsDrawer } from './explorer/SettingsDrawer';
+import { LuSearch, LuChevronDown, LuChevronUp, LuSettings } from "react-icons/lu";
+import { Button } from "./ui/button";
 
 interface Manifest {
   projects: {
@@ -23,25 +31,30 @@ interface TokenViewerProps {
   onEnterStudio: () => void;
   overrides: any;
   updateOverride: (newValues: Record<string, any>, label?: string) => void;
-  undo: () => void;
-  redo: () => void;
-  canUndo: boolean;
-  canRedo: boolean;
   resetOverrides: () => void;
 }
 
-const defaultColors = [
-  { name: '--colorBlue500', label: 'Blue 500' },
-  { name: '--colorRed500', label: 'Red 500' },
-  { name: '--brandPrimary', label: 'Brand Primary' },
-];
-
 export const TokenViewer = ({ 
   manifest, selectedProject, onProjectChange, onEnterStudio, 
-  overrides, updateOverride, resetOverrides 
+  overrides, updateOverride, resetOverrides
 }: TokenViewerProps) => {
 
+  const { globalTokens, loading } = useGlobalTokens();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [openItems, setOpenItems] = useState<string[]>(['colors.json']);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  
   const hasOverrides = Object.keys(overrides).length > 0;
+
+  const categories = useMemo(() => 
+    groupTokensByFile(globalTokens, searchTerm), 
+    [globalTokens, searchTerm]
+  );
+
+  const expandAll = () => setOpenItems(categories.map(c => c.id));
+  const collapseAll = () => setOpenItems([]);
+
+  if (loading) return <Center h="100vh"><Spinner size="xl" /></Center>;
 
   return (
     <VStack align="stretch" gap={8} p={8} bg="#f7fafc" minH="100vh" pb="120px">
@@ -81,30 +94,65 @@ export const TokenViewer = ({
           >
             Reset
           </Button>
+          <IconButton 
+            aria-label="Settings" 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setIsSettingsOpen(true)}
+          >
+            <LuSettings />
+          </IconButton>
         </HStack>
       </Box>
 
-      <Tabs.Root defaultValue="colors" variant="enclosed" bg="white" p={6} borderRadius="xl" boxShadow="sm">
+      <SettingsDrawer open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
+
+      <Tabs.Root defaultValue="global" variant="enclosed" bg="white" p={6} borderRadius="xl" boxShadow="sm">
         <Tabs.List>
-          <Tabs.Trigger value="colors" fontWeight="bold">Colors</Tabs.Trigger>
+          <Tabs.Trigger value="global" fontWeight="bold">Global Primitives</Tabs.Trigger>
           <Tabs.Trigger value="typography" fontWeight="bold">Typography</Tabs.Trigger>
           <Tabs.Trigger value="layout" fontWeight="bold">Grid & Layout</Tabs.Trigger>
         </Tabs.List>
 
-        <Tabs.Content value="colors" pt={8}>
-          <SimpleGrid columns={[1, 2, 3, 4]} gap={6}>
-            {defaultColors.map((token) => (
-              <Box key={token.name} borderWidth="1px" borderRadius="lg" overflow="hidden" boxShadow="sm">
-                <Box h="120px" bg={`var(${token.name})`} display="flex" alignItems="center" justifyContent="center" transition="all 0.3s">
-                  <Text color="white" fontWeight="bold">Preview</Text>
+        <Tabs.Content value="global" pt={8}>
+          <VStack align="stretch" gap={6}>
+            <HStack justify="space-between">
+              <HStack w="400px" position="relative">
+                <Box position="absolute" left={3} color="gray.400" zIndex={1}>
+                  <LuSearch size={16} />
                 </Box>
-                <Box p={4} bg="white">
-                  <Text fontWeight="bold" fontSize="sm">{token.label}</Text>
-                  <Text fontFamily="monospace" fontSize="xs" color="gray.500">{token.name}</Text>
-                </Box>
+                <Input 
+                  placeholder="Search tokens by name or value..." 
+                  pl={10} 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  size="sm"
+                  borderRadius="full"
+                />
+              </HStack>
+              <HStack gap={2}>
+                <Button size="xs" variant="ghost" onClick={expandAll}>
+                  <LuChevronDown /> Expand All
+                </Button>
+                <Button size="xs" variant="ghost" onClick={collapseAll}>
+                  <LuChevronUp /> Collapse All
+                </Button>
+              </HStack>
+            </HStack>
+
+            <HStack align="start" gap={10}>
+              <Box flex={1}>
+                <CategoryAccordion 
+                  categories={categories} 
+                  value={openItems} 
+                  onValueChange={setOpenItems} 
+                />
               </Box>
-            ))}
-          </SimpleGrid>
+              <Box w="200px">
+                <ToCOutline categories={categories} />
+              </Box>
+            </HStack>
+          </VStack>
         </Tabs.Content>
 
         <Tabs.Content value="typography" pt={8}>

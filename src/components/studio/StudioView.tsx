@@ -5,9 +5,10 @@ import { Dashboard } from './templates/Dashboard';
 
 interface StudioViewProps {
   onExit: () => void;
+  onOpenDocs: () => void;
 }
 
-export const StudioView = ({ onExit }: StudioViewProps) => {
+export const StudioView = ({ onExit, onOpenDocs }: StudioViewProps) => {
   const [template, setTemplate] = useState('landing');
 
   return (
@@ -35,9 +36,14 @@ export const StudioView = ({ onExit }: StudioViewProps) => {
           </HStack>
         </HStack>
 
-        <Button size="xs" variant="outline" onClick={onExit}>
-          Exit Studio
-        </Button>
+        <HStack gap={3}>
+          <Button size="xs" variant="solid" colorScheme="blue" onClick={onOpenDocs}>
+            View Documentation 📚
+          </Button>
+          <Button size="xs" variant="outline" onClick={onExit}>
+            Exit Studio
+          </Button>
+        </HStack>
       </Box>
 
       {/* Template Preview Area */}
