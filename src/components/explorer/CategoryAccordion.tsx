@@ -33,37 +33,30 @@ const CategoryAccordionItem = ({ category }: { category: FileCategory }) => {
       mb={4}
       bg="white"
       scrollMarginTop="90px"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      <HStack 
-        justify="space-between" 
-        align="center" 
-        cursor="pointer" 
+      <AccordionItemTrigger 
+        px={6} 
+        py={4} 
         _hover={{ bg: "gray.50" }}
         transition="background 0.2s"
-        position="relative"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
       >
-        <AccordionItemTrigger px={6} py={4} flex={1} pr="120px">
+        <HStack justify="space-between" flex={1} mr={4}>
           <Heading size="sm">
             {category.title} ({category.totalCount})
           </Heading>
-        </AccordionItemTrigger>
-        
-        <Box 
-          position="absolute" 
-          right={6} 
-          top="50%" 
-          transform="translateY(-50%)" 
-          zIndex={2}
-          opacity={isHovered ? 1 : 0}
-          visibility={isHovered ? "visible" : "hidden"}
-          transition="all 0.2s ease-in-out"
-          w="max-content"
-        >
-          <IdeMenuButton filename={category.id} />
-        </Box>
-      </HStack>
+          
+          <Box 
+            onClick={(e) => e.stopPropagation()}
+            opacity={isHovered ? 1 : 0}
+            visibility={isHovered ? "visible" : "hidden"}
+            transition="all 0.2s ease-in-out"
+          >
+            <IdeMenuButton filename={category.id} />
+          </Box>
+        </HStack>
+      </AccordionItemTrigger>
       
       <AccordionItemContent px={6} pb={6}>
         <VStack align="stretch" gap={8} pt={4}>
