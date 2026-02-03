@@ -41,6 +41,7 @@ export const CategoryAccordion = ({ categories, value, onValueChange }: Category
             _hover={{ bg: "gray.50" }}
             transition="background 0.2s"
             position="relative"
+            data-group
             role="group"
           >
             <AccordionItemTrigger px={6} py={4} flex={1} pr="120px">

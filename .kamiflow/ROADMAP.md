@@ -11,6 +11,7 @@ _This section highlights the business value extracted from completed tasks._
 
 - 🚀 **2026-02-02 Release v0.2.0:** The "Design Studio" Release - High-performance interactive playground with Oklch, APCA, and full-page templates.
 - ✅ **2026-02-03 Task 023:** token-explorer-ui-alignment - Enforced uniform column widths across all tables and optimized sticky outline navigation with precise scroll offsets.
+- ✅ **2026-02-03 Task 025:** ide-menu-visibility-fix - Fixed IDE menu visibility bug by enabling Chakra v3 group-hover selectors with data-group attributes.
 - ✅ **2026-02-03 Task 024:** detached-floating-ide-controller - Implemented a hover-triggered IDE controller with absolute positioning to prevent layout shifts.
 - ✅ **2026-02-03 Task 023:** ui-stability-hydration-fix - Resolved critical DOM nesting issues in Accordions and fixed duplicate key warnings in the TypeScale selector.
 - ✅ **2026-02-03 Task 022:** premium-header-refinement - Consolidated global controls into a balanced sticky header and achieved 100% component standardization with Chakra UI v3.
