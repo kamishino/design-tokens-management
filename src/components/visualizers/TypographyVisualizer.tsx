@@ -1,7 +1,8 @@
 import { 
-  Box, Text, VStack, HStack, Heading
+  Box, Text, VStack, HStack, Heading, Table
 } from "@chakra-ui/react";
 import { useState, useEffect } from 'react';
+import { Slider } from "../ui/slider";
 
 interface TypographyVisualizerProps {
   onUpdate: (newValues: Record<string, any>, label?: string) => void;
@@ -29,34 +30,34 @@ export const TypographyVisualizer = ({ onUpdate }: TypographyVisualizerProps) =>
     <HStack align="start" gap={10} w="full" flexDirection={{ base: 'column', lg: 'row' }}>
       <VStack flex={1} align="stretch" gap={6} w="full">
         <Heading size="md">Typography Spec Sheet</Heading>
-        <Box borderWidth="1px" borderRadius="md" overflow="auto">
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-            <thead style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-              <tr>
-                <th style={{ padding: '12px', textAlign: 'left' }}>Step</th>
-                <th style={{ padding: '12px', textAlign: 'left' }}>Variable</th>
-                <th style={{ padding: '12px', textAlign: 'left' }}>Preview</th>
-              </tr>
-            </thead>
-            <tbody>
+        <Box borderWidth="1px" borderRadius="lg" overflow="hidden">
+          <Table.Root size="sm" variant="outline">
+            <Table.Header bg="gray.50">
+              <Table.Row>
+                <Table.ColumnHeader>Step</Table.ColumnHeader>
+                <Table.ColumnHeader>Variable</Table.ColumnHeader>
+                <Table.ColumnHeader>Preview</Table.ColumnHeader>
+              </Table.Row>
+            </Table.Header>
+            <Table.Body>
               {STEPS.map((step) => (
-                <tr key={step} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                  <td style={{ padding: '12px', fontWeight: 'bold' }}>{step}</td>
-                  <td style={{ padding: '12px', fontFamily: 'monospace', color: '#6b7280' }}>
+                <Table.Row key={step}>
+                  <Table.Cell fontWeight="bold">{step}</Table.Cell>
+                  <Table.Cell fontFamily="monospace" fontSize="xs" color="gray.500">
                     --fontSizeScale{step.charAt(0).toUpperCase() + step.slice(1)}
-                  </td>
-                  <td style={{ padding: '12px' }}>
+                  </Table.Cell>
+                  <Table.Cell>
                     <Text 
                       fontSize={`var(--fontSizeScale${step.charAt(0).toUpperCase() + step.slice(1)})`}
-                      style={{ whiteSpace: 'nowrap' }}
+                      whiteSpace="nowrap"
                     >
                       The quick brown fox...
                     </Text>
-                  </td>
-                </tr>
+                  </Table.Cell>
+                </Table.Row>
               ))}
-            </tbody>
-          </table>
+            </Table.Body>
+          </Table.Root>
         </Box>
       </VStack>
 
@@ -64,24 +65,26 @@ export const TypographyVisualizer = ({ onUpdate }: TypographyVisualizerProps) =>
         <Heading size="sm">Playground Controls</Heading>
         
         <Box>
-          <Text fontSize="xs" fontWeight="bold" mb={2}>Base Font Size ({base}px)</Text>
-          <input 
-            type="range" min="10" max="24" step="1" value={base} 
-            onChange={(e) => setBase(parseInt(e.target.value))}
-            style={{ width: '100%' }}
+          <Text fontSize="xs" fontWeight="bold" mb={4}>Base Font Size ({base}px)</Text>
+          <Slider 
+            min={10} max={24} step={1} 
+            value={[base]} 
+            onValueChange={(e) => setBase(e.value[0])}
+            colorScheme="blue"
           />
         </Box>
 
         <Box>
-          <Text fontSize="xs" fontWeight="bold" mb={2}>Modular Ratio ({ratio})</Text>
-          <input 
-            type="range" min="1.0" max="2.0" step="0.01" value={ratio} 
-            onChange={(e) => setRatio(parseFloat(e.target.value))}
-            style={{ width: '100%' }}
+          <Text fontSize="xs" fontWeight="bold" mb={4}>Modular Ratio ({ratio})</Text>
+          <Slider 
+            min={1.0} max={2.0} step={0.01} 
+            value={[ratio]} 
+            onValueChange={(e) => setRatio(e.value[0])}
+            colorScheme="blue"
           />
-          <HStack justify="space-between" mt={2}>
-            <Text fontSize="2xs" color="blue.500" cursor="pointer" onClick={() => setRatio(1.25)}>1.25</Text>
-            <Text fontSize="2xs" color="blue.500" cursor="pointer" onClick={() => setRatio(1.618)}>1.618</Text>
+          <HStack justify="space-between" mt={4}>
+            <Text fontSize="2xs" color="blue.500" cursor="pointer" onClick={() => setRatio(1.25)} _hover={{ textDecoration: 'underline' }}>1.25 (Major Third)</Text>
+            <Text fontSize="2xs" color="blue.500" cursor="pointer" onClick={() => setRatio(1.618)} _hover={{ textDecoration: 'underline' }}>1.618 (Golden)</Text>
           </HStack>
         </Box>
       </VStack>

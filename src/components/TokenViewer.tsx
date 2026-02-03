@@ -62,7 +62,6 @@ export const TokenViewer = ({
   const expandAll = () => setOpenItems(categories.map(c => c.id));
   const collapseAll = () => setOpenItems([]);
 
-  // Create collection for Chakra Select
   const projectCollection = useMemo(() => {
     return createListCollection({
       items: Object.keys(manifest?.projects || {}).map(key => ({
@@ -75,120 +74,136 @@ export const TokenViewer = ({
   if (loading) return <Center h="100vh"><Spinner size="xl" /></Center>;
 
   return (
-    <VStack align="stretch" gap={8} p={8} bg="#f7fafc" minH="100vh" pb="120px">
-      <Box display="flex" justifyContent="space-between" alignItems="center">
-        <VStack align="start" gap={0}>
-          <Heading size="xl">Design Token Manager</Heading>
-          <HStack mt={1}>
-            <Text fontSize="lg" color="gray.600">Token Explorer & Playground</Text>
-            {hasOverrides && <Badge colorScheme="orange">Playground Mode Active</Badge>}
+    <VStack align="stretch" gap={0} bg="#f7fafc" minH="100vh" pb="120px">
+      {/* Premium Sticky Header */}
+      <Box 
+        position="sticky" top={0} zIndex={1000}
+        bg="rgba(255, 255, 255, 0.85)" backdropFilter="blur(12px)"
+        borderBottom="1px solid" borderColor="gray.200"
+        px={8} py={4} boxShadow="sm"
+      >
+        <HStack justify="space-between" align="center">
+          <VStack align="start" gap={0}>
+            <Heading size="lg" letterSpacing="tight" fontWeight="extrabold" color="gray.800">Design Token Manager</Heading>
+            <HStack mt={0.5}>
+              <Text fontSize="sm" color="gray.500" fontWeight="medium">Explorer & Command Center</Text>
+              {hasOverrides && <Badge colorScheme="orange" variant="solid" fontSize="9px" px={2} borderRadius="full">Live Mode</Badge>}
+            </HStack>
+          </VStack>
+
+          <HStack gap={4}>
+            <Button colorScheme="blue" size="sm" borderRadius="full" px={6} onClick={onEnterStudio}>
+              Open Studio 🚀
+            </Button>
+            
+            <Box w="220px">
+              <Text fontSize="9px" mb={1} fontWeight="bold" color="gray.400" textTransform="uppercase" letterSpacing="widest">Target Project</Text>
+              <SelectRoot 
+                collection={projectCollection} 
+                size="sm"
+                value={[selectedProject]}
+                onValueChange={(e) => onProjectChange(e.value[0])}
+                positioning={{ sameWidth: true, strategy: "fixed" }}
+              >
+                <SelectTrigger>
+                  <SelectValueText placeholder="Select Project" />
+                </SelectTrigger>
+                <SelectContent zIndex={2001}>
+                  {projectCollection.items.map((item) => (
+                    <SelectItem item={item} key={item.value}>
+                      {item.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </SelectRoot>
+            </Box>
+
+            <HStack gap={2}>
+              <Button 
+                colorScheme="red" 
+                variant="ghost" 
+                size="sm" 
+                onClick={resetOverrides}
+                disabled={!hasOverrides}
+              >
+                Reset
+              </Button>
+              <IconButton 
+                aria-label="Settings" 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setIsSettingsOpen(true)}
+              >
+                <LuSettings />
+              </IconButton>
+            </HStack>
           </HStack>
-        </VStack>
-
-        <HStack gap={4}>
-          <Button colorScheme="blue" size="sm" borderRadius="full" onClick={onEnterStudio}>
-            Open Design Studio 🚀
-          </Button>
-          
-          <Box w="250px">
-            <Text fontSize="10px" mb={1} fontWeight="bold" color="gray.400" textTransform="uppercase">Project Target</Text>
-            <SelectRoot 
-              collection={projectCollection} 
-              size="sm"
-              value={[selectedProject]}
-              onValueChange={(e) => onProjectChange(e.value[0])}
-            >
-              <SelectTrigger>
-                <SelectValueText placeholder="Select Project" />
-              </SelectTrigger>
-              <SelectContent zIndex={2001}>
-                {projectCollection.items.map((item) => (
-                  <SelectItem item={item} key={item.value}>
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </SelectRoot>
-          </Box>
-
-          <Button 
-            colorScheme="red" 
-            variant="outline" 
-            size="sm" 
-            onClick={resetOverrides}
-            disabled={!hasOverrides}
-          >
-            Reset
-          </Button>
-          <IconButton 
-            aria-label="Settings" 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => setIsSettingsOpen(true)}
-          >
-            <LuSettings />
-          </IconButton>
         </HStack>
       </Box>
 
-      <SettingsModal open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
+      <Box p={8} pt={8}>
+        <SettingsModal open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
 
-      <Tabs.Root defaultValue="global" variant="enclosed" bg="white" p={6} borderRadius="xl" boxShadow="sm">
-        <Tabs.List>
-          <Tabs.Trigger value="global" fontWeight="bold">Global Primitives</Tabs.Trigger>
-          <Tabs.Trigger value="typography" fontWeight="bold">Typography</Tabs.Trigger>
-          <Tabs.Trigger value="layout" fontWeight="bold">Grid & Layout</Tabs.Trigger>
-        </Tabs.List>
+        <Tabs.Root defaultValue="global" variant="enclosed" bg="white" p={6} borderRadius="xl" boxShadow="sm">
+          <Tabs.List>
+            <Tabs.Trigger value="global" fontWeight="bold">Global Primitives</Tabs.Trigger>
+            <Tabs.Trigger value="typography" fontWeight="bold">Typography</Tabs.Trigger>
+            <Tabs.Trigger value="layout" fontWeight="bold">Grid & Layout</Tabs.Trigger>
+          </Tabs.List>
 
-        <Tabs.Content value="global" pt={8}>
-          <VStack align="stretch" gap={6}>
-            <HStack justify="space-between">
-              <HStack w="400px" position="relative">
-                <Box position="absolute" left={3} color="gray.400" zIndex={1}>
-                  <LuSearch size={16} />
+          <Tabs.Content value="global" pt={8}>
+            <VStack align="stretch" gap={6}>
+              <HStack justify="space-between">
+                <HStack w="400px" position="relative">
+                  <Box position="absolute" left={3} color="gray.400" zIndex={1}>
+                    <LuSearch size={16} />
+                  </Box>
+                  <Input 
+                    placeholder="Search tokens by name or value..." 
+                    pl={10} 
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    size="sm"
+                    borderRadius="full"
+                    bg="gray.50"
+                    _focus={{ bg: "white" }}
+                  />
+                </HStack>
+                <HStack gap={2}>
+                  <Button size="xs" variant="ghost" onClick={expandAll}>
+                    <LuChevronDown /> Expand All
+                  </Button>
+                  <Button size="xs" variant="ghost" onClick={collapseAll}>
+                    <LuChevronUp /> Collapse All
+                  </Button>
+                </HStack>
+              </HStack>
+
+              <HStack align="start" gap={10}>
+                <Box flex={1}>
+                  <CategoryAccordion 
+                    categories={categories} 
+                    value={openItems} 
+                    onValueChange={setOpenItems} 
+                  />
                 </Box>
-                <Input 
-                  placeholder="Search tokens by name or value..." 
-                  pl={10} 
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  size="sm"
-                  borderRadius="full"
-                />
+                <Box w="200px">
+                  <ToCOutline categories={categories} />
+                </Box>
               </HStack>
-              <HStack gap={2}>
-                <Button size="xs" variant="ghost" onClick={expandAll}>
-                  <LuChevronDown /> Expand All
-                </Button>
-                <Button size="xs" variant="ghost" onClick={collapseAll}>
-                  <LuChevronUp /> Collapse All
-                </Button>
-              </HStack>
-            </HStack>
+            </VStack>
+          </Tabs.Content>
 
-            <HStack align="start" gap={10}>
-              <Box flex={1}>
-                <CategoryAccordion 
-                  categories={categories} 
-                  value={openItems} 
-                  onValueChange={setOpenItems} 
-                />
-              </Box>
-              <Box w="200px">
-                <ToCOutline categories={categories} />
-              </Box>
-            </HStack>
-          </VStack>
-        </Tabs.Content>
+          <Tabs.Content value="typography" pt={8}>
+            <TypographyVisualizer onUpdate={updateOverride} />
+          </Tabs.Content>
 
-        <Tabs.Content value="typography" pt={8}>
-          <TypographyVisualizer onUpdate={updateOverride} />
-        </Tabs.Content>
-
-        <Tabs.Content value="layout" pt={8}>
-          <GridLayoutVisualizer onUpdate={updateOverride} />
-        </Tabs.Content>
-      </Tabs.Root>
+          <Tabs.Content value="layout" pt={8}>
+            <GridLayoutVisualizer onUpdate={updateOverride} />
+          </Tabs.Content>
+        </Tabs.Root>
+      </Box>
     </VStack>
   )
 }
+

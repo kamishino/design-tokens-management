@@ -31,9 +31,10 @@ export const IdeMenuButton = ({ filename }: IdeMenuButtonProps) => {
           </IconButton>
         </Link>
 
-              {/* Menu Trigger */}
-              <MenuRoot positioning={{ placement: "bottom-end", strategy: "fixed" }}>
-                <MenuTrigger asChild>            <IconButton 
+        {/* Menu Trigger */}
+        <MenuRoot positioning={{ placement: "bottom-end", strategy: "fixed" }}>
+          <MenuTrigger asChild>
+            <IconButton 
               size="xs" 
               variant="ghost" 
               color="blue.500"

@@ -1,25 +1,21 @@
 import { 
-  Box, Table, Text, Badge, HStack, VStack
+  Box, Table, Text, HStack, VStack, Clipboard
 } from "@chakra-ui/react";
 import type { TokenDoc } from "../../utils/token-parser";
-import { LuCopy } from "react-icons/lu";
-import { useState } from 'react';
+import { LuCopy, LuCheck } from "react-icons/lu";
 
 const CopyButton = ({ value }: { value: string }) => {
-  const [copied, setCopied] = useState(false);
-
-  const onCopy = () => {
-    navigator.clipboard.writeText(value);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   return (
-    <HStack gap={2} cursor="pointer" onClick={onCopy} _hover={{ color: "blue.500" }}>
-      <Text fontSize="xs" fontFamily="monospace">{value}</Text>
-      <LuCopy size={12} />
-      {copied && <Badge colorScheme="green" size="xs" variant="subtle">Copied!</Badge>}
-    </HStack>
+    <Clipboard.Root value={value}>
+      <Clipboard.Trigger asChild>
+        <HStack gap={2} cursor="pointer" _hover={{ color: "blue.500" }} transition="all 0.2s">
+          <Text fontSize="xs" fontFamily="monospace">{value}</Text>
+          <Clipboard.Indicator copied={<LuCheck size={12} color="green" />}>
+            <LuCopy size={12} />
+          </Clipboard.Indicator>
+        </HStack>
+      </Clipboard.Trigger>
+    </Clipboard.Root>
   );
 };
 

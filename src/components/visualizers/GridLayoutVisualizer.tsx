@@ -2,6 +2,8 @@ import {
   Box, VStack, HStack, Heading, SimpleGrid, Text
 } from "@chakra-ui/react";
 import { useState, useEffect } from 'react';
+import { Slider } from "../ui/slider";
+import { Switch } from "../ui/switch";
 
 interface GridLayoutVisualizerProps {
   onUpdate: (newValues: Record<string, any>, label?: string) => void;
@@ -26,20 +28,18 @@ export const GridLayoutVisualizer = ({ onUpdate }: GridLayoutVisualizerProps) =>
       <HStack justify="space-between" align="start">
         <VStack align="start" gap={0}>
           <Heading size="md">Grid System Visualizer</Heading>
-          <Text fontSize="sm" color="gray.500">Preview 12-Column Grid with Gutter: {gutter}px</Text>
+          <Text fontSize="sm" color="gray.500">Preview {columns}-Column Grid with Gutter: {gutter}px</Text>
         </VStack>
         
-        <Box display="flex" alignItems="center" bg="red.50" p={2} borderRadius="md">
-          <label style={{ fontSize: '14px', fontWeight: 'bold', marginRight: '8px', cursor: 'pointer' }}>
-            Show Global Overlay
-            <input 
-              type="checkbox" 
-              checked={showOverlay} 
-              onChange={(e) => setShowOverlay(e.target.checked)}
-              style={{ marginLeft: '8px' }}
-            />
-          </label>
-        </Box>
+        <HStack bg="blue.50" px={4} py={2} borderRadius="full" border="1px solid" borderColor="blue.100">
+          <Text fontSize="xs" fontWeight="bold" color="blue.700">Global Overlay</Text>
+          <Switch 
+            checked={showOverlay} 
+            onCheckedChange={(e) => setShowOverlay(e.checked)}
+            colorScheme="blue"
+            size="sm"
+          />
+        </HStack>
       </HStack>
 
       <Box position="relative" borderWidth="1px" borderRadius="lg" p={4} bg="gray.50" overflow="hidden">
@@ -52,22 +52,24 @@ export const GridLayoutVisualizer = ({ onUpdate }: GridLayoutVisualizerProps) =>
         </SimpleGrid>
       </Box>
 
-      <HStack gap={10} p={6} bg="white" borderWidth="1px" borderRadius="lg" flexDirection={{ base: 'column', md: 'row' }}>
+      <HStack gap={10} p={6} bg="white" borderWidth="1px" borderRadius="xl" flexDirection={{ base: 'column', md: 'row' }} boxShadow="sm">
         <Box flex={1} w="full">
-          <Text fontSize="xs" fontWeight="bold" mb={2}>Number of Columns ({columns})</Text>
-          <input 
-            type="range" min="4" max="16" step="1" value={columns} 
-            onChange={(e) => setColumns(parseInt(e.target.value))}
-            style={{ width: '100%' }}
+          <Text fontSize="xs" fontWeight="bold" mb={4}>Number of Columns ({columns})</Text>
+          <Slider 
+            min={4} max={16} step={1} 
+            value={[columns]} 
+            onValueChange={(e) => setColumns(e.value[0])}
+            colorScheme="blue"
           />
         </Box>
 
         <Box flex={1} w="full">
-          <Text fontSize="xs" fontWeight="bold" mb={2}>Gutter Size ({gutter}px)</Text>
-          <input 
-            type="range" min="0" max="64" step="4" value={gutter} 
-            onChange={(e) => setGutter(parseInt(e.target.value))}
-            style={{ width: '100%' }}
+          <Text fontSize="xs" fontWeight="bold" mb={4}>Gutter Size ({gutter}px)</Text>
+          <Slider 
+            min={0} max={64} step={4} 
+            value={[gutter]} 
+            onValueChange={(e) => setGutter(e.value[0])}
+            colorScheme="blue"
           />
         </Box>
       </HStack>

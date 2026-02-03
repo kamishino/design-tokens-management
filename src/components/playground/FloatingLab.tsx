@@ -9,6 +9,8 @@ import { StudioColorPicker } from './panels/StudioColorPicker';
 import { FontExplorer } from './panels/FontExplorer';
 import { TypeScaleSelector } from './panels/TypeScaleSelector';
 
+import { toaster } from "../ui/toaster";
+
 interface FloatingLabProps {
   clientId: string;
   projectId: string;
@@ -60,7 +62,10 @@ export const FloatingLab = ({
     });
     const result = await response.json();
     if (result.success) {
-      alert('✅ Studio changes permanently saved to project JSON!');
+      toaster.success({
+        title: "Tokens Saved",
+        description: "Studio changes permanently saved to project JSON!",
+      });
     }
   };
 
