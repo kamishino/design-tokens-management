@@ -28,7 +28,7 @@ export const TokenTable = ({
 }: { 
   tokens: TokenDoc[], 
   onJump?: (id: string) => void,
-  onHover?: (token: TokenDoc | null, rect: DOMRect | null) => void,
+  onHover?: (token: TokenDoc | null, pos: { x: number, y: number } | null) => void,
   showSource?: boolean
 }) => {
   return (
@@ -51,9 +51,9 @@ export const TokenTable = ({
               _hover={{ bg: "blue.50/20" }} 
               id={`token-${token.id}`} 
               transition="background 0.2s"
-              onMouseEnter={(e) => {
+              onMouseMove={(e) => {
                 if (token.rawValue) {
-                  onHover?.(token, e.currentTarget.getBoundingClientRect());
+                  onHover?.(token, { x: e.clientX, y: e.clientY });
                 }
               }}
               onMouseLeave={() => onHover?.(null, null)}

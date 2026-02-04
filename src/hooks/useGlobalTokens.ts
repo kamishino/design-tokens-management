@@ -11,11 +11,12 @@ export const useGlobalTokens = () => {
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        // Fetch Base + Alias (We need both for full lineage)
+        // Fetch Base + Alias + Generated (Need all for full resolution)
         const allFiles = [
           ...BASE_TOKEN_FILES.map(f => ({ path: `/tokens/global/base/${f}.json`, name: `${f}.json` })),
           { path: '/tokens/global/alias/colors.json', name: 'colors.json' },
-          { path: '/tokens/global/alias/typography.json', name: 'typography.json' }
+          { path: '/tokens/global/alias/typography.json', name: 'typography.json' },
+          { path: '/tokens/global/generated/typography-scale.json', name: 'typography-scale.json' }
         ];
 
         const promises = allFiles.map(file => 
@@ -31,7 +32,7 @@ export const useGlobalTokens = () => {
           aggregated = aggregated.concat(parseTokensToDocs(json, [], filename));
         });
 
-        // Task 1.2: Enrich with graph relationships
+        // Enrich with graph relationships and deep resolution
         const enriched = enrichTokensWithLineage(aggregated);
 
         setGlobalTokens(enriched);

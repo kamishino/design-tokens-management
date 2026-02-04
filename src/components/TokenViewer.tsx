@@ -1,14 +1,14 @@
 import { 
   Box, Text, VStack, Heading, Badge,
   HStack, Spinner, Center, Input, IconButton,
-  Portal
+  Portal, Clipboard
 } from "@chakra-ui/react"
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useGlobalTokens } from '../hooks/useGlobalTokens';
 import { groupTokensByFile } from '../utils/token-grouping';
 import { ToCOutline } from './explorer/ToCOutline';
 import { SettingsModal } from './explorer/SettingsModal';
-import { LuSearch, LuSettings, LuX, LuDatabase, LuLayers, LuArrowRight } from "react-icons/lu";
+import { LuSearch, LuSettings, LuX, LuDatabase, LuLayers, LuArrowRight, LuArrowUpRight, LuCopy, LuCheck } from "react-icons/lu";
 import { Button } from "./ui/button";
 import { FileExplorer } from "./explorer/FileExplorer";
 import { ActivityBar } from "./explorer/ActivityBar";
@@ -28,17 +28,21 @@ interface TokenViewerProps {
 }
 
 /**
- * Inspector Overlay Singleton
+ * Inspector Overlay Singleton with Mouse Follow and Copy utility
  */
-const InspectorOverlay = ({ token, rect }: { token: TokenDoc | null, rect: DOMRect | null }) => {
-  if (!token || !rect) return null;
+const InspectorOverlay = ({ token, pos }: { token: TokenDoc | null, pos: { x: number, y: number } | null }) => {
+  if (!token || !pos) return null;
+
+  const terminalValue = typeof token.resolvedValue === 'object' 
+    ? JSON.stringify(token.resolvedValue) 
+    : String(token.resolvedValue);
 
   return (
     <Portal>
       <Box
         position="fixed"
-        top={`${rect.top - 8}px`}
-        left={`${rect.left}px`}
+        top={`${pos.y - 12}px`}
+        left={`${pos.x + 12}px`}
         transform="translateY(-100%)"
         bg="gray.900"
         color="white"
@@ -48,34 +52,50 @@ const InspectorOverlay = ({ token, rect }: { token: TokenDoc | null, rect: DOMRe
         border="1px solid"
         borderColor="whiteAlpha.200"
         zIndex={3000}
-        maxW="320px"
-        pointerEvents="none"
+        maxW="340px"
+        pointerEvents="auto" // Allow interaction with copy button
       >
-        <VStack align="start" gap={2}>
-          <HStack gap={3}>
-            {token.type === 'color' && (
-              <Box 
-                w="32px" h="32px" 
-                bg={token.resolvedValue} 
-                borderRadius="md" 
-                border="2px solid" 
-                borderColor="whiteAlpha.300"
-                boxShadow="inner"
-              />
-            )}
-            <VStack align="start" gap={0}>
-              <Text fontSize="9px" fontWeight="bold" color="gray.400" textTransform="uppercase" letterSpacing="widest">
-                Terminal Root Value
-              </Text>
-              <Text fontSize="12px" fontFamily="'Space Mono', monospace" fontWeight="bold" color="blue.300">
-                {typeof token.resolvedValue === 'object' ? JSON.stringify(token.resolvedValue) : token.resolvedValue}
-              </Text>
-            </VStack>
+        <VStack align="start" gap={3}>
+          <HStack gap={3} w="full" justify="space-between">
+            <HStack gap={3}>
+              {token.type === 'color' && (
+                <Box 
+                  w="32px" h="32px" 
+                  bg={token.resolvedValue} 
+                  borderRadius="md" 
+                  border="2px solid" 
+                  borderColor="whiteAlpha.300"
+                  boxShadow="inner"
+                />
+              )}
+              <VStack align="start" gap={0}>
+                <Text fontSize="9px" fontWeight="bold" color="gray.400" textTransform="uppercase" letterSpacing="widest">
+                  Terminal Root Value
+                </Text>
+                <Text fontSize="13px" fontFamily="'Space Mono', monospace" fontWeight="bold" color="blue.300">
+                  {terminalValue}
+                </Text>
+              </VStack>
+            </HStack>
+            
+            <Clipboard.Root value={terminalValue}>
+              <Clipboard.Trigger asChild>
+                <IconButton size="xs" variant="subtle" colorScheme="blue" borderRadius="md">
+                  <Clipboard.Indicator copied={<LuCheck size={14} />}>
+                    <LuCopy size={14} />
+                  </Clipboard.Indicator>
+                </IconButton>
+              </Clipboard.Trigger>
+            </Clipboard.Root>
           </HStack>
+
           <Box h="1px" w="full" bg="whiteAlpha.100" />
-          <Text fontSize="9px" color="whiteAlpha.600">
-            Reference Path: {token.rawValue}
-          </Text>
+          <VStack align="start" gap={1} w="full">
+            <Text fontSize="9px" fontWeight="bold" color="gray.500" textTransform="uppercase">Trace Path</Text>
+            <Text fontSize="10px" color="whiteAlpha.600" noOfLines={2} fontFamily="monospace">
+              {token.rawValue}
+            </Text>
+          </VStack>
         </VStack>
       </Box>
     </Portal>
@@ -85,7 +105,7 @@ const InspectorOverlay = ({ token, rect }: { token: TokenDoc | null, rect: DOMRe
 const MasterSection = ({ 
   title, icon: Icon, count, tokens, color, onJump, onHover 
 }: { 
-  title: string, icon: any, count: number, tokens: TokenDoc[], color: string, onJump: (id: string) => void, onHover: (token: TokenDoc | null, rect: DOMRect | null) => void 
+  title: string, icon: any, count: number, tokens: TokenDoc[], color: string, onJump: (id: string) => void, onHover: (token: TokenDoc | null, pos: { x: number, y: number } | null) => void 
 }) => {
   if (tokens.length === 0) return null;
 
@@ -138,7 +158,7 @@ export const TokenViewer = ({
     return (localStorage.getItem('ide_active_panel') as SidebarPanelId) || 'explorer';
   });
 
-  const [hoveredToken, setHoveredToken] = useState<{ token: TokenDoc | null, rect: DOMRect | null }>({ token: null, rect: null });
+  const [hoveredToken, setHoveredToken] = useState<{ token: TokenDoc | null, pos: { x: number, y: number } | null }>({ token: null, pos: null });
 
   const [expandedMaster, setExpandedMaster] = useState<string[]>(() => {
     if (typeof window === 'undefined') return ['semantic', 'foundation'];
@@ -218,8 +238,8 @@ export const TokenViewer = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const handleHover = useCallback((token: TokenDoc | null, rect: DOMRect | null) => {
-    setHoveredToken({ token, rect });
+  const handleHover = useCallback((token: TokenDoc | null, pos: { x: number, y: number } | null) => {
+    setHoveredToken({ token, pos });
   }, []);
 
   if (loading) return <Center h="100vh"><Spinner size="xl" /></Center>;
@@ -236,7 +256,7 @@ export const TokenViewer = ({
       />
 
       <VStack flex={1} align="stretch" gap={0} bg="#f7fafc" overflowY="auto" pb="120px" position="relative">
-        <InspectorOverlay token={hoveredToken.token} rect={hoveredToken.rect} />
+        <InspectorOverlay token={hoveredToken.token} pos={hoveredToken.pos} />
         
         <Box
           position="sticky" top={0} zIndex={1000}
@@ -311,6 +331,7 @@ export const TokenViewer = ({
           <SettingsModal open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
 
           <VStack align="stretch" gap={10}>
+            {/* Context Controls */}
             <HStack justify="space-between" bg="white" p={4} borderRadius="xl" border="1px solid" borderColor="gray.100" boxShadow="sm">
               <HStack gap={6}>
                 <VStack align="start" gap={0}>
