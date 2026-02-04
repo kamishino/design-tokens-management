@@ -2,7 +2,7 @@ import {
   Box, Text, VStack, Heading, Badge,
   HStack, Tabs, Spinner, Center, Input, IconButton
 } from "@chakra-ui/react"
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { TypographyVisualizer } from './visualizers/TypographyVisualizer';
 import { GridLayoutVisualizer } from './visualizers/GridLayoutVisualizer';
 import { useGlobalTokens } from '../hooks/useGlobalTokens';
@@ -14,6 +14,7 @@ import { LuSearch, LuChevronDown, LuChevronUp, LuSettings, LuX, LuInfo } from "r
 import { Button } from "./ui/button";
 import { FileExplorer } from "./explorer/FileExplorer";
 import { ActivityBar } from "./explorer/ActivityBar";
+import { findSourceFileForToken } from "../utils/token-graph";
 import type { Manifest, TokenOverrides, SidebarPanelId } from "../schemas/manifest";
 
 interface TokenViewerProps {
@@ -36,7 +37,6 @@ export const TokenViewer = ({
   const [openItems, setOpenItems] = useState<string[]>(['colors.json']);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
-  // Activity Bar & Sidebar State
   const [activePanel, setActivePanel] = useState<SidebarPanelId>(() => {
     if (typeof window === 'undefined') return 'explorer';
     return (localStorage.getItem('ide_active_panel') as SidebarPanelId) || 'explorer';
@@ -44,7 +44,6 @@ export const TokenViewer = ({
 
   const hasOverrides = Object.keys(overrides).length > 0;
 
-  // Task 1.1: Context-Aware Filtering Logic
   const categories = useMemo(() =>
     groupTokensByFile(globalTokens, searchTerm),
     [globalTokens, searchTerm]
@@ -54,7 +53,6 @@ export const TokenViewer = ({
   
   const displayCategories = useMemo(() => {
     if (!isJsonFocus) return categories;
-    // Match categories where the filename exists in the selected path
     return categories.filter(cat => selectedProject.toLowerCase().includes(cat.id.toLowerCase()));
   }, [categories, selectedProject, isJsonFocus]);
 
@@ -66,12 +64,32 @@ export const TokenViewer = ({
   const expandAll = () => setOpenItems(displayCategories.map(c => c.id));
   const collapseAll = () => setOpenItems([]);
 
-  // Save persistence
+  // Task 3.1: Jump Logic
+  const handleJump = useCallback((tokenId: string) => {
+    const sourceFile = findSourceFileForToken(tokenId, globalTokens);
+    if (sourceFile) {
+      setActivePanel('primitives');
+      onProjectChange(sourceFile);
+      
+      // Allow time for DOM to render the new file
+      setTimeout(() => {
+        const element = document.getElementById(`token-${tokenId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          element.style.transition = 'background-color 0.5s';
+          element.style.backgroundColor = 'var(--chakra-colors-blue-50)';
+          setTimeout(() => {
+            element.style.backgroundColor = '';
+          }, 2000);
+        }
+      }, 300);
+    }
+  }, [globalTokens, onProjectChange]);
+
   useEffect(() => {
     localStorage.setItem('ide_active_panel', activePanel);
   }, [activePanel]);
 
-  // Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey) {
@@ -88,10 +106,8 @@ export const TokenViewer = ({
 
   return (
     <HStack align="stretch" gap={0} bg="white" h="100vh" overflow="hidden">
-      {/* COLUMN 1: Activity Bar */}
       <ActivityBar activePanel={activePanel} onPanelChange={setActivePanel} />
 
-      {/* COLUMN 2: Sidebar Explorer */}
       <FileExplorer 
         manifest={manifest} 
         context={activePanel}
@@ -99,9 +115,7 @@ export const TokenViewer = ({
         onSelect={(_, key) => onProjectChange(key)} 
       />
 
-      {/* COLUMN 3: Main Content Area */}
       <VStack flex={1} align="stretch" gap={0} bg="#f7fafc" overflowY="auto" pb="120px">
-        {/* Premium Sticky Header */}
         <Box
           position="sticky" top={0} zIndex={1000}
           bg="rgba(255, 255, 255, 0.85)" backdropFilter="blur(12px)"
@@ -109,7 +123,6 @@ export const TokenViewer = ({
           px={8} py={3} boxShadow="sm"
         >
           <HStack gap={8} align="center">
-            {/* Identity Cluster */}
             <VStack align="start" gap={0} minW="max-content">
               <Heading size="md" letterSpacing="tight" fontWeight="extrabold" color="gray.800">Design Token Manager</Heading>
               <HStack mt={0.5}>
@@ -118,13 +131,11 @@ export const TokenViewer = ({
               </HStack>
             </VStack>
 
-            {/* Current Context Status */}
             <HStack gap={3} bg="gray.50" px={3} py={1.5} borderRadius="lg" border="1px solid" borderColor="gray.100">
               <Text fontSize="9px" fontWeight="bold" color="gray.400" textTransform="uppercase" letterSpacing="widest">Active:</Text>      
               <Text fontSize="xs" fontWeight="bold" color="blue.600">{selectedProject || 'None Selected'}</Text>
             </HStack>
 
-            {/* Discovery Cluster (Center) */}
             <Box flex={1} display="flex" justifyContent="center">
               <HStack w="full" maxW="400px" position="relative">
                 <Box position="absolute" left={3} color="gray.400" zIndex={1}>
@@ -145,7 +156,6 @@ export const TokenViewer = ({
               </HStack>
             </Box>
 
-            {/* Action Cluster */}
             <HStack gap={3}>
               <Button colorScheme="blue" size="sm" borderRadius="full" px={5} onClick={onEnterStudio}>
                 Studio 🚀
@@ -187,7 +197,6 @@ export const TokenViewer = ({
 
             <Tabs.Content value="global" pt={8}>
               <VStack align="stretch" gap={6}>
-                {/* Task 2.1: Focus Header UI */}
                 {isJsonFocus && (
                   <HStack 
                     bg="blue.50" p={3} borderRadius="lg" border="1px solid" borderColor="blue.100" 
@@ -202,9 +211,9 @@ export const TokenViewer = ({
                     </HStack>
                     <Button 
                       size="xs" variant="ghost" colorScheme="blue" 
-                      leftIcon={<LuX />} onClick={() => onProjectChange('')}
+                      onClick={() => onProjectChange('')}
                     >
-                      Show All Primitives
+                      <LuX style={{ marginRight: '4px' }} /> Show All Primitives
                     </Button>
                   </HStack>
                 )}
@@ -227,6 +236,7 @@ export const TokenViewer = ({
                         categories={displayCategories}
                         value={openItems}
                         onValueChange={setOpenItems}
+                        onJump={handleJump}
                       />
                     ) : (
                       <Center p={20} bg="gray.50" borderRadius="xl" border="2px dashed" borderColor="gray.200">
