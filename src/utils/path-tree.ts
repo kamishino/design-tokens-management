@@ -1,3 +1,5 @@
+import type { Manifest } from "../schemas/manifest";
+
 export interface FileNode {
   id: string;
   name: string;
@@ -9,12 +11,12 @@ export interface FileNode {
 /**
  * Maps flat manifest projects to a recursive tree structure
  */
-export const mapManifestToTree = (manifest: any): FileNode[] => {
+export const mapManifestToTree = (manifest: Manifest): FileNode[] => {
   const root: FileNode[] = [];
 
   Object.keys(manifest?.projects || {}).forEach((key) => {
     const project = manifest.projects[key];
-    const parts = key.split('/'); // e.g. ["brand-a", "app-1"]
+    const parts = key.split('/');
     
     let currentLevel = root;
 

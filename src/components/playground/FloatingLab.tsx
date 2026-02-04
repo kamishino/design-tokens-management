@@ -8,19 +8,21 @@ import { findReference } from '../../utils/token-parser';
 import { StudioColorPicker } from './panels/StudioColorPicker';
 import { FontExplorer } from './panels/FontExplorer';
 import { TypeScaleSelector } from './panels/TypeScaleSelector';
+import type { TokenOverrides } from "../../schemas/manifest";
+import type { TokenDoc } from "../../utils/token-parser";
 
 import { toaster } from "../ui/toaster";
 
 interface FloatingLabProps {
   clientId: string;
   projectId: string;
-  overrides: Record<string, any>;
+  overrides: TokenOverrides;
   updateOverride: (newValues: Record<string, any>, label?: string) => void;
   undo: () => void;
   redo: () => void;
   canUndo: boolean;
   canRedo: boolean;
-  globalTokens: any[];
+  globalTokens: TokenDoc[];
 }
 
 const SEMANTIC_CHANNELS = [
@@ -37,8 +39,8 @@ export const FloatingLab = ({
 }: FloatingLabProps) => {
   
   const mainContrast = useMemo(() => {
-    const fg = overrides['--brandPrimary'] || '#a0544f';
-    const bg = overrides['--bgCanvas'] || '#ffffff';
+    const fg = (overrides['--brandPrimary'] as string) || '#a0544f';
+    const bg = (overrides['--bgCanvas'] as string) || '#ffffff';
     return getContrastMetrics(fg, bg);
   }, [overrides['--brandPrimary'], overrides['--bgCanvas']]);
 
@@ -70,7 +72,8 @@ export const FloatingLab = ({
   };
 
   const handleFontSelect = (family: string) => {
-    const newStack = prependFont(family, overrides['--fontFamilyBase'] || 'Inter, sans-serif');
+    const currentStack = (overrides['--fontFamilyBase'] as string) || 'Inter, sans-serif';
+    const newStack = prependFont(family, currentStack);
     updateOverride({ '--fontFamilyBase': newStack }, 'Changed Font');
   };
 
@@ -105,11 +108,11 @@ export const FloatingLab = ({
                     <Text fontSize="8px" fontWeight="bold" color="gray.400" textTransform="uppercase">{channel.label}</Text>
                     <HStack gap={1}>
                       <Text fontSize="10px" fontWeight="bold" fontFamily="monospace">
-                        {(overrides[channel.variable] || '').toUpperCase() || '...'}
+                        {((overrides[channel.variable] as string) || '').toUpperCase() || '...'}
                       </Text>
-                      {findReference(overrides[channel.variable], globalTokens) && (
+                      {findReference(overrides[channel.variable] as string, globalTokens) && (
                         <Badge variant="subtle" colorScheme="gray" fontSize="8px" borderRadius="xs">
-                          {findReference(overrides[channel.variable], globalTokens)?.id.split('.').pop()}
+                          {findReference(overrides[channel.variable] as string, globalTokens)?.id.split('.').pop()}
                         </Badge>
                       )}
                     </HStack>
@@ -121,7 +124,7 @@ export const FloatingLab = ({
                   <Popover.Content w="auto" borderRadius="2xl" boxShadow="2xl" overflow="hidden" border="none">
                     <StudioColorPicker 
                       label={channel.label} 
-                      color={overrides[channel.variable] || '#000000'} 
+                      color={(overrides[channel.variable] as string) || '#000000'} 
                       onChange={(c) => updateOverride({ [channel.variable]: c }, `Changed ${channel.label}`)} 
                     />
                   </Popover.Content>
@@ -148,7 +151,7 @@ export const FloatingLab = ({
               <Popover.Positioner>
                 <Popover.Content w="auto" borderRadius="xl" boxShadow="2xl" overflow="hidden" border="none">
                   <FontExplorer 
-                    currentFamily={overrides['--fontFamilyBase'] || 'Inter, sans-serif'} 
+                    currentFamily={(overrides['--fontFamilyBase'] as string) || 'Inter, sans-serif'} 
                     onSelect={handleFontSelect} 
                   />
                 </Popover.Content>

@@ -3,9 +3,10 @@ import { useState, useMemo, useEffect } from 'react';
 import type { FileNode } from "../../utils/path-tree";
 import { mapManifestToTree, generateGlobalTree } from "../../utils/path-tree";
 import { FileTreeNode } from "./FileTreeNode";
+import type { Manifest } from "../../schemas/manifest";
 
 interface FileExplorerProps {
-  manifest: any;
+  manifest: Manifest;
   activePath: string | null;
   onSelect: (path: string, key: string) => void;
 }
@@ -31,7 +32,6 @@ export const FileExplorer = ({ manifest, activePath, onSelect }: FileExplorerPro
     return context === 'projects' ? mapManifestToTree(manifest) : generateGlobalTree();
   }, [manifest, context]);
 
-  // Save persistence
   useEffect(() => {
     localStorage.setItem('sidebar_expanded_nodes', JSON.stringify(expandedPaths));
   }, [expandedPaths]);

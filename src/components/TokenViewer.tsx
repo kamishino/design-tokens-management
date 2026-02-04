@@ -13,24 +13,14 @@ import { SettingsModal } from './explorer/SettingsModal';
 import { LuSearch, LuChevronDown, LuChevronUp, LuSettings } from "react-icons/lu";
 import { Button } from "./ui/button";
 import { FileExplorer } from "./explorer/FileExplorer";
-
-interface Manifest {
-  projects: {
-    [key: string]: {
-      name: string;
-      path: string;
-      client: string;
-      project: string;
-    }
-  }
-}
+import type { Manifest, TokenOverrides } from "../schemas/manifest";
 
 interface TokenViewerProps {
   manifest: Manifest;
   selectedProject: string;
   onProjectChange: (val: string) => void;
   onEnterStudio: () => void;
-  overrides: any;
+  overrides: TokenOverrides;
   updateOverride: (newValues: Record<string, any>, label?: string) => void;
   resetOverrides: () => void;
 }
