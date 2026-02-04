@@ -5,13 +5,13 @@ import {
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useGlobalTokens } from '../hooks/useGlobalTokens';
 import { groupTokensByFile } from '../utils/token-grouping';
-import { CategoryAccordion } from './explorer/CategoryAccordion';
 import { ToCOutline } from './explorer/ToCOutline';
 import { SettingsModal } from './explorer/SettingsModal';
-import { LuSearch, LuChevronDown, LuChevronUp, LuSettings, LuX, LuDatabase, LuLayers, LuArrowRight } from "react-icons/lu";
+import { LuSearch, LuSettings, LuX, LuDatabase, LuLayers, LuArrowRight } from "react-icons/lu";
 import { Button } from "./ui/button";
 import { FileExplorer } from "./explorer/FileExplorer";
 import { ActivityBar } from "./explorer/ActivityBar";
+import { TokenTable } from "./docs/TokenTable";
 import { findSourceFileForToken } from "../utils/token-graph";
 import type { Manifest, TokenOverrides, SidebarPanelId } from "../schemas/manifest";
 
@@ -26,45 +26,44 @@ interface TokenViewerProps {
 }
 
 /**
- * Master Section Component for better organization
+ * High-Fidelity Master Section with Consolidated Table
  */
 const MasterSection = ({ 
-  title, icon: Icon, count, categories, color, openItems, onToggle, onJump 
+  title, icon: Icon, count, tokens, color, onJump 
 }: { 
-  title: string, icon: any, count: number, categories: any[], color: string, openItems: string[], onToggle: any, onJump: any 
+  title: string, icon: any, count: number, tokens: any[], color: string, onJump: any 
 }) => {
-  if (categories.length === 0) return null;
+  if (tokens.length === 0) return null;
 
   return (
-    <VStack align="stretch" gap={4} mb={12}>
+    <VStack align="stretch" gap={4} mb={16}>
       <HStack 
-        position="sticky" top="60px" zIndex={10} py={2} 
+        position="sticky" top="60px" zIndex={10} py={3} 
         bg="rgba(247, 250, 252, 0.95)" backdropFilter="blur(8px)"
-        justify="space-between" borderBottom="1px solid" borderColor={`${color}.100`}
+        justify="space-between" borderBottom="2px solid" borderColor={`${color}.200`}
       >
         <HStack gap={3}>
-          <Box p={1.5} bg={`${color}.50`} borderRadius="md" color={`${color}.500`}>
-            <Icon size={18} />
+          <Box p={2} bg={`${color}.500`} borderRadius="lg" color="white" boxShadow="md">
+            <Icon size={20} />
           </Box>
           <VStack align="start" gap={0}>
-            <Heading size="xs" textTransform="uppercase" letterSpacing="widest" color={`${color}.700`}>
+            <Heading size="sm" textTransform="uppercase" letterSpacing="wider" color="gray.800">
               {title}
             </Heading>
-            <Text fontSize="10px" color={`${color}.500`} fontWeight="bold">
-              {count} {count === 1 ? 'file' : 'files'} mapped
+            <Text fontSize="11px" color="gray.500" fontWeight="bold">
+              {count} {count === 1 ? 'token' : 'tokens'} in this layer
             </Text>
           </VStack>
         </HStack>
-        <Badge colorScheme={color} variant="subtle" fontSize="9px" px={2} borderRadius="full">
-          {title === 'Semantic' ? 'Application Layer' : 'System Layer'}
+        <Badge colorScheme={color} variant="solid" fontSize="10px" px={3} py={0.5} borderRadius="full">
+          {title === 'Semantic' ? 'Application & Overrides' : 'System Foundation'}
         </Badge>
       </HStack>
 
-      <CategoryAccordion
-        categories={categories}
-        value={openItems}
-        onValueChange={onToggle}
-        onJump={onJump}
+      <TokenTable 
+        tokens={tokens} 
+        onJump={onJump} 
+        showSource={true} 
       />
     </VStack>
   );
@@ -77,7 +76,6 @@ export const TokenViewer = ({
 
   const { globalTokens, loading } = useGlobalTokens();
   const [searchTerm, setSearchTerm] = useState('');
-  const [openItems, setOpenItems] = useState<string[]>(['colors.json']);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
   const [activePanel, setActivePanel] = useState<SidebarPanelId>(() => {
@@ -99,20 +97,22 @@ export const TokenViewer = ({
     return categories.filter(cat => selectedProject.toLowerCase().includes(cat.id.toLowerCase()));
   }, [categories, selectedProject, isJsonFocus]);
 
-  const { semanticCats, foundationCats } = useMemo(() => {
-    return {
-      semanticCats: displayCategories.filter(cat => !cat.id.includes('global/base')),
-      foundationCats: displayCategories.filter(cat => cat.id.includes('global/base'))
-    };
+  const { semanticTokens, foundationTokens } = useMemo(() => {
+    const semantic = displayCategories
+      .filter(cat => !cat.id.includes('global/base'))
+      .flatMap(cat => cat.tokens);
+      
+    const foundation = displayCategories
+      .filter(cat => cat.id.includes('global/base'))
+      .flatMap(cat => cat.tokens);
+
+    return { semanticTokens: semantic, foundationTokens: foundation };
   }, [displayCategories]);
 
   const focusedFilename = useMemo(() => {
     if (!isJsonFocus) return null;
     return selectedProject.split('/').pop() || selectedProject;
   }, [selectedProject, isJsonFocus]);
-
-  const expandAll = () => setOpenItems(displayCategories.map(c => c.id));
-  const collapseAll = () => setOpenItems([]);
 
   const handleJump = useCallback((tokenId: string) => {
     const sourceFile = findSourceFileForToken(tokenId, globalTokens);
@@ -237,7 +237,8 @@ export const TokenViewer = ({
           <SettingsModal open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
 
           <VStack align="stretch" gap={10}>
-            <HStack justify="space-between" bg="white" p={4} borderRadius="xl" border="1px solid" borderColor="gray.100">
+            {/* Global Controls */}
+            <HStack justify="space-between" bg="white" p={4} borderRadius="xl" border="1px solid" borderColor="gray.100" boxShadow="sm">
               <HStack gap={6}>
                 <VStack align="start" gap={0}>
                   <Text fontSize="10px" fontWeight="bold" color="gray.400">PROJECT CONTEXT</Text>
@@ -249,12 +250,6 @@ export const TokenViewer = ({
                 </VStack>
               </HStack>
               <HStack gap={2}>
-                <Button size="xs" variant="ghost" onClick={expandAll} color="gray.500">
-                  <LuChevronDown /> Expand All
-                </Button>
-                <Button size="xs" variant="ghost" onClick={collapseAll} color="gray.500">
-                  <LuChevronUp /> Collapse All
-                </Button>
                 {isJsonFocus && (
                   <Button size="xs" variant="subtle" colorScheme="blue" onClick={() => onProjectChange('')}>
                     <LuX style={{ marginRight: '4px' }} /> Clear Focus
@@ -263,6 +258,7 @@ export const TokenViewer = ({
               </HStack>
             </HStack>
 
+            {/* Layout Content - Consolidated Tables */}
             <HStack gap={8} align="flex-start">
               <Box flex={1} minW={0}>
                 {displayCategories.length > 0 ? (
@@ -270,22 +266,18 @@ export const TokenViewer = ({
                     <MasterSection 
                       title="Semantic" 
                       icon={LuLayers} 
-                      count={semanticCats.length} 
-                      categories={semanticCats} 
+                      count={semanticTokens.length} 
+                      tokens={semanticTokens} 
                       color="purple"
-                      openItems={openItems}
-                      onToggle={setOpenItems}
                       onJump={handleJump}
                     />
 
                     <MasterSection 
                       title="Foundation" 
                       icon={LuDatabase} 
-                      count={foundationCats.length} 
-                      categories={foundationCats} 
+                      count={foundationTokens.length} 
+                      tokens={foundationTokens} 
                       color="blue"
-                      openItems={openItems}
-                      onToggle={setOpenItems}
                       onJump={handleJump}
                     />
                   </VStack>

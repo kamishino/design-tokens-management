@@ -1,5 +1,5 @@
 import { 
-  Box, Table, Text, HStack, VStack, Clipboard, Tooltip, Portal
+  Box, Table, Text, HStack, VStack, Clipboard, Tooltip, Portal, Badge
 } from "@chakra-ui/react";
 import type { TokenDoc } from "../../utils/token-parser";
 import { LuCopy, LuCheck, LuArrowUpRight } from "react-icons/lu";
@@ -35,7 +35,7 @@ const RootValueTooltip = ({ token, children }: RootValueTooltipProps) => {
       positioning={{ placement: 'top-start', gutter: 8 }}
     >
       <Tooltip.Trigger asChild>
-        <Box display="inline-block">{children}</Box>
+        <Box display="inline-block" cursor="help">{children}</Box>
       </Tooltip.Trigger>
       <Portal>
         <Tooltip.Content 
@@ -46,7 +46,8 @@ const RootValueTooltip = ({ token, children }: RootValueTooltipProps) => {
           boxShadow="2xl" 
           border="1px solid" 
           borderColor="whiteAlpha.200"
-          zIndex={2000}
+          zIndex={3000}
+          maxW="320px"
         >
           <VStack align="start" gap={2}>
             <HStack gap={3}>
@@ -80,14 +81,23 @@ const RootValueTooltip = ({ token, children }: RootValueTooltipProps) => {
   );
 };
 
-export const TokenTable = ({ tokens, onJump }: { tokens: TokenDoc[], onJump?: (id: string) => void }) => {
+export const TokenTable = ({ 
+  tokens, 
+  onJump,
+  showSource = false 
+}: { 
+  tokens: TokenDoc[], 
+  onJump?: (id: string) => void,
+  showSource?: boolean
+}) => {
   return (
-    <Box borderWidth="1px" borderRadius="lg" overflow="hidden" bg="white">
+    <Box borderWidth="1px" borderRadius="lg" overflow="hidden" bg="white" boxShadow="sm">
       <Table.Root size="sm" tableLayout="fixed">
         <Table.Header bg="gray.50">
           <Table.Row>
-            <Table.ColumnHeader w="80px">Swatch</Table.ColumnHeader>
-            <Table.ColumnHeader w="30%">Token Name</Table.ColumnHeader>
+            <Table.ColumnHeader w="60px">Swatch</Table.ColumnHeader>
+            <Table.ColumnHeader w={showSource ? "25%" : "30%"}>Token Name</Table.ColumnHeader>
+            {showSource && <Table.ColumnHeader w="120px">Source</Table.ColumnHeader>}
             <Table.ColumnHeader w="20%">Value</Table.ColumnHeader>
             <Table.ColumnHeader>Lineage</Table.ColumnHeader>
             <Table.ColumnHeader w="180px">Usage</Table.ColumnHeader>
@@ -95,10 +105,15 @@ export const TokenTable = ({ tokens, onJump }: { tokens: TokenDoc[], onJump?: (i
         </Table.Header>
         <Table.Body>
           {tokens.map((token) => (
-            <Table.Row key={token.id} _hover={{ bg: "blue.50/30" }} id={`token-${token.id}`} transition="background 0.2s">
+            <Table.Row key={token.id} _hover={{ bg: "blue.50/20" }} id={`token-${token.id}`} transition="background 0.2s">
               <Table.Cell>
                 {token.type === 'color' && (
-                  <Box w="32px" h="32px" bg={token.value} borderRadius="sm" border="1px solid rgba(0,0,0,0.1)" />
+                  <Box 
+                    w="28px" h="28px" 
+                    bg={token.resolvedValue || token.value} 
+                    borderRadius="sm" 
+                    border="1px solid rgba(0,0,0,0.1)" 
+                  />
                 )}
               </Table.Cell>
               <Table.Cell>
@@ -107,7 +122,7 @@ export const TokenTable = ({ tokens, onJump }: { tokens: TokenDoc[], onJump?: (i
                   {token.rawValue && (
                     <RootValueTooltip token={token}>
                       <HStack 
-                        gap={1} color="blue.500" cursor="pointer" _hover={{ textDecoration: "underline" }}
+                        gap={1} color="blue.500" _hover={{ textDecoration: "underline" }}
                         onClick={() => onJump?.(token.references[0])}
                       >
                         <LuArrowUpRight size={10} />
@@ -124,6 +139,13 @@ export const TokenTable = ({ tokens, onJump }: { tokens: TokenDoc[], onJump?: (i
                   )}
                 </VStack>
               </Table.Cell>
+              {showSource && (
+                <Table.Cell>
+                  <Badge variant="outline" size="xs" colorScheme="gray" textTransform="lowercase" fontWeight="normal">
+                    {token.sourceFile}
+                  </Badge>
+                </Table.Cell>
+              )}
               <Table.Cell>
                 <Text fontSize="xs" fontFamily="monospace" lineClamp={1} title={JSON.stringify(token.value)}>
                   {JSON.stringify(token.value)}
