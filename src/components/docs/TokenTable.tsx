@@ -28,17 +28,27 @@ export const TokenTable = ({
 }: { 
   tokens: TokenDoc[], 
   onJump?: (id: string) => void,
-  onHover?: (token: TokenDoc | null, rect: DOMRect | null) => void,
+  onHover?: (token: TokenDoc | null, pos: { x: number, y: number } | null) => void,
   showSource?: boolean
 }) => {
   return (
-    <Box borderWidth="1px" borderRadius="lg" overflow="hidden" bg="white" boxShadow="sm">
+    <Box
+      borderWidth="1px"
+      borderRadius="lg"
+      overflow="hidden"
+      bg="white"
+      boxShadow="sm"
+    >
       <Table.Root size="sm" tableLayout="fixed">
         <Table.Header bg="gray.50">
           <Table.Row>
-            <Table.ColumnHeader w="60px">Swatch</Table.ColumnHeader>
-            <Table.ColumnHeader w={showSource ? "25%" : "30%"}>Token Name</Table.ColumnHeader>
-            {showSource && <Table.ColumnHeader w="120px">Source</Table.ColumnHeader>}
+            <Table.ColumnHeader w="80px">Swatch</Table.ColumnHeader>
+            <Table.ColumnHeader w={showSource ? "25%" : "30%"}>
+              Token Name
+            </Table.ColumnHeader>
+            {showSource && (
+              <Table.ColumnHeader w="120px">Source</Table.ColumnHeader>
+            )}
             <Table.ColumnHeader w="20%">Value</Table.ColumnHeader>
             <Table.ColumnHeader>Lineage</Table.ColumnHeader>
             <Table.ColumnHeader w="180px">Usage</Table.ColumnHeader>
@@ -46,44 +56,65 @@ export const TokenTable = ({
         </Table.Header>
         <Table.Body>
           {tokens.map((token) => (
-            <Table.Row 
-              key={token.id} 
-              _hover={{ bg: "blue.50/20" }} 
-              id={`token-${token.id}`} 
+            <Table.Row
+              key={token.id}
+              _hover={{ bg: "blue.50/20" }}
+              id={`token-${token.id}`}
               transition="background 0.2s"
-              onMouseEnter={(e) => {
+              onMouseMove={(e) => {
                 if (token.rawValue) {
-                  onHover?.(token, e.currentTarget.getBoundingClientRect());
+                  onHover?.(token, { x: e.clientX, y: e.clientY });
                 }
               }}
               onMouseLeave={() => onHover?.(null, null)}
             >
               <Table.Cell>
-                {token.type === 'color' && (
-                  <Box 
-                    w="28px" h="28px" 
-                    bg={token.resolvedValue || token.value} 
-                    borderRadius="sm" 
-                    border="1px solid rgba(0,0,0,0.1)" 
+                {token.type === "color" && (
+                  <Box
+                    w="28px"
+                    h="28px"
+                    bg={token.resolvedValue || token.value}
+                    borderRadius="sm"
+                    border="1px solid rgba(0,0,0,0.1)"
                   />
                 )}
               </Table.Cell>
               <Table.Cell>
                 <VStack align="start" gap={0} overflow="hidden">
-                  <Text fontWeight="bold" fontSize="xs" lineClamp={1} title={token.id}>{token.name}</Text>
+                  <Text
+                    fontWeight="bold"
+                    fontSize="xs"
+                    lineClamp={1}
+                    title={token.id}
+                  >
+                    {token.name}
+                  </Text>
                   {token.rawValue && (
-                    <HStack 
-                      gap={1} color="blue.500" cursor="pointer" _hover={{ textDecoration: "underline" }}
+                    <HStack
+                      gap={1}
+                      color="blue.500"
+                      cursor="pointer"
+                      _hover={{ textDecoration: "underline" }}
                       onClick={() => onJump?.(token.references[0])}
                     >
                       <LuArrowUpRight size={10} />
-                      <Text fontSize="10px" fontFamily="'Space Mono', monospace" fontWeight="bold">
+                      <Text
+                        fontSize="10px"
+                        fontFamily="'Space Mono', monospace"
+                        fontWeight="bold"
+                      >
                         {token.rawValue}
                       </Text>
                     </HStack>
                   )}
                   {token.description && (
-                    <Text fontSize="10px" color="gray.500" lineClamp={1} title={token.description} mt={1}>
+                    <Text
+                      fontSize="10px"
+                      color="gray.500"
+                      lineClamp={1}
+                      title={token.description}
+                      mt={1}
+                    >
                       {token.description}
                     </Text>
                   )}
@@ -91,20 +122,39 @@ export const TokenTable = ({
               </Table.Cell>
               {showSource && (
                 <Table.Cell>
-                  <Badge variant="outline" size="xs" colorScheme="gray" textTransform="lowercase" fontWeight="normal">
+                  <Badge
+                    variant="outline"
+                    size="xs"
+                    colorScheme="gray"
+                    textTransform="lowercase"
+                    fontWeight="normal"
+                  >
                     {token.sourceFile}
                   </Badge>
                 </Table.Cell>
               )}
               <Table.Cell>
-                <Text fontSize="xs" fontFamily="monospace" lineClamp={1} title={JSON.stringify(token.value)}>
+                <Text
+                  fontSize="xs"
+                  fontFamily="monospace"
+                  lineClamp={1}
+                  title={JSON.stringify(token.value)}
+                >
                   {JSON.stringify(token.value)}
                 </Text>
               </Table.Cell>
               <Table.Cell>
                 <HStack gap={2}>
-                  <LineagePopover ids={token.dependents} label="aliases" colorScheme="purple" />
-                  <LineagePopover ids={token.references} label="upstream" colorScheme="blue" />
+                  <LineagePopover
+                    ids={token.dependents}
+                    label="aliases"
+                    colorScheme="purple"
+                  />
+                  <LineagePopover
+                    ids={token.references}
+                    label="upstream"
+                    colorScheme="blue"
+                  />
                 </HStack>
               </Table.Cell>
               <Table.Cell>
