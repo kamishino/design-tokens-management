@@ -60,7 +60,7 @@ export const Dashboard = ({ data }: { data: StudioMockData }) => {
                     <Table.Row key={tx.id}>
                       <Table.Cell><Text fontSize="xs" fontWeight="bold" fontFamily="monospace">{tx.id}</Text></Table.Cell>
                       <Table.Cell><Text fontSize="xs" fontWeight="medium">{tx.user}</Text></Table.Cell>
-                      <Table.Cell><Text fontSize="xs" fontWeight="bold">{tx.amount}</Table.Cell>
+                      <Table.Cell><Text fontSize="xs" fontWeight="bold">{tx.amount}</Text></Table.Cell>
                       <Table.Cell>
                         <Badge 
                           colorScheme={tx.status === 'success' ? 'green' : tx.status === 'pending' ? 'orange' : 'red'} 
