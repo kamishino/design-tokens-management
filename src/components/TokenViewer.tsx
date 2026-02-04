@@ -2,7 +2,7 @@ import {
   Box, Text, VStack, Heading, Badge,
   HStack, Tabs, Spinner, Center, Input, IconButton
 } from "@chakra-ui/react"
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { TypographyVisualizer } from './visualizers/TypographyVisualizer';
 import { GridLayoutVisualizer } from './visualizers/GridLayoutVisualizer';
 import { useGlobalTokens } from '../hooks/useGlobalTokens';
@@ -13,7 +13,8 @@ import { SettingsModal } from './explorer/SettingsModal';
 import { LuSearch, LuChevronDown, LuChevronUp, LuSettings } from "react-icons/lu";
 import { Button } from "./ui/button";
 import { FileExplorer } from "./explorer/FileExplorer";
-import type { Manifest, TokenOverrides } from "../schemas/manifest";
+import { ActivityBar } from "./explorer/ActivityBar";
+import type { Manifest, TokenOverrides, SidebarPanelId } from "../schemas/manifest";
 
 interface TokenViewerProps {
   manifest: Manifest;
@@ -21,7 +22,7 @@ interface TokenViewerProps {
   onProjectChange: (val: string) => void;
   onEnterStudio: () => void;
   overrides: TokenOverrides;
-  updateOverride: (newValues: Record<string, any>, label?: string) => void;
+  updateOverride: (newValues: Record<string, unknown>, label?: string) => void;
   resetOverrides: () => void;
 }
 
@@ -34,6 +35,11 @@ export const TokenViewer = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [openItems, setOpenItems] = useState<string[]>(['colors.json']);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  
+  const [activePanel, setActivePanel] = useState<SidebarPanelId>(() => {
+    if (typeof window === 'undefined') return 'explorer';
+    return (localStorage.getItem('ide_active_panel') as SidebarPanelId) || 'explorer';
+  });
 
   const hasOverrides = Object.keys(overrides).length > 0;
 
@@ -45,20 +51,36 @@ export const TokenViewer = ({
   const expandAll = () => setOpenItems(categories.map(c => c.id));
   const collapseAll = () => setOpenItems([]);
 
+  useEffect(() => {
+    localStorage.setItem('ide_active_panel', activePanel);
+  }, [activePanel]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey) {
+        if (e.key.toLowerCase() === 'e') { e.preventDefault(); setActivePanel('explorer'); }
+        if (e.key.toLowerCase() === 'g') { e.preventDefault(); setActivePanel('primitives'); }
+        if (e.key.toLowerCase() === 'f') { e.preventDefault(); setActivePanel('search'); }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   if (loading) return <Center h="100vh"><Spinner size="xl" /></Center>;
 
   return (
     <HStack align="stretch" gap={0} bg="white" h="100vh" overflow="hidden">
-      {/* Sidebar Explorer */}
+      <ActivityBar activePanel={activePanel} onPanelChange={setActivePanel} />
+
       <FileExplorer 
         manifest={manifest} 
+        context={activePanel}
         activePath={selectedProject} 
         onSelect={(_, key) => onProjectChange(key)} 
       />
 
-      {/* Main Content */}
       <VStack flex={1} align="stretch" gap={0} bg="#f7fafc" overflowY="auto" pb="120px">
-        {/* Premium Sticky Header */}
         <Box
           position="sticky" top={0} zIndex={1000}
           bg="rgba(255, 255, 255, 0.85)" backdropFilter="blur(12px)"
@@ -66,7 +88,6 @@ export const TokenViewer = ({
           px={8} py={3} boxShadow="sm"
         >
           <HStack gap={8} align="center">
-            {/* Identity Cluster */}
             <VStack align="start" gap={0} minW="max-content">
               <Heading size="md" letterSpacing="tight" fontWeight="extrabold" color="gray.800">Design Token Manager</Heading>
               <HStack mt={0.5}>
@@ -75,13 +96,11 @@ export const TokenViewer = ({
               </HStack>
             </VStack>
 
-            {/* Current Context Status */}
             <HStack gap={3} bg="gray.50" px={3} py={1.5} borderRadius="lg" border="1px solid" borderColor="gray.100">
               <Text fontSize="9px" fontWeight="bold" color="gray.400" textTransform="uppercase" letterSpacing="widest">Active:</Text>      
               <Text fontSize="xs" fontWeight="bold" color="blue.600">{selectedProject || 'None Selected'}</Text>
             </HStack>
 
-            {/* Discovery Cluster (Center) */}
             <Box flex={1} display="flex" justifyContent="center">
               <HStack w="full" maxW="400px" position="relative">
                 <Box position="absolute" left={3} color="gray.400" zIndex={1}>
@@ -102,7 +121,6 @@ export const TokenViewer = ({
               </HStack>
             </Box>
 
-            {/* Action Cluster */}
             <HStack gap={3}>
               <Button colorScheme="blue" size="sm" borderRadius="full" px={5} onClick={onEnterStudio}>
                 Studio 🚀

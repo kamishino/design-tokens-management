@@ -1,19 +1,18 @@
-import { Box, VStack, Text, Tabs } from "@chakra-ui/react";
-import { useState, useMemo, useEffect } from 'react';
+import { Box, VStack, Text } from "@chakra-ui/react";
+import { useMemo, useEffect, useState } from 'react';
 import type { FileNode } from "../../utils/path-tree";
 import { mapManifestToTree, generateGlobalTree } from "../../utils/path-tree";
 import { FileTreeNode } from "./FileTreeNode";
-import type { Manifest } from "../../schemas/manifest";
+import type { Manifest, SidebarPanelId } from "../../schemas/manifest";
 
 interface FileExplorerProps {
   manifest: Manifest;
+  context: SidebarPanelId;
   activePath: string | null;
   onSelect: (path: string, key: string) => void;
 }
 
-export const FileExplorer = ({ manifest, activePath, onSelect }: FileExplorerProps) => {
-  const [context, setContext] = useState<'projects' | 'global'>('projects');
-  
+export const FileExplorer = ({ manifest, context, activePath, onSelect }: FileExplorerProps) => {
   const [expandedPaths, setExpandedPaths] = useState<string[]>(() => {
     if (typeof window === 'undefined') return [];
     const saved = localStorage.getItem('sidebar_expanded_nodes');
@@ -29,8 +28,18 @@ export const FileExplorer = ({ manifest, activePath, onSelect }: FileExplorerPro
   });
 
   const tree = useMemo(() => {
-    return context === 'projects' ? mapManifestToTree(manifest) : generateGlobalTree();
+    if (context === 'primitives') return generateGlobalTree();
+    return mapManifestToTree(manifest);
   }, [manifest, context]);
+
+  const headerTitle = useMemo(() => {
+    switch(context) {
+      case 'primitives': return 'Global Primitives';
+      case 'search': return 'Search';
+      case 'settings': return 'Settings';
+      default: return 'Explorer';
+    }
+  }, [context]);
 
   useEffect(() => {
     localStorage.setItem('sidebar_expanded_nodes', JSON.stringify(expandedPaths));
@@ -46,6 +55,9 @@ export const FileExplorer = ({ manifest, activePath, onSelect }: FileExplorerPro
     onSelect(node.fullPath, node.id);
   };
 
+  if (context === 'search') return <Box p={4}><Text fontSize="xs" color="gray.500">Search is coming soon...</Text></Box>;
+  if (context === 'settings') return <Box p={4}><Text fontSize="xs" color="gray.500">Global Settings Panel</Text></Box>;
+
   return (
     <VStack 
       w="260px" 
@@ -59,19 +71,8 @@ export const FileExplorer = ({ manifest, activePath, onSelect }: FileExplorerPro
     >
       <Box p={4} pb={2}>
         <Text fontSize="10px" fontWeight="bold" color="gray.400" textTransform="uppercase" mb={3} letterSpacing="widest">
-          Explorer
+          {headerTitle}
         </Text>
-        <Tabs.Root 
-          value={context} 
-          onValueChange={(e) => setContext(e.value as any)} 
-          size="xs" 
-          variant="subtle"
-        >
-          <Tabs.List bg="gray.100" p={0.5} borderRadius="md">
-            <Tabs.Trigger value="projects" flex={1} fontWeight="bold">Projects</Tabs.Trigger>
-            <Tabs.Trigger value="global" flex={1} fontWeight="bold">Global</Tabs.Trigger>
-          </Tabs.List>
-        </Tabs.Root>
       </Box>
 
       <Box flex={1} overflowY="auto" p={2}>

@@ -54,6 +54,8 @@ export interface TokenOverrides {
   [tokenName: string]: TokenValue;
 }
 
+export type SidebarPanelId = 'explorer' | 'primitives' | 'search' | 'settings';
+
 // Inferred Types for TS usage
 export type Manifest = z.infer<typeof ManifestSchema>;
 export type Project = z.infer<typeof ProjectSchema>;
