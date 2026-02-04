@@ -1,6 +1,7 @@
 import { 
   Box, Text, VStack, Heading, Badge,
-  HStack, Spinner, Center, Input, IconButton
+  HStack, Spinner, Center, Input, IconButton,
+  Portal
 } from "@chakra-ui/react"
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useGlobalTokens } from '../hooks/useGlobalTokens';
@@ -14,6 +15,7 @@ import { ActivityBar } from "./explorer/ActivityBar";
 import { TokenTable } from "./docs/TokenTable";
 import { findSourceFileForToken } from "../utils/token-graph";
 import type { Manifest, TokenOverrides, SidebarPanelId } from "../schemas/manifest";
+import type { TokenDoc } from "../utils/token-parser";
 
 interface TokenViewerProps {
   manifest: Manifest;
@@ -26,12 +28,64 @@ interface TokenViewerProps {
 }
 
 /**
- * High-Fidelity Master Section with Consolidated Table
+ * Inspector Overlay Singleton
  */
+const InspectorOverlay = ({ token, rect }: { token: TokenDoc | null, rect: DOMRect | null }) => {
+  if (!token || !rect) return null;
+
+  return (
+    <Portal>
+      <Box
+        position="fixed"
+        top={`${rect.top - 8}px`}
+        left={`${rect.left}px`}
+        transform="translateY(-100%)"
+        bg="gray.900"
+        color="white"
+        p={3}
+        borderRadius="lg"
+        boxShadow="2xl"
+        border="1px solid"
+        borderColor="whiteAlpha.200"
+        zIndex={3000}
+        maxW="320px"
+        pointerEvents="none"
+      >
+        <VStack align="start" gap={2}>
+          <HStack gap={3}>
+            {token.type === 'color' && (
+              <Box 
+                w="32px" h="32px" 
+                bg={token.resolvedValue} 
+                borderRadius="md" 
+                border="2px solid" 
+                borderColor="whiteAlpha.300"
+                boxShadow="inner"
+              />
+            )}
+            <VStack align="start" gap={0}>
+              <Text fontSize="9px" fontWeight="bold" color="gray.400" textTransform="uppercase" letterSpacing="widest">
+                Terminal Root Value
+              </Text>
+              <Text fontSize="12px" fontFamily="'Space Mono', monospace" fontWeight="bold" color="blue.300">
+                {typeof token.resolvedValue === 'object' ? JSON.stringify(token.resolvedValue) : token.resolvedValue}
+              </Text>
+            </VStack>
+          </HStack>
+          <Box h="1px" w="full" bg="whiteAlpha.100" />
+          <Text fontSize="9px" color="whiteAlpha.600">
+            Reference Path: {token.rawValue}
+          </Text>
+        </VStack>
+      </Box>
+    </Portal>
+  );
+};
+
 const MasterSection = ({ 
-  title, icon: Icon, count, tokens, color, onJump 
+  title, icon: Icon, count, tokens, color, onJump, onHover 
 }: { 
-  title: string, icon: any, count: number, tokens: any[], color: string, onJump: any 
+  title: string, icon: any, count: number, tokens: TokenDoc[], color: string, onJump: (id: string) => void, onHover: (token: TokenDoc | null, rect: DOMRect | null) => void 
 }) => {
   if (tokens.length === 0) return null;
 
@@ -50,19 +104,20 @@ const MasterSection = ({
             <Heading size="sm" textTransform="uppercase" letterSpacing="wider" color="gray.800">
               {title}
             </Heading>
-            <Text fontSize="11px" color="gray.500" fontWeight="bold">
-              {count} {count === 1 ? 'token' : 'tokens'} in this layer
+            <Text fontSize="11px" color={`${color}.600`} fontWeight="bold">
+              {count} {count === 1 ? 'token' : 'tokens'} mapped
             </Text>
           </VStack>
         </HStack>
         <Badge colorScheme={color} variant="solid" fontSize="10px" px={3} py={0.5} borderRadius="full">
-          {title === 'Semantic' ? 'Application & Overrides' : 'System Foundation'}
+          {title === 'Semantic' ? 'Application Layer' : 'Foundation Layer'}
         </Badge>
       </HStack>
 
       <TokenTable 
         tokens={tokens} 
         onJump={onJump} 
+        onHover={onHover}
         showSource={true} 
       />
     </VStack>
@@ -81,6 +136,14 @@ export const TokenViewer = ({
   const [activePanel, setActivePanel] = useState<SidebarPanelId>(() => {
     if (typeof window === 'undefined') return 'explorer';
     return (localStorage.getItem('ide_active_panel') as SidebarPanelId) || 'explorer';
+  });
+
+  const [hoveredToken, setHoveredToken] = useState<{ token: TokenDoc | null, rect: DOMRect | null }>({ token: null, rect: null });
+
+  const [expandedMaster, setExpandedMaster] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return ['semantic', 'foundation'];
+    const saved = localStorage.getItem('ide_expanded_master');
+    return saved ? JSON.parse(saved) : ['semantic', 'foundation'];
   });
 
   const hasOverrides = Object.keys(overrides).length > 0;
@@ -117,8 +180,9 @@ export const TokenViewer = ({
   const handleJump = useCallback((tokenId: string) => {
     const sourceFile = findSourceFileForToken(tokenId, globalTokens);
     if (sourceFile) {
-      setActivePanel('primitives');
-      onProjectChange(sourceFile);
+      if (!expandedMaster.includes('foundation')) {
+        setExpandedMaster(prev => [...prev, 'foundation']);
+      }
       
       setTimeout(() => {
         const element = document.getElementById(`token-${tokenId}`);
@@ -132,11 +196,15 @@ export const TokenViewer = ({
         }
       }, 300);
     }
-  }, [globalTokens, onProjectChange]);
+  }, [globalTokens, expandedMaster]);
 
   useEffect(() => {
     localStorage.setItem('ide_active_panel', activePanel);
   }, [activePanel]);
+
+  useEffect(() => {
+    localStorage.setItem('ide_expanded_master', JSON.stringify(expandedMaster));
+  }, [expandedMaster]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -148,6 +216,10 @@ export const TokenViewer = ({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const handleHover = useCallback((token: TokenDoc | null, rect: DOMRect | null) => {
+    setHoveredToken({ token, rect });
   }, []);
 
   if (loading) return <Center h="100vh"><Spinner size="xl" /></Center>;
@@ -163,7 +235,9 @@ export const TokenViewer = ({
         onSelect={(_, key) => onProjectChange(key)} 
       />
 
-      <VStack flex={1} align="stretch" gap={0} bg="#f7fafc" overflowY="auto" pb="120px">
+      <VStack flex={1} align="stretch" gap={0} bg="#f7fafc" overflowY="auto" pb="120px" position="relative">
+        <InspectorOverlay token={hoveredToken.token} rect={hoveredToken.rect} />
+        
         <Box
           position="sticky" top={0} zIndex={1000}
           bg="rgba(255, 255, 255, 0.85)" backdropFilter="blur(12px)"
@@ -237,7 +311,6 @@ export const TokenViewer = ({
           <SettingsModal open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
 
           <VStack align="stretch" gap={10}>
-            {/* Global Controls */}
             <HStack justify="space-between" bg="white" p={4} borderRadius="xl" border="1px solid" borderColor="gray.100" boxShadow="sm">
               <HStack gap={6}>
                 <VStack align="start" gap={0}>
@@ -258,10 +331,27 @@ export const TokenViewer = ({
               </HStack>
             </HStack>
 
-            {/* Layout Content - Consolidated Tables */}
             <HStack gap={8} align="flex-start">
               <Box flex={1} minW={0}>
-                {displayCategories.length > 0 ? (
+                {isJsonFocus ? (
+                  <VStack align="stretch" gap={4}>
+                    <HStack justify="space-between" borderBottom="2px solid" borderColor="blue.200" py={3}>
+                      <HStack gap={3}>
+                        <Box p={2} bg="blue.500" borderRadius="lg" color="white"><LuLayers size={20} /></Box>
+                        <VStack align="start" gap={0}>
+                          <Heading size="sm" textTransform="uppercase">{focusedFilename}</Heading>
+                          <Text fontSize="11px" color="blue.600" fontWeight="bold">{semanticTokens.length + foundationTokens.length} tokens in file</Text>
+                        </VStack>
+                      </HStack>
+                    </HStack>
+                    <TokenTable 
+                      tokens={[...semanticTokens, ...foundationTokens]} 
+                      onJump={handleJump} 
+                      onHover={handleHover}
+                      showSource={false} 
+                    />
+                  </VStack>
+                ) : displayCategories.length > 0 ? (
                   <VStack align="stretch" gap={0}>
                     <MasterSection 
                       title="Semantic" 
@@ -270,6 +360,7 @@ export const TokenViewer = ({
                       tokens={semanticTokens} 
                       color="purple"
                       onJump={handleJump}
+                      onHover={handleHover}
                     />
 
                     <MasterSection 
@@ -279,13 +370,14 @@ export const TokenViewer = ({
                       tokens={foundationTokens} 
                       color="blue"
                       onJump={handleJump}
+                      onHover={handleHover}
                     />
                   </VStack>
                 ) : (
                   <Center p={20} bg="gray.50" borderRadius="xl" border="2px dashed" borderColor="gray.200">
                     <VStack gap={2}>
-                      <Text color="gray.400" fontWeight="bold">No categories matched this file.</Text>
-                      <Button size="xs" variant="link" onClick={() => onProjectChange('')}>Clear Filter</Button>
+                      <Text color="gray.400" fontWeight="bold">No categories matched this search.</Text>
+                      <Button size="xs" variant="link" onClick={() => setSearchTerm('')}>Clear Search</Button>
                     </VStack>
                   </Center>
                 )}
