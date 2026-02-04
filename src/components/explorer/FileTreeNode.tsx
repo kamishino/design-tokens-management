@@ -1,6 +1,6 @@
 import { Box, HStack, Text, Icon } from "@chakra-ui/react";
 import { LuFolder, LuFolderOpen, LuFileJson, LuChevronRight, LuChevronDown } from "react-icons/lu";
-import { FileNode } from "../../utils/path-tree";
+import type { FileNode } from "../../utils/path-tree";
 
 interface FileTreeNodeProps {
   node: FileNode;

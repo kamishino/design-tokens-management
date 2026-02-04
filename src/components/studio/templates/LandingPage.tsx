@@ -1,5 +1,5 @@
 import { Box, Heading, Text, Button, SimpleGrid, VStack, Container, HStack } from "@chakra-ui/react";
-import { StudioMockData } from "./shared/mock-data";
+import type { StudioMockData } from "./shared/mock-data";
 
 export const LandingPage = ({ data }: { data: StudioMockData }) => {
   return (

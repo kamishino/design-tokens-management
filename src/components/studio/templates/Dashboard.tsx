@@ -3,7 +3,7 @@ import {
   HStack, Container, Badge, Table,
   Button
 } from "@chakra-ui/react";
-import { StudioMockData } from "./shared/mock-data";
+import type { StudioMockData } from "./shared/mock-data";
 
 export const Dashboard = ({ data }: { data: StudioMockData }) => {
   return (

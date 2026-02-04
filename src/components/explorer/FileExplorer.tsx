@@ -1,6 +1,7 @@
 import { Box, VStack, Text, Tabs } from "@chakra-ui/react";
 import { useState, useMemo, useEffect } from 'react';
-import { FileNode, mapManifestToTree, generateGlobalTree } from "../../utils/path-tree";
+import type { FileNode } from "../../utils/path-tree";
+import { mapManifestToTree, generateGlobalTree } from "../../utils/path-tree";
 import { FileTreeNode } from "./FileTreeNode";
 
 interface FileExplorerProps {

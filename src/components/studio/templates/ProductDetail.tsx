@@ -3,7 +3,7 @@ import {
   HStack, Container, Button, Badge,
   Image, Separator
 } from "@chakra-ui/react";
-import { StudioMockData } from "./shared/mock-data";
+import type { StudioMockData } from "./shared/mock-data";
 import { 
   AccordionItem,
   AccordionItemContent,
