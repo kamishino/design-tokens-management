@@ -1,75 +1,102 @@
-import { Box, SimpleGrid, VStack, HStack, Text, Heading, Button, Badge } from "@chakra-ui/react";
+import { 
+  Box, Heading, Text, SimpleGrid, VStack, 
+  HStack, Container, Badge, Table,
+  Button
+} from "@chakra-ui/react";
+import { StudioMockData } from "./shared/mock-data";
 
-export const Dashboard = () => {
+export const Dashboard = ({ data }: { data: StudioMockData }) => {
   return (
-    <Box bg="#f0f2f5" minH="100vh" fontFamily="var(--fontFamilyBase)" display="flex">
-      {/* Sidebar */}
-      <Box w="260px" bg="white" borderRight="1px solid" borderColor="gray.200" p={6}>
-        <Heading size="md" mb={10} color="var(--brandPrimary)">Token OS</Heading>
-        <VStack align="stretch" gap={2}>
-          {["Overview", "Tokens", "Themes", "Settings", "Analytics"].map((item, i) => (
-            <Box 
-              key={item} 
-              p={3} 
-              borderRadius="var(--radius1)" 
-              bg={i === 0 ? "rgba(0,0,0,0.05)" : "transparent"}
-              fontWeight={i === 0 ? "bold" : "normal"}
-              cursor="pointer"
-              _hover={{ bg: "gray.50" }}
-            >
-              {item}
-            </Box>
-          ))}
-        </VStack>
-      </Box>
-
-      {/* Main Content */}
-      <Box flex={1}>
-        {/* Header */}
-        <Box bg="white" h="70px" borderBottom="1px solid" borderColor="gray.200" px={8} display="flex" alignItems="center" justifyContent="space-between">
-          <Heading size="sm">Project Overview</Heading>
-          <HStack gap={4}>
-            <Button size="sm" variant="outline">Docs</Button>
-            <Button size="sm" bg="var(--brandPrimary)" color="white" borderRadius="var(--radius1)">New Project</Button>
-          </HStack>
-        </Box>
-
-        {/* Content Body */}
-        <Box p={8}>
-          <SimpleGrid columns={4} gap="var(--gridGutterDesktop)" mb={10}>
-            {[
-              { label: "Active Tokens", value: "1,240", change: "+12%" },
-              { label: "Built Projects", value: "48", change: "+5" },
-              { label: "Contrast Success", value: "98%", change: "stable" },
-              { label: "Avg Sync Time", value: "1.2s", change: "-0.4s" }
-            ].map((stat, i) => (
-              <Box key={i} bg="white" p={6} borderRadius="var(--radius2)" boxShadow="sm" border="1px solid" borderColor="gray.100">
-                <Text fontSize="xs" fontWeight="bold" color="gray.400" mb={2} textTransform="uppercase">{stat.label}</Text>
-                <Heading size="lg">{stat.value}</Heading>
-                <Text fontSize="2xs" color="green.500" mt={2}>{stat.change}</Text>
+    <Box bg="gray.50" minH="100vh" py={12} fontFamily="var(--fontFamilyBase)">
+      <Container maxW="container.xl">
+        <VStack align="stretch" gap={10}>
+          {/* Header */}
+          <HStack justify="space-between">
+            <VStack align="start" gap={1}>
+              <Heading size="lg" letterSpacing="tight">Analytics Overview</Heading>
+              <Text color="gray.500" fontSize="sm">Welcome back, here's what's happening with your brand.</Text>
+            </VStack>
+            <HStack gap={3}>
+              <Box p={2} bg="white" borderRadius="md" border="1px solid" borderColor="gray.200">
+                <Text fontSize="xs" fontWeight="bold">Last 30 Days</Text>
               </Box>
+            </HStack>
+          </HStack>
+
+          {/* Stats Grid */}
+          <SimpleGrid columns={{ base: 1, md: 4 }} gap={6}>
+            {[
+              { label: "Total Revenue", value: data.dashboard.totalRevenue, trend: "+12.5%", color: "green" },
+              { label: "Active Users", value: data.dashboard.activeUsers.toLocaleString(), trend: "+3.2%", color: "blue" },
+              { label: "Conversion Rate", value: data.dashboard.conversionRate, trend: "-0.4%", color: "red" },
+              { label: "Sales Count", value: data.dashboard.salesCount.toLocaleString(), trend: "+18.1%", color: "green" }
+            ].map((stat, i) => (
+              <VStack key={i} align="start" p={6} bg="white" borderRadius="var(--radius3)" boxShadow="sm" border="1px solid" borderColor="gray.100">
+                <Text fontSize="xs" fontWeight="bold" color="gray.500" textTransform="uppercase">{stat.label}</Text>
+                <HStack align="baseline" gap={2}>
+                  <Heading size="xl">{stat.value}</Heading>
+                  <Badge colorScheme={stat.color} variant="subtle" fontSize="10px">{stat.trend}</Badge>
+                </HStack>
+              </VStack>
             ))}
           </SimpleGrid>
 
-          <Box bg="white" p={8} borderRadius="var(--radius3)" boxShadow="sm" border="1px solid" borderColor="gray.100">
-            <Heading size="md" mb={6}>Recent Activity</Heading>
-            <VStack align="stretch" gap={4}>
-              {[1, 2, 3, 4, 5].map((item) => (
-                <HStack key={item} justify="space-between" py={3} borderBottom="1px solid" borderColor="gray.50">
-                  <HStack gap={4}>
-                    <Box w={10} h={10} bg="gray.100" borderRadius="full" />
-                    <VStack align="start" gap={0}>
-                      <Text fontSize="sm" fontWeight="bold">Token Updated: brand.primary</Text>
-                      <Text fontSize="xs" color="gray.500">2 hours ago by Kami</Text>
-                    </VStack>
-                  </HStack>
-                  <Badge colorScheme="blue" variant="subtle" fontSize="10px">v0.1.0</Badge>
-                </HStack>
-              ))}
+          {/* Table & Chart Area */}
+          <SimpleGrid columns={{ base: 1, md: 3 }} gap={8}>
+            <Box gridColumn={{ md: "span 2" }} bg="white" p={8} borderRadius="var(--radius4)" boxShadow="sm" border="1px solid" borderColor="gray.100">
+              <Heading size="md" mb={6}>Recent Transactions</Heading>
+              <Table.Root size="sm" variant="line">
+                <Table.Header>
+                  <Table.Row>
+                    <Table.ColumnHeader>ID</Table.ColumnHeader>
+                    <Table.ColumnHeader>Customer</Table.ColumnHeader>
+                    <Table.ColumnHeader>Amount</Table.ColumnHeader>
+                    <Table.ColumnHeader>Status</Table.ColumnHeader>
+                    <Table.ColumnHeader textAlign="end">Date</Table.ColumnHeader>
+                  </Table.Row>
+                </Table.Header>
+                <Table.Body>
+                  {data.dashboard.recentTransactions.map((tx) => (
+                    <Table.Row key={tx.id}>
+                      <Table.Cell><Text fontSize="xs" fontWeight="bold" fontFamily="monospace">{tx.id}</Text></Table.Cell>
+                      <Table.Cell><Text fontSize="xs" fontWeight="medium">{tx.user}</Text></Table.Cell>
+                      <Table.Cell><Text fontSize="xs" fontWeight="bold">{tx.amount}</Table.Cell>
+                      <Table.Cell>
+                        <Badge 
+                          colorScheme={tx.status === 'success' ? 'green' : tx.status === 'pending' ? 'orange' : 'red'} 
+                          variant="solid" fontSize="9px"
+                        >
+                          {tx.status}
+                        </Badge>
+                      </Table.Cell>
+                      <Table.Cell textAlign="end"><Text fontSize="xs" color="gray.500">{tx.date}</Text></Table.Cell>
+                    </Table.Row>
+                  ))}
+                </Table.Body>
+              </Table.Root>
+            </Box>
+
+            <VStack align="stretch" gap={6}>
+              <Box bg="var(--brandPrimary)" p={8} borderRadius="var(--radius4)" color="white" position="relative" overflow="hidden">
+                <Box position="absolute" top="-20%" right="-20%" w="150px" h="150px" bg="white" opacity={0.1} borderRadius="full" />
+                <VStack align="start" gap={4} position="relative" zIndex={1}>
+                  <Heading size="md">Pro Plan</Heading>
+                  <Text fontSize="sm" opacity={0.9}>Upgrade to unlock advanced token analytics and multi-tenant support.</Text>
+                  <Button size="sm" bg="white" colorScheme="blue" fontWeight="bold" w="full">Upgrade Now</Button>
+                </VStack>
+              </Box>
+              
+              <Box bg="white" p={8} borderRadius="var(--radius4)" boxShadow="sm" border="1px solid" borderColor="gray.100">
+                <Heading size="sm" mb={4}>Active Session</Heading>
+                <VStack align="start" gap={2}>
+                  <Text fontSize="2xs" fontWeight="bold" color="gray.400">SESSION ID</Text>
+                  <Text fontSize="xs" fontFamily="monospace" p={2} bg="gray.50" borderRadius="md" w="full">SES_99283_KAMIFLOW</Text>
+                </VStack>
+              </Box>
             </VStack>
-          </Box>
-        </Box>
-      </Box>
+          </SimpleGrid>
+        </VStack>
+      </Container>
     </Box>
   );
 };

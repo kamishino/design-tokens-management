@@ -2,9 +2,10 @@ import {
   Box, HStack, Button, Text, Heading, 
   createListCollection 
 } from "@chakra-ui/react";
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { LandingPage } from './templates/LandingPage';
 import { Dashboard } from './templates/Dashboard';
+import { ProductDetail } from './templates/ProductDetail';
 import { AppSelectRoot } from "../ui/AppSelect";
 import {
   SelectContent,
@@ -12,6 +13,7 @@ import {
   SelectTrigger,
   SelectValueText,
 } from "../ui/select";
+import { generateStudioMockData } from './templates/shared/mock-data';
 
 interface StudioViewProps {
   onExit: () => void;
@@ -22,11 +24,18 @@ const templates = createListCollection({
   items: [
     { label: "SaaS Landing Page", value: "landing" },
     { label: "Admin Dashboard", value: "dashboard" },
+    { label: "E-commerce Product", value: "ecommerce" },
   ],
 })
 
 export const StudioView = ({ onExit, onOpenDocs }: StudioViewProps) => {
   const [template, setTemplate] = useState('landing');
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Generate new mock data whenever refreshKey or template changes
+  const mockData = useMemo(() => generateStudioMockData(), [refreshKey]);
+
+  const handleRefresh = () => setRefreshKey(prev => prev + 1);
 
   return (
     <Box position="relative" bg="white" minH="100vh">
@@ -62,6 +71,9 @@ export const StudioView = ({ onExit, onOpenDocs }: StudioViewProps) => {
               </AppSelectRoot>
             </Box>
           </HStack>
+          <Button size="xs" variant="ghost" onClick={handleRefresh} title="Regenerate Mock Data">
+            Refresh Data ✨
+          </Button>
         </HStack>
 
         <HStack gap={3}>
@@ -76,7 +88,9 @@ export const StudioView = ({ onExit, onOpenDocs }: StudioViewProps) => {
 
       {/* Template Preview Area */}
       <Box>
-        {template === 'landing' ? <LandingPage /> : <Dashboard />}
+        {template === 'landing' && <LandingPage data={mockData} />}
+        {template === 'dashboard' && <Dashboard data={mockData} />}
+        {template === 'ecommerce' && <ProductDetail data={mockData} />}
       </Box>
     </Box>
   );
