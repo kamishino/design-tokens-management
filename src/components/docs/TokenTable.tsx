@@ -1,5 +1,5 @@
 import { 
-  Box, Table, Text, HStack, VStack, Clipboard
+  Box, Table, Text, HStack, VStack, Clipboard, Tooltip
 } from "@chakra-ui/react";
 import type { TokenDoc } from "../../utils/token-parser";
 import { LuCopy, LuCheck, LuArrowUpRight } from "react-icons/lu";
@@ -17,6 +17,36 @@ const CopyButton = ({ value }: { value: string }) => {
         </HStack>
       </Clipboard.Trigger>
     </Clipboard.Root>
+  );
+};
+
+interface RootValueTooltipProps {
+  token: TokenDoc;
+  children: React.ReactNode;
+}
+
+const RootValueTooltip = ({ token, children }: RootValueTooltipProps) => {
+  if (!token.rawValue || !token.resolvedValue) return <>{children}</>;
+
+  return (
+    <Tooltip.Root openDelay={400} closeDelay={0} positioning={{ placement: 'top-start' }}>
+      <Tooltip.Trigger asChild>
+        <Box>{children}</Box>
+      </Tooltip.Trigger>
+      <Tooltip.Content bg="gray.800" color="white" p={2} borderRadius="md" boxShadow="xl">
+        <HStack gap={3}>
+          {token.type === 'color' && (
+            <Box w="24px" h="24px" bg={token.resolvedValue} borderRadius="sm" border="1px solid rgba(255,255,255,0.2)" />
+          )}
+          <VStack align="start" gap={0}>
+            <Text fontSize="9px" fontWeight="bold" color="gray.400" textTransform="uppercase">Root Value</Text>
+            <Text fontSize="11px" fontFamily="'Space Mono', monospace" fontWeight="bold">
+              {typeof token.resolvedValue === 'object' ? JSON.stringify(token.resolvedValue) : token.resolvedValue}
+            </Text>
+          </VStack>
+        </HStack>
+      </Tooltip.Content>
+    </Tooltip.Root>
   );
 };
 
@@ -45,15 +75,17 @@ export const TokenTable = ({ tokens, onJump }: { tokens: TokenDoc[], onJump?: (i
                 <VStack align="start" gap={0} overflow="hidden">
                   <Text fontWeight="bold" fontSize="xs" lineClamp={1} title={token.id}>{token.name}</Text>
                   {token.rawValue && (
-                    <HStack 
-                      gap={1} color="blue.500" cursor="pointer" _hover={{ textDecoration: "underline" }}
-                      onClick={() => onJump?.(token.references[0])}
-                    >
-                      <LuArrowUpRight size={10} />
-                      <Text fontSize="10px" fontFamily="'Space Mono', monospace" fontWeight="bold">
-                        {token.rawValue}
-                      </Text>
-                    </HStack>
+                    <RootValueTooltip token={token}>
+                      <HStack 
+                        gap={1} color="blue.500" cursor="pointer" _hover={{ textDecoration: "underline" }}
+                        onClick={() => onJump?.(token.references[0])}
+                      >
+                        <LuArrowUpRight size={10} />
+                        <Text fontSize="10px" fontFamily="'Space Mono', monospace" fontWeight="bold">
+                          {token.rawValue}
+                        </Text>
+                      </HStack>
+                    </RootValueTooltip>
                   )}
                   {token.description && (
                     <Text fontSize="10px" color="gray.500" lineClamp={1} title={token.description} mt={1}>

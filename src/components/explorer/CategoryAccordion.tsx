@@ -69,27 +69,9 @@ const CategoryAccordionItem = ({ category, onJump }: { category: FileCategory, o
       </HStack>
 
       <AccordionItemContent px={6} pb={6}>
-        <VStack align="stretch" gap={8} pt={4}>
-          {category.subCategories.length > 0 ? (
-            category.subCategories.map((sub) => (
-              <Box key={sub.id}>
-                {category.subCategories.length > 1 && (
-                  <Heading
-                    size="xs"
-                    textTransform="uppercase"
-                    color="gray.500"
-                    mb={4}
-                    pb={2}
-                    borderBottom="1px solid"
-                    borderColor="gray.50"
-                    letterSpacing="wider"
-                  >
-                    {sub.name}
-                  </Heading>
-                )}
-                <TokenTable tokens={sub.tokens} onJump={onJump} />
-              </Box>
-            ))
+        <VStack align="stretch" gap={4} pt={4}>
+          {category.tokens.length > 0 ? (
+            <TokenTable tokens={category.tokens} onJump={onJump} />
           ) : (
             <Box py={8} textAlign="center">
               <Text color="gray.400" fontSize="sm">No results found in this category.</Text>

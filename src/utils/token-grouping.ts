@@ -1,15 +1,9 @@
 import type { TokenDoc } from './token-parser';
 
-export interface SubCategory {
-  id: string;
-  name: string;
-  tokens: TokenDoc[];
-}
-
 export interface FileCategory {
   id: string; // filename
   title: string;
-  subCategories: SubCategory[];
+  tokens: TokenDoc[]; // Preserved order flat list
   totalCount: number;
 }
 
@@ -21,16 +15,21 @@ export const formatFileName = (filename: string): string => {
     .join(' ');
 };
 
+/**
+ * Groups tokens by file while preserving their original declaration order.
+ * This version removes sub-category grouping for a flatter, more technical view.
+ */
 export const groupTokensByFile = (tokens: TokenDoc[], search: string = ''): FileCategory[] => {
   const searchTerm = search.toLowerCase();
   
-  // 1. Filter
+  // 1. Filter based on search
   const filtered = tokens.filter(t => 
     t.name.toLowerCase().includes(searchTerm) || 
-    (typeof t.value === 'string' && t.value.toLowerCase().includes(searchTerm))
+    (typeof t.value === 'string' && t.value.toLowerCase().includes(searchTerm)) ||
+    (t.rawValue && t.rawValue.toLowerCase().includes(searchTerm))
   );
 
-  // 2. Group by file
+  // 2. Group by file (preserving order)
   const fileGroups: Record<string, FileCategory> = {};
 
   filtered.forEach(t => {
@@ -39,36 +38,17 @@ export const groupTokensByFile = (tokens: TokenDoc[], search: string = ''): File
       fileGroups[filename] = {
         id: filename,
         title: formatFileName(filename),
-        subCategories: [],
+        tokens: [],
         totalCount: 0
       };
     }
 
     const cat = fileGroups[filename];
-    const subId = t.path[1] || 'general';
-    
-    let sub = cat.subCategories.find(s => s.id === subId);
-    if (!sub) {
-      sub = {
-        id: subId,
-        name: subId.charAt(0).toUpperCase() + subId.slice(1),
-        tokens: []
-      };
-      cat.subCategories.push(sub);
-    }
-
-    sub.tokens.push(t);
+    cat.tokens.push(t);
     cat.totalCount++;
   });
 
-  // 3. Sort and Cleanup
-  return Object.values(fileGroups).map(cat => {
-    // Sort subcategories: "general" or "base" first, then alphabetical
-    cat.subCategories.sort((a, b) => {
-      if (a.id === 'general' || a.id === 'base') return -1;
-      if (b.id === 'general' || b.id === 'base') return 1;
-      return a.name.localeCompare(b.name);
-    });
-    return cat;
-  }).sort((a, b) => a.title.localeCompare(b.title));
+  // 3. Return results without alphabetical sorting
+  // Note: We keep the order from 'tokens' array which was parsed in order
+  return Object.values(fileGroups);
 };
