@@ -1,6 +1,7 @@
 import { 
   Box, Text, VStack, Heading, Badge,
-  HStack, Tabs, Spinner, Center, Input, IconButton
+  HStack, Tabs, Spinner, Center, Input, IconButton,
+  Accordion
 } from "@chakra-ui/react"
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { TypographyVisualizer } from './visualizers/TypographyVisualizer';
@@ -10,11 +11,16 @@ import { groupTokensByFile } from '../utils/token-grouping';
 import { CategoryAccordion } from './explorer/CategoryAccordion';
 import { ToCOutline } from './explorer/ToCOutline';
 import { SettingsModal } from './explorer/SettingsModal';
-import { LuSearch, LuChevronDown, LuChevronUp, LuSettings, LuX, LuInfo } from "react-icons/lu";
+import { LuSearch, LuChevronDown, LuChevronUp, LuSettings, LuX, LuInfo, LuDatabase, LuLayers } from "react-icons/lu";
 import { Button } from "./ui/button";
 import { FileExplorer } from "./explorer/FileExplorer";
 import { ActivityBar } from "./explorer/ActivityBar";
 import { findSourceFileForToken } from "../utils/token-graph";
+import { 
+  AccordionRoot,
+  AccordionItem,
+  AccordionItemContent,
+} from "./ui/accordion";
 import type { Manifest, TokenOverrides, SidebarPanelId } from "../schemas/manifest";
 
 interface TokenViewerProps {
@@ -37,9 +43,17 @@ export const TokenViewer = ({
   const [openItems, setOpenItems] = useState<string[]>(['colors.json']);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
+  // Activity Bar & Sidebar State
   const [activePanel, setActivePanel] = useState<SidebarPanelId>(() => {
     if (typeof window === 'undefined') return 'explorer';
     return (localStorage.getItem('ide_active_panel') as SidebarPanelId) || 'explorer';
+  });
+
+  // Master Accordion State (Persistence)
+  const [expandedMaster, setExpandedMaster] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return ['semantic', 'foundation'];
+    const saved = localStorage.getItem('ide_expanded_master');
+    return saved ? JSON.parse(saved) : ['semantic', 'foundation'];
   });
 
   const hasOverrides = Object.keys(overrides).length > 0;
@@ -56,6 +70,14 @@ export const TokenViewer = ({
     return categories.filter(cat => selectedProject.toLowerCase().includes(cat.id.toLowerCase()));
   }, [categories, selectedProject, isJsonFocus]);
 
+  // Task 1.1: Partition logic
+  const { semanticCats, foundationCats } = useMemo(() => {
+    return {
+      semanticCats: displayCategories.filter(cat => !cat.id.includes('global/base')),
+      foundationCats: displayCategories.filter(cat => cat.id.includes('global/base'))
+    };
+  }, [displayCategories]);
+
   const focusedFilename = useMemo(() => {
     if (!isJsonFocus) return null;
     return selectedProject.split('/').pop() || selectedProject;
@@ -64,14 +86,12 @@ export const TokenViewer = ({
   const expandAll = () => setOpenItems(displayCategories.map(c => c.id));
   const collapseAll = () => setOpenItems([]);
 
-  // Task 3.1: Jump Logic
   const handleJump = useCallback((tokenId: string) => {
     const sourceFile = findSourceFileForToken(tokenId, globalTokens);
     if (sourceFile) {
       setActivePanel('primitives');
       onProjectChange(sourceFile);
       
-      // Allow time for DOM to render the new file
       setTimeout(() => {
         const element = document.getElementById(`token-${tokenId}`);
         if (element) {
@@ -89,6 +109,10 @@ export const TokenViewer = ({
   useEffect(() => {
     localStorage.setItem('ide_active_panel', activePanel);
   }, [activePanel]);
+
+  useEffect(() => {
+    localStorage.setItem('ide_expanded_master', JSON.stringify(expandedMaster));
+  }, [expandedMaster]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -232,12 +256,60 @@ export const TokenViewer = ({
                 <HStack gap={8} align="flex-start" px={0} pb={20}>
                   <Box flex={1} minW={0}>
                     {displayCategories.length > 0 ? (
-                      <CategoryAccordion
-                        categories={displayCategories}
-                        value={openItems}
-                        onValueChange={setOpenItems}
-                        onJump={handleJump}
-                      />
+                      <AccordionRoot 
+                        multiple 
+                        value={expandedMaster} 
+                        onValueChange={(e) => setExpandedMaster(e.value)}
+                        variant="plain"
+                      >
+                        {/* Task 2.1: Semantic Group */}
+                        {semanticCats.length > 0 && (
+                          <AccordionItem value="semantic" border="none">
+                            <Accordion.ItemTrigger 
+                              cursor="pointer" py={2} px={0} _hover={{ bg: "transparent" }}
+                              style={{ display: 'flex', alignItems: 'center', gap: '12px' }}
+                            >
+                              <LuLayers color="var(--chakra-colors-purple-500)" />
+                              <Heading size="xs" textTransform="uppercase" letterSpacing="widest" color="purple.600">
+                                Semantic & Overrides ({semanticCats.length})
+                              </Heading>
+                              <Box flex={1} h="1px" bg="purple.50" />
+                            </Accordion.ItemTrigger>
+                            <AccordionItemContent pb={8} pt={4}>
+                              <CategoryAccordion
+                                categories={semanticCats}
+                                value={openItems}
+                                onValueChange={setOpenItems}
+                                onJump={handleJump}
+                              />
+                            </AccordionItemContent>
+                          </AccordionItem>
+                        )}
+
+                        {/* Task 2.1: Foundation Group */}
+                        {foundationCats.length > 0 && (
+                          <AccordionItem value="foundation" border="none" mt={semanticCats.length > 0 ? 4 : 0}>
+                            <Accordion.ItemTrigger 
+                              cursor="pointer" py={2} px={0} _hover={{ bg: "transparent" }}
+                              style={{ display: 'flex', alignItems: 'center', gap: '12px' }}
+                            >
+                              <LuDatabase color="var(--chakra-colors-blue-500)" />
+                              <Heading size="xs" textTransform="uppercase" letterSpacing="widest" color="blue.600">
+                                Primitive Foundation ({foundationCats.length})
+                              </Heading>
+                              <Box flex={1} h="1px" bg="blue.50" />
+                            </Accordion.ItemTrigger>
+                            <AccordionItemContent pb={8} pt={4}>
+                              <CategoryAccordion
+                                categories={foundationCats}
+                                value={openItems}
+                                onValueChange={setOpenItems}
+                                onJump={handleJump}
+                              />
+                            </AccordionItemContent>
+                          </AccordionItem>
+                        )}
+                      </AccordionRoot>
                     ) : (
                       <Center p={20} bg="gray.50" borderRadius="xl" border="2px dashed" borderColor="gray.200">
                         <VStack gap={2}>

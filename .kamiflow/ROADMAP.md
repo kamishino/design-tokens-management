@@ -9,6 +9,7 @@
 
 _This section highlights the business value extracted from completed tasks._
 
+- ✅ **2026-02-04 Task 050:** split-token-viewer-layout - Optimized visual hierarchy by splitting the viewer into "Semantic & Overrides" and "Primitive Foundation" master groups.
 - ✅ **2026-02-04 Task 049:** ordered-root-inspector - Preserved JSON declaration order in Viewer and implemented a Visual Root Inspector tooltip for deep reference resolution.
 - ✅ **2026-02-04 Task 048:** token-intelligence-trace-lineage - Built an "Intelligence Graph" for tokens with recursive reference tracing, reverse-lookup mapping, and cross-file jump navigation.
 - ✅ **2026-02-04 Task 047:** context-aware-token-viewer - Fixed navigation disconnect by implementing "Focus Mode" and smart filtering for JSON primitives.
