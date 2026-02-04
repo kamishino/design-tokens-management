@@ -1,5 +1,5 @@
 import { 
-  Box, Table, Text, HStack, VStack, Clipboard, Tooltip
+  Box, Table, Text, HStack, VStack, Clipboard, Tooltip, Portal
 } from "@chakra-ui/react";
 import type { TokenDoc } from "../../utils/token-parser";
 import { LuCopy, LuCheck, LuArrowUpRight } from "react-icons/lu";
@@ -29,30 +29,60 @@ const RootValueTooltip = ({ token, children }: RootValueTooltipProps) => {
   if (!token.rawValue || !token.resolvedValue) return <>{children}</>;
 
   return (
-    <Tooltip.Root openDelay={400} closeDelay={0} positioning={{ placement: 'top-start' }}>
+    <Tooltip.Root 
+      openDelay={400} 
+      closeDelay={0} 
+      positioning={{ placement: 'top-start', gutter: 8 }}
+    >
       <Tooltip.Trigger asChild>
-        <Box>{children}</Box>
+        <Box display="inline-block">{children}</Box>
       </Tooltip.Trigger>
-      <Tooltip.Content bg="gray.800" color="white" p={2} borderRadius="md" boxShadow="xl">
-        <HStack gap={3}>
-          {token.type === 'color' && (
-            <Box w="24px" h="24px" bg={token.resolvedValue} borderRadius="sm" border="1px solid rgba(255,255,255,0.2)" />
-          )}
-          <VStack align="start" gap={0}>
-            <Text fontSize="9px" fontWeight="bold" color="gray.400" textTransform="uppercase">Root Value</Text>
-            <Text fontSize="11px" fontFamily="'Space Mono', monospace" fontWeight="bold">
-              {typeof token.resolvedValue === 'object' ? JSON.stringify(token.resolvedValue) : token.resolvedValue}
+      <Portal>
+        <Tooltip.Content 
+          bg="gray.900" 
+          color="white" 
+          p={3} 
+          borderRadius="lg" 
+          boxShadow="2xl" 
+          border="1px solid" 
+          borderColor="whiteAlpha.200"
+          zIndex={2000}
+        >
+          <VStack align="start" gap={2}>
+            <HStack gap={3}>
+              {token.type === 'color' && (
+                <Box 
+                  w="32px" h="32px" 
+                  bg={token.resolvedValue} 
+                  borderRadius="md" 
+                  border="2px solid" 
+                  borderColor="whiteAlpha.300"
+                  boxShadow="inner"
+                />
+              )}
+              <VStack align="start" gap={0}>
+                <Text fontSize="9px" fontWeight="bold" color="gray.400" textTransform="uppercase" letterSpacing="widest">
+                  Terminal Root Value
+                </Text>
+                <Text fontSize="12px" fontFamily="'Space Mono', monospace" fontWeight="bold" color="blue.300">
+                  {typeof token.resolvedValue === 'object' ? JSON.stringify(token.resolvedValue) : token.resolvedValue}
+                </Text>
+              </VStack>
+            </HStack>
+            <Box h="1px" w="full" bg="whiteAlpha.100" />
+            <Text fontSize="9px" color="whiteAlpha.600">
+              Click to jump to source definition
             </Text>
           </VStack>
-        </HStack>
-      </Tooltip.Content>
+        </Tooltip.Content>
+      </Portal>
     </Tooltip.Root>
   );
 };
 
 export const TokenTable = ({ tokens, onJump }: { tokens: TokenDoc[], onJump?: (id: string) => void }) => {
   return (
-    <Box borderWidth="1px" borderRadius="lg" overflow="hidden">
+    <Box borderWidth="1px" borderRadius="lg" overflow="hidden" bg="white">
       <Table.Root size="sm" tableLayout="fixed">
         <Table.Header bg="gray.50">
           <Table.Row>
@@ -65,7 +95,7 @@ export const TokenTable = ({ tokens, onJump }: { tokens: TokenDoc[], onJump?: (i
         </Table.Header>
         <Table.Body>
           {tokens.map((token) => (
-            <Table.Row key={token.id} _hover={{ bg: "gray.50" }} id={`token-${token.id}`}>
+            <Table.Row key={token.id} _hover={{ bg: "blue.50/30" }} id={`token-${token.id}`} transition="background 0.2s">
               <Table.Cell>
                 {token.type === 'color' && (
                   <Box w="32px" h="32px" bg={token.value} borderRadius="sm" border="1px solid rgba(0,0,0,0.1)" />

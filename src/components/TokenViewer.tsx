@@ -1,26 +1,18 @@
 import { 
   Box, Text, VStack, Heading, Badge,
-  HStack, Tabs, Spinner, Center, Input, IconButton,
-  Accordion
+  HStack, Spinner, Center, Input, IconButton
 } from "@chakra-ui/react"
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { TypographyVisualizer } from './visualizers/TypographyVisualizer';
-import { GridLayoutVisualizer } from './visualizers/GridLayoutVisualizer';
 import { useGlobalTokens } from '../hooks/useGlobalTokens';
 import { groupTokensByFile } from '../utils/token-grouping';
 import { CategoryAccordion } from './explorer/CategoryAccordion';
 import { ToCOutline } from './explorer/ToCOutline';
 import { SettingsModal } from './explorer/SettingsModal';
-import { LuSearch, LuChevronDown, LuChevronUp, LuSettings, LuX, LuInfo, LuDatabase, LuLayers } from "react-icons/lu";
+import { LuSearch, LuChevronDown, LuChevronUp, LuSettings, LuX, LuDatabase, LuLayers, LuArrowRight } from "react-icons/lu";
 import { Button } from "./ui/button";
 import { FileExplorer } from "./explorer/FileExplorer";
 import { ActivityBar } from "./explorer/ActivityBar";
 import { findSourceFileForToken } from "../utils/token-graph";
-import { 
-  AccordionRoot,
-  AccordionItem,
-  AccordionItemContent,
-} from "./ui/accordion";
 import type { Manifest, TokenOverrides, SidebarPanelId } from "../schemas/manifest";
 
 interface TokenViewerProps {
@@ -33,9 +25,54 @@ interface TokenViewerProps {
   resetOverrides: () => void;
 }
 
+/**
+ * Master Section Component for better organization
+ */
+const MasterSection = ({ 
+  title, icon: Icon, count, categories, color, openItems, onToggle, onJump 
+}: { 
+  title: string, icon: any, count: number, categories: any[], color: string, openItems: string[], onToggle: any, onJump: any 
+}) => {
+  if (categories.length === 0) return null;
+
+  return (
+    <VStack align="stretch" gap={4} mb={12}>
+      <HStack 
+        position="sticky" top="60px" zIndex={10} py={2} 
+        bg="rgba(247, 250, 252, 0.95)" backdropFilter="blur(8px)"
+        justify="space-between" borderBottom="1px solid" borderColor={`${color}.100`}
+      >
+        <HStack gap={3}>
+          <Box p={1.5} bg={`${color}.50`} borderRadius="md" color={`${color}.500`}>
+            <Icon size={18} />
+          </Box>
+          <VStack align="start" gap={0}>
+            <Heading size="xs" textTransform="uppercase" letterSpacing="widest" color={`${color}.700`}>
+              {title}
+            </Heading>
+            <Text fontSize="10px" color={`${color}.500`} fontWeight="bold">
+              {count} {count === 1 ? 'file' : 'files'} mapped
+            </Text>
+          </VStack>
+        </HStack>
+        <Badge colorScheme={color} variant="subtle" fontSize="9px" px={2} borderRadius="full">
+          {title === 'Semantic' ? 'Application Layer' : 'System Layer'}
+        </Badge>
+      </HStack>
+
+      <CategoryAccordion
+        categories={categories}
+        value={openItems}
+        onValueChange={onToggle}
+        onJump={onJump}
+      />
+    </VStack>
+  );
+};
+
 export const TokenViewer = ({
   manifest, selectedProject, onProjectChange, onEnterStudio,
-  overrides, updateOverride, resetOverrides
+  overrides, resetOverrides
 }: TokenViewerProps) => {
 
   const { globalTokens, loading } = useGlobalTokens();
@@ -43,17 +80,9 @@ export const TokenViewer = ({
   const [openItems, setOpenItems] = useState<string[]>(['colors.json']);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
-  // Activity Bar & Sidebar State
   const [activePanel, setActivePanel] = useState<SidebarPanelId>(() => {
     if (typeof window === 'undefined') return 'explorer';
     return (localStorage.getItem('ide_active_panel') as SidebarPanelId) || 'explorer';
-  });
-
-  // Master Accordion State (Persistence)
-  const [expandedMaster, setExpandedMaster] = useState<string[]>(() => {
-    if (typeof window === 'undefined') return ['semantic', 'foundation'];
-    const saved = localStorage.getItem('ide_expanded_master');
-    return saved ? JSON.parse(saved) : ['semantic', 'foundation'];
   });
 
   const hasOverrides = Object.keys(overrides).length > 0;
@@ -70,7 +99,6 @@ export const TokenViewer = ({
     return categories.filter(cat => selectedProject.toLowerCase().includes(cat.id.toLowerCase()));
   }, [categories, selectedProject, isJsonFocus]);
 
-  // Task 1.1: Partition logic
   const { semanticCats, foundationCats } = useMemo(() => {
     return {
       semanticCats: displayCategories.filter(cat => !cat.id.includes('global/base')),
@@ -109,10 +137,6 @@ export const TokenViewer = ({
   useEffect(() => {
     localStorage.setItem('ide_active_panel', activePanel);
   }, [activePanel]);
-
-  useEffect(() => {
-    localStorage.setItem('ide_expanded_master', JSON.stringify(expandedMaster));
-  }, [expandedMaster]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -212,128 +236,73 @@ export const TokenViewer = ({
         <Box p={8}>
           <SettingsModal open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
 
-          <Tabs.Root defaultValue="global" variant="enclosed" bg="white" p={6} borderRadius="xl" boxShadow="sm">
-            <Tabs.List>
-              <Tabs.Trigger value="global" fontWeight="bold">Project Tokens</Tabs.Trigger>
-              <Tabs.Trigger value="typography" fontWeight="bold">Typography</Tabs.Trigger>
-              <Tabs.Trigger value="layout" fontWeight="bold">Grid & Layout</Tabs.Trigger>
-            </Tabs.List>
-
-            <Tabs.Content value="global" pt={8}>
-              <VStack align="stretch" gap={6}>
-                {isJsonFocus && (
-                  <HStack 
-                    bg="blue.50" p={3} borderRadius="lg" border="1px solid" borderColor="blue.100" 
-                    justify="space-between" mb={2}
-                  >
-                    <HStack gap={3}>
-                      <Box color="blue.500"><LuInfo size={18} /></Box>
-                      <VStack align="start" gap={0}>
-                        <Text fontSize="xs" fontWeight="bold" color="blue.700">Focus Mode Active</Text>
-                        <Text fontSize="10px" color="blue.600">Showing only tokens from: <b>{focusedFilename}</b></Text>
-                      </VStack>
-                    </HStack>
-                    <Button 
-                      size="xs" variant="ghost" colorScheme="blue" 
-                      onClick={() => onProjectChange('')}
-                    >
-                      <LuX style={{ marginRight: '4px' }} /> Show All Primitives
-                    </Button>
-                  </HStack>
-                )}
-
-                <HStack justify="flex-end">
+          <VStack align="stretch" gap={10}>
+            <HStack justify="space-between" bg="white" p={4} borderRadius="xl" border="1px solid" borderColor="gray.100">
+              <HStack gap={6}>
+                <VStack align="start" gap={0}>
+                  <Text fontSize="10px" fontWeight="bold" color="gray.400">PROJECT CONTEXT</Text>
                   <HStack gap={2}>
-                    <Button size="xs" variant="ghost" onClick={expandAll} color="gray.500">
-                      <LuChevronDown /> Expand All
-                    </Button>
-                    <Button size="xs" variant="ghost" onClick={collapseAll} color="gray.500">
-                      <LuChevronUp /> Collapse All
-                    </Button>
+                    <Text fontWeight="bold" fontSize="sm">{focusedFilename || 'All Files'}</Text>
+                    {isJsonFocus && <LuArrowRight size={12} color="gray" />}
+                    {isJsonFocus && <Badge colorScheme="blue" size="xs">Focused</Badge>}
                   </HStack>
-                </HStack>
+                </VStack>
+              </HStack>
+              <HStack gap={2}>
+                <Button size="xs" variant="ghost" onClick={expandAll} color="gray.500">
+                  <LuChevronDown /> Expand All
+                </Button>
+                <Button size="xs" variant="ghost" onClick={collapseAll} color="gray.500">
+                  <LuChevronUp /> Collapse All
+                </Button>
+                {isJsonFocus && (
+                  <Button size="xs" variant="subtle" colorScheme="blue" onClick={() => onProjectChange('')}>
+                    <LuX style={{ marginRight: '4px' }} /> Clear Focus
+                  </Button>
+                )}
+              </HStack>
+            </HStack>
 
-                <HStack gap={8} align="flex-start" px={0} pb={20}>
-                  <Box flex={1} minW={0}>
-                    {displayCategories.length > 0 ? (
-                      <AccordionRoot 
-                        multiple 
-                        value={expandedMaster} 
-                        onValueChange={(e) => setExpandedMaster(e.value)}
-                        variant="plain"
-                      >
-                        {/* Task 2.1: Semantic Group */}
-                        {semanticCats.length > 0 && (
-                          <AccordionItem value="semantic" border="none">
-                            <Accordion.ItemTrigger 
-                              cursor="pointer" py={2} px={0} _hover={{ bg: "transparent" }}
-                              style={{ display: 'flex', alignItems: 'center', gap: '12px' }}
-                            >
-                              <LuLayers color="var(--chakra-colors-purple-500)" />
-                              <Heading size="xs" textTransform="uppercase" letterSpacing="widest" color="purple.600">
-                                Semantic & Overrides ({semanticCats.length})
-                              </Heading>
-                              <Box flex={1} h="1px" bg="purple.50" />
-                            </Accordion.ItemTrigger>
-                            <AccordionItemContent pb={8} pt={4}>
-                              <CategoryAccordion
-                                categories={semanticCats}
-                                value={openItems}
-                                onValueChange={setOpenItems}
-                                onJump={handleJump}
-                              />
-                            </AccordionItemContent>
-                          </AccordionItem>
-                        )}
+            <HStack gap={8} align="flex-start">
+              <Box flex={1} minW={0}>
+                {displayCategories.length > 0 ? (
+                  <VStack align="stretch" gap={0}>
+                    <MasterSection 
+                      title="Semantic" 
+                      icon={LuLayers} 
+                      count={semanticCats.length} 
+                      categories={semanticCats} 
+                      color="purple"
+                      openItems={openItems}
+                      onToggle={setOpenItems}
+                      onJump={handleJump}
+                    />
 
-                        {/* Task 2.1: Foundation Group */}
-                        {foundationCats.length > 0 && (
-                          <AccordionItem value="foundation" border="none" mt={semanticCats.length > 0 ? 4 : 0}>
-                            <Accordion.ItemTrigger 
-                              cursor="pointer" py={2} px={0} _hover={{ bg: "transparent" }}
-                              style={{ display: 'flex', alignItems: 'center', gap: '12px' }}
-                            >
-                              <LuDatabase color="var(--chakra-colors-blue-500)" />
-                              <Heading size="xs" textTransform="uppercase" letterSpacing="widest" color="blue.600">
-                                Primitive Foundation ({foundationCats.length})
-                              </Heading>
-                              <Box flex={1} h="1px" bg="blue.50" />
-                            </Accordion.ItemTrigger>
-                            <AccordionItemContent pb={8} pt={4}>
-                              <CategoryAccordion
-                                categories={foundationCats}
-                                value={openItems}
-                                onValueChange={setOpenItems}
-                                onJump={handleJump}
-                              />
-                            </AccordionItemContent>
-                          </AccordionItem>
-                        )}
-                      </AccordionRoot>
-                    ) : (
-                      <Center p={20} bg="gray.50" borderRadius="xl" border="2px dashed" borderColor="gray.200">
-                        <VStack gap={2}>
-                          <Text color="gray.400" fontWeight="bold">No categories matched this file.</Text>
-                          <Button size="xs" variant="link" onClick={() => onProjectChange('')}>Clear Filter</Button>
-                        </VStack>
-                      </Center>
-                    )}
-                  </Box>
-                  <Box w="240px" display={{ base: 'none', lg: 'block' }}>
-                    <ToCOutline categories={displayCategories} />
-                  </Box>
-                </HStack>
-              </VStack>
-            </Tabs.Content>
-
-            <Tabs.Content value="typography" pt={8}>
-              <TypographyVisualizer onUpdate={updateOverride} />
-            </Tabs.Content>
-
-            <Tabs.Content value="layout" pt={8}>
-              <GridLayoutVisualizer onUpdate={updateOverride} />
-            </Tabs.Content>
-          </Tabs.Root>
+                    <MasterSection 
+                      title="Foundation" 
+                      icon={LuDatabase} 
+                      count={foundationCats.length} 
+                      categories={foundationCats} 
+                      color="blue"
+                      openItems={openItems}
+                      onToggle={setOpenItems}
+                      onJump={handleJump}
+                    />
+                  </VStack>
+                ) : (
+                  <Center p={20} bg="gray.50" borderRadius="xl" border="2px dashed" borderColor="gray.200">
+                    <VStack gap={2}>
+                      <Text color="gray.400" fontWeight="bold">No categories matched this file.</Text>
+                      <Button size="xs" variant="link" onClick={() => onProjectChange('')}>Clear Filter</Button>
+                    </VStack>
+                  </Center>
+                )}
+              </Box>
+              <Box w="240px" display={{ base: 'none', lg: 'block' }}>
+                <ToCOutline categories={displayCategories} />
+              </Box>
+            </HStack>
+          </VStack>
         </Box>
       </VStack>
     </HStack>

@@ -9,6 +9,7 @@
 
 _This section highlights the business value extracted from completed tasks._
 
+- ✅ **2026-02-04 Task 051:** hi-fi-master-inspector - Finalized visual hierarchy by physically separating Semantic and Foundation groups and upgrading to Portal-based absolute tooltips.
 - ✅ **2026-02-04 Task 050:** split-token-viewer-layout - Optimized visual hierarchy by splitting the viewer into "Semantic & Overrides" and "Primitive Foundation" master groups.
 - ✅ **2026-02-04 Task 049:** ordered-root-inspector - Preserved JSON declaration order in Viewer and implemented a Visual Root Inspector tooltip for deep reference resolution.
 - ✅ **2026-02-04 Task 048:** token-intelligence-trace-lineage - Built an "Intelligence Graph" for tokens with recursive reference tracing, reverse-lookup mapping, and cross-file jump navigation.
