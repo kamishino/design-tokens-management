@@ -10,7 +10,7 @@ import { groupTokensByFile } from '../utils/token-grouping';
 import { CategoryAccordion } from './explorer/CategoryAccordion';
 import { ToCOutline } from './explorer/ToCOutline';
 import { SettingsModal } from './explorer/SettingsModal';
-import { LuSearch, LuChevronDown, LuChevronUp, LuSettings } from "react-icons/lu";
+import { LuSearch, LuChevronDown, LuChevronUp, LuSettings, LuX, LuInfo } from "react-icons/lu";
 import { Button } from "./ui/button";
 import { FileExplorer } from "./explorer/FileExplorer";
 import { ActivityBar } from "./explorer/ActivityBar";
@@ -36,6 +36,7 @@ export const TokenViewer = ({
   const [openItems, setOpenItems] = useState<string[]>(['colors.json']);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
+  // Activity Bar & Sidebar State
   const [activePanel, setActivePanel] = useState<SidebarPanelId>(() => {
     if (typeof window === 'undefined') return 'explorer';
     return (localStorage.getItem('ide_active_panel') as SidebarPanelId) || 'explorer';
@@ -43,18 +44,34 @@ export const TokenViewer = ({
 
   const hasOverrides = Object.keys(overrides).length > 0;
 
+  // Task 1.1: Context-Aware Filtering Logic
   const categories = useMemo(() =>
     groupTokensByFile(globalTokens, searchTerm),
     [globalTokens, searchTerm]
   );
 
-  const expandAll = () => setOpenItems(categories.map(c => c.id));
+  const isJsonFocus = selectedProject.endsWith('.json');
+  
+  const displayCategories = useMemo(() => {
+    if (!isJsonFocus) return categories;
+    // Match categories where the filename exists in the selected path
+    return categories.filter(cat => selectedProject.toLowerCase().includes(cat.id.toLowerCase()));
+  }, [categories, selectedProject, isJsonFocus]);
+
+  const focusedFilename = useMemo(() => {
+    if (!isJsonFocus) return null;
+    return selectedProject.split('/').pop() || selectedProject;
+  }, [selectedProject, isJsonFocus]);
+
+  const expandAll = () => setOpenItems(displayCategories.map(c => c.id));
   const collapseAll = () => setOpenItems([]);
 
+  // Save persistence
   useEffect(() => {
     localStorage.setItem('ide_active_panel', activePanel);
   }, [activePanel]);
 
+  // Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey) {
@@ -71,8 +88,10 @@ export const TokenViewer = ({
 
   return (
     <HStack align="stretch" gap={0} bg="white" h="100vh" overflow="hidden">
+      {/* COLUMN 1: Activity Bar */}
       <ActivityBar activePanel={activePanel} onPanelChange={setActivePanel} />
 
+      {/* COLUMN 2: Sidebar Explorer */}
       <FileExplorer 
         manifest={manifest} 
         context={activePanel}
@@ -80,7 +99,9 @@ export const TokenViewer = ({
         onSelect={(_, key) => onProjectChange(key)} 
       />
 
+      {/* COLUMN 3: Main Content Area */}
       <VStack flex={1} align="stretch" gap={0} bg="#f7fafc" overflowY="auto" pb="120px">
+        {/* Premium Sticky Header */}
         <Box
           position="sticky" top={0} zIndex={1000}
           bg="rgba(255, 255, 255, 0.85)" backdropFilter="blur(12px)"
@@ -88,6 +109,7 @@ export const TokenViewer = ({
           px={8} py={3} boxShadow="sm"
         >
           <HStack gap={8} align="center">
+            {/* Identity Cluster */}
             <VStack align="start" gap={0} minW="max-content">
               <Heading size="md" letterSpacing="tight" fontWeight="extrabold" color="gray.800">Design Token Manager</Heading>
               <HStack mt={0.5}>
@@ -96,11 +118,13 @@ export const TokenViewer = ({
               </HStack>
             </VStack>
 
+            {/* Current Context Status */}
             <HStack gap={3} bg="gray.50" px={3} py={1.5} borderRadius="lg" border="1px solid" borderColor="gray.100">
               <Text fontSize="9px" fontWeight="bold" color="gray.400" textTransform="uppercase" letterSpacing="widest">Active:</Text>      
               <Text fontSize="xs" fontWeight="bold" color="blue.600">{selectedProject || 'None Selected'}</Text>
             </HStack>
 
+            {/* Discovery Cluster (Center) */}
             <Box flex={1} display="flex" justifyContent="center">
               <HStack w="full" maxW="400px" position="relative">
                 <Box position="absolute" left={3} color="gray.400" zIndex={1}>
@@ -121,6 +145,7 @@ export const TokenViewer = ({
               </HStack>
             </Box>
 
+            {/* Action Cluster */}
             <HStack gap={3}>
               <Button colorScheme="blue" size="sm" borderRadius="full" px={5} onClick={onEnterStudio}>
                 Studio 🚀
@@ -162,6 +187,28 @@ export const TokenViewer = ({
 
             <Tabs.Content value="global" pt={8}>
               <VStack align="stretch" gap={6}>
+                {/* Task 2.1: Focus Header UI */}
+                {isJsonFocus && (
+                  <HStack 
+                    bg="blue.50" p={3} borderRadius="lg" border="1px solid" borderColor="blue.100" 
+                    justify="space-between" mb={2}
+                  >
+                    <HStack gap={3}>
+                      <Box color="blue.500"><LuInfo size={18} /></Box>
+                      <VStack align="start" gap={0}>
+                        <Text fontSize="xs" fontWeight="bold" color="blue.700">Focus Mode Active</Text>
+                        <Text fontSize="10px" color="blue.600">Showing only tokens from: <b>{focusedFilename}</b></Text>
+                      </VStack>
+                    </HStack>
+                    <Button 
+                      size="xs" variant="ghost" colorScheme="blue" 
+                      leftIcon={<LuX />} onClick={() => onProjectChange('')}
+                    >
+                      Show All Primitives
+                    </Button>
+                  </HStack>
+                )}
+
                 <HStack justify="flex-end">
                   <HStack gap={2}>
                     <Button size="xs" variant="ghost" onClick={expandAll} color="gray.500">
@@ -175,14 +222,23 @@ export const TokenViewer = ({
 
                 <HStack gap={8} align="flex-start" px={0} pb={20}>
                   <Box flex={1} minW={0}>
-                    <CategoryAccordion
-                      categories={categories}
-                      value={openItems}
-                      onValueChange={setOpenItems}
-                    />
+                    {displayCategories.length > 0 ? (
+                      <CategoryAccordion
+                        categories={displayCategories}
+                        value={openItems}
+                        onValueChange={setOpenItems}
+                      />
+                    ) : (
+                      <Center p={20} bg="gray.50" borderRadius="xl" border="2px dashed" borderColor="gray.200">
+                        <VStack gap={2}>
+                          <Text color="gray.400" fontWeight="bold">No categories matched this file.</Text>
+                          <Button size="xs" variant="link" onClick={() => onProjectChange('')}>Clear Filter</Button>
+                        </VStack>
+                      </Center>
+                    )}
                   </Box>
                   <Box w="240px" display={{ base: 'none', lg: 'block' }}>
-                    <ToCOutline categories={categories} />
+                    <ToCOutline categories={displayCategories} />
                   </Box>
                 </HStack>
               </VStack>

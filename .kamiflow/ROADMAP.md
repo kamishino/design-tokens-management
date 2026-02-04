@@ -9,6 +9,7 @@
 
 _This section highlights the business value extracted from completed tasks._
 
+- ✅ **2026-02-04 Task 047:** context-aware-token-viewer - Fixed navigation disconnect by implementing "Focus Mode" and smart filtering for JSON primitives.
 - ✅ **2026-02-04 Task 046:** activity-bar-ide-layout - Refactored UI to professional 3-column IDE layout with a persistent Activity Bar and context-aware Sidebar.
 - ✅ **2026-02-04 Task 045:** standardize-manifest-schema - Established a centralized Zod-based Manifest Schema and eliminated 'any' types across core components and hooks.
 - ✅ **2026-02-04 Task 044:** pro-file-explorer-sidebar - Implemented a professional IDE-style sidebar with recursive tree view, physical path mapping, and context switching.
