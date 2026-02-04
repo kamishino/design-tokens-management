@@ -8,5 +8,8 @@
     "seed": {
       "minFeasibility": 0.7
     }
-  }
+  },
+  "maxBackups": 5,
+  "gatedAutomation": true,
+  "executionMode": "Implementer"
 }
