@@ -29,7 +29,6 @@ export const ProductDetail = ({ data }: { data: StudioMockData }) => {
               <Image 
                 src={data.product.image} 
                 alt={data.product.name}
-                fallbackSrc="https://via.placeholder.com/800"
                 transition="transform 0.5s"
                 _hover={{ transform: "scale(1.05)" }}
               />

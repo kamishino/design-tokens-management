@@ -59,7 +59,7 @@ export const FileTreeNode = ({
         <Icon 
           as={isFolder ? (isOpen ? LuFolderOpen : LuFolder) : LuFileJson} 
           color={isFolder ? "orange.400" : "blue.400"}
-          size="14px"
+          boxSize="14px"
         />
 
         <Text 
@@ -67,7 +67,7 @@ export const FileTreeNode = ({
           fontWeight={isActive ? "bold" : "medium"} 
           color={isActive ? "blue.700" : "gray.700"}
           userSelect="none"
-          noOfLines={1}
+          lineClamp={1}
         >
           {node.name}
         </Text>

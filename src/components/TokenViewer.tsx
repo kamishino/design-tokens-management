@@ -8,7 +8,7 @@ import { useGlobalTokens } from '../hooks/useGlobalTokens';
 import { groupTokensByFile } from '../utils/token-grouping';
 import { ToCOutline } from './explorer/ToCOutline';
 import { SettingsModal } from './explorer/SettingsModal';
-import { LuSearch, LuSettings, LuX, LuDatabase, LuLayers, LuArrowRight, LuArrowUpRight, LuCopy, LuCheck } from "react-icons/lu";
+import { LuSearch, LuSettings, LuX, LuDatabase, LuLayers, LuArrowRight, LuCopy, LuCheck } from "react-icons/lu";
 import { Button } from "./ui/button";
 import { FileExplorer } from "./explorer/FileExplorer";
 import { ActivityBar } from "./explorer/ActivityBar";
@@ -23,7 +23,7 @@ interface TokenViewerProps {
   onProjectChange: (val: string) => void;
   onEnterStudio: () => void;
   overrides: TokenOverrides;
-  updateOverride: (newValues: Record<string, unknown>, label?: string) => void;
+  updateOverride: (newValues: Record<string, string | number>, label?: string) => void;
   resetOverrides: () => void;
 }
 
@@ -92,7 +92,7 @@ const InspectorOverlay = ({ token, pos }: { token: TokenDoc | null, pos: { x: nu
           <Box h="1px" w="full" bg="whiteAlpha.100" />
           <VStack align="start" gap={1} w="full">
             <Text fontSize="9px" fontWeight="bold" color="gray.500" textTransform="uppercase">Trace Path</Text>
-            <Text fontSize="10px" color="whiteAlpha.600" noOfLines={2} fontFamily="monospace">
+            <Text fontSize="10px" color="whiteAlpha.600" lineClamp={2} fontFamily="monospace">
               {token.rawValue}
             </Text>
           </VStack>
@@ -398,7 +398,7 @@ export const TokenViewer = ({
                   <Center p={20} bg="gray.50" borderRadius="xl" border="2px dashed" borderColor="gray.200">
                     <VStack gap={2}>
                       <Text color="gray.400" fontWeight="bold">No categories matched this search.</Text>
-                      <Button size="xs" variant="link" onClick={() => setSearchTerm('')}>Clear Search</Button>
+                      <Button size="xs" variant="plain" onClick={() => setSearchTerm('')}>Clear Search</Button>
                     </VStack>
                   </Center>
                 )}

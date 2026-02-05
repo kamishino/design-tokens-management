@@ -14,6 +14,7 @@ export interface TokenDoc {
   cssVariable: string;
   jsPath: string;
   sourceFile: string;     // origin file like "colors.json"
+  resolvedValue?: any;    // The final resolved value after following reference chains
 }
 
 /**

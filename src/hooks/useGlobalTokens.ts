@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BASE_TOKEN_FILES } from '../constants/base-tokens';
+import { getDynamicTokenFiles } from '../utils/fs-scanner';
 import { parseTokensToDocs } from '../utils/token-parser';
 import { enrichTokensWithLineage } from '../utils/token-graph';
 import type { TokenDoc } from '../utils/token-parser';
@@ -11,13 +11,8 @@ export const useGlobalTokens = () => {
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        // Fetch Base + Alias + Generated (Need all for full resolution)
-        const allFiles = [
-          ...BASE_TOKEN_FILES.map(f => ({ path: `/tokens/global/base/${f}.json`, name: `${f}.json` })),
-          { path: '/tokens/global/alias/colors.json', name: 'colors.json' },
-          { path: '/tokens/global/alias/typography.json', name: 'typography.json' },
-          { path: '/tokens/global/generated/typography-scale.json', name: 'typography-scale.json' }
-        ];
+        // Dynamically discover all token files
+        const allFiles = getDynamicTokenFiles().filter(f => f.path.includes('/global/'));
 
         const promises = allFiles.map(file => 
           fetch(file.path)

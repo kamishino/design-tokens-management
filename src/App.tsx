@@ -7,19 +7,9 @@ import { useTokenLoader } from './hooks/useTokenLoader'
 import { usePersistentPlayground } from './hooks/usePersistentPlayground'
 import { FloatingLab } from './components/playground/FloatingLab'
 import { useGlobalTokens } from './hooks/useGlobalTokens'
+import type { Manifest } from './schemas/manifest'
 
 type ViewMode = 'explorer' | 'studio' | 'docs';
-
-interface Manifest {
-  projects: {
-    [key: string]: {
-      name: string;
-      path: string;
-      client: string;
-      project: string;
-    }
-  }
-}
 
 function App() {
   const [viewMode, setViewMode] = useState<ViewMode>('explorer');

@@ -33,7 +33,6 @@ export const IdeMenuButton = ({ filename }: IdeMenuButtonProps) => {
         </MenuTrigger>
         <MenuContent 
           minW="180px" 
-          portalled={false} 
           zIndex={10}
           position="absolute"
           top="100%"

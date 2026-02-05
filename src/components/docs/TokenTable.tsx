@@ -1,9 +1,18 @@
 import { 
   Box, Table, Text, HStack, VStack, Clipboard, Badge
 } from "@chakra-ui/react";
+import { useState, useMemo } from 'react';
 import type { TokenDoc } from "../../utils/token-parser";
-import { LuCopy, LuCheck, LuArrowUpRight } from "react-icons/lu";
+import { LuCopy, LuCheck, LuArrowUpRight, LuArrowUpDown, LuArrowUp, LuArrowDown } from "react-icons/lu";
 import { LineagePopover } from "./LineagePopover";
+
+type SortKey = 'name' | 'sourceFile' | 'value' | 'type';
+type SortDirection = 'asc' | 'desc' | null;
+
+interface SortConfig {
+  key: SortKey;
+  direction: SortDirection;
+}
 
 const CopyButton = ({ value }: { value: string }) => {
   return (
@@ -31,6 +40,40 @@ export const TokenTable = ({
   onHover?: (token: TokenDoc | null, pos: { x: number, y: number } | null) => void,
   showSource?: boolean
 }) => {
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'name', direction: 'asc' });
+
+  const handleSort = (key: SortKey) => {
+    setSortConfig(prev => {
+      if (prev.key === key) {
+        if (prev.direction === 'asc') return { key, direction: 'desc' };
+        if (prev.direction === 'desc') return { key, direction: null };
+      }
+      return { key, direction: 'asc' };
+    });
+  };
+
+  const sortedTokens = useMemo(() => {
+    if (!sortConfig.direction) return tokens;
+
+    return [...tokens].sort((a, b) => {
+      let valA: any = a[sortConfig.key];
+      let valB: any = b[sortConfig.key];
+
+      // Handle objects (like value)
+      if (typeof valA === 'object') valA = JSON.stringify(valA);
+      if (typeof valB === 'object') valB = JSON.stringify(valB);
+
+      if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [tokens, sortConfig]);
+
+  const SortIcon = ({ columnKey }: { columnKey: SortKey }) => {
+    if (sortConfig.key !== columnKey || !sortConfig.direction) return <LuArrowUpDown size={12} />;
+    return sortConfig.direction === 'asc' ? <LuArrowUp size={12} /> : <LuArrowDown size={12} />;
+  };
+
   return (
     <Box
       borderWidth="1px"
@@ -42,20 +85,32 @@ export const TokenTable = ({
       <Table.Root size="sm" tableLayout="fixed">
         <Table.Header bg="gray.50">
           <Table.Row>
-            <Table.ColumnHeader w="80px">Swatch</Table.ColumnHeader>
-            <Table.ColumnHeader w={showSource ? "25%" : "30%"}>
-              Token Name
+            <Table.ColumnHeader w="30%" cursor="pointer" onClick={() => handleSort('name')}>
+              <HStack gap={2}>
+                <Text>Identity</Text>
+                <SortIcon columnKey="name" />
+              </HStack>
             </Table.ColumnHeader>
+            <Table.ColumnHeader w="25%" cursor="pointer" onClick={() => handleSort('value')}>
+              <HStack gap={2}>
+                <Text>Value & Ref</Text>
+                <SortIcon columnKey="value" />
+              </HStack>
+            </Table.ColumnHeader>
+            <Table.ColumnHeader w="20%">Lineage</Table.ColumnHeader>
             {showSource && (
-              <Table.ColumnHeader w="120px">Source</Table.ColumnHeader>
+              <Table.ColumnHeader w="10%" cursor="pointer" onClick={() => handleSort('sourceFile')}>
+                <HStack gap={2}>
+                  <Text>Source</Text>
+                  <SortIcon columnKey="sourceFile" />
+                </HStack>
+              </Table.ColumnHeader>
             )}
-            <Table.ColumnHeader w="20%">Value</Table.ColumnHeader>
-            <Table.ColumnHeader>Lineage</Table.ColumnHeader>
-            <Table.ColumnHeader w="180px">Usage</Table.ColumnHeader>
+            <Table.ColumnHeader w="15%">Usage</Table.ColumnHeader>
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {tokens.map((token) => (
+          {sortedTokens.map((token) => (
             <Table.Row
               key={token.id}
               _hover={{ bg: "blue.50/20" }}
@@ -69,63 +124,87 @@ export const TokenTable = ({
               onMouseLeave={() => onHover?.(null, null)}
             >
               <Table.Cell>
-                {token.type === "color" && (
-                  <Box
-                    w="28px"
-                    h="28px"
-                    bg={token.resolvedValue || token.value}
-                    borderRadius="sm"
-                    border="1px solid rgba(0,0,0,0.1)"
-                  />
-                )}
+                <HStack gap={3} overflow="hidden">
+                  {token.type === "color" && (
+                    <Box
+                      minW="24px"
+                      w="24px"
+                      h="24px"
+                      bg={token.resolvedValue || token.value}
+                      borderRadius="sm"
+                      border="1px solid rgba(0,0,0,0.1)"
+                      flexShrink={0}
+                    />
+                  )}
+                  <VStack align="start" gap={0} overflow="hidden">
+                    <Text
+                      fontWeight="bold"
+                      fontSize="xs"
+                      lineClamp={1}
+                      title={token.id}
+                    >
+                      {token.name}
+                    </Text>
+                    <Badge variant="subtle" size="xs" colorPalette="gray" textTransform="lowercase">
+                      {token.type}
+                    </Badge>
+                  </VStack>
+                </HStack>
               </Table.Cell>
+              
               <Table.Cell>
-                <VStack align="start" gap={0} overflow="hidden">
+                <VStack align="start" gap={0.5} overflow="hidden">
                   <Text
-                    fontWeight="bold"
                     fontSize="xs"
+                    fontFamily="monospace"
+                    fontWeight="bold"
                     lineClamp={1}
-                    title={token.id}
+                    color="blue.700"
+                    title={JSON.stringify(token.value)}
                   >
-                    {token.name}
+                    {JSON.stringify(token.value)}
                   </Text>
                   {token.rawValue && (
                     <HStack
                       gap={1}
-                      color="blue.500"
+                      color="gray.500"
                       cursor="pointer"
-                      _hover={{ textDecoration: "underline" }}
+                      _hover={{ color: "blue.500", textDecoration: "underline" }}
                       onClick={() => onJump?.(token.references[0])}
                     >
                       <LuArrowUpRight size={10} />
                       <Text
-                        fontSize="10px"
+                        fontSize="9px"
                         fontFamily="'Space Mono', monospace"
-                        fontWeight="bold"
                       >
                         {token.rawValue}
                       </Text>
                     </HStack>
                   )}
-                  {token.description && (
-                    <Text
-                      fontSize="10px"
-                      color="gray.500"
-                      lineClamp={1}
-                      title={token.description}
-                      mt={1}
-                    >
-                      {token.description}
-                    </Text>
-                  )}
                 </VStack>
               </Table.Cell>
+
+              <Table.Cell>
+                <HStack gap={2}>
+                  <LineagePopover
+                    ids={token.references}
+                    label="upstream"
+                    colorScheme="blue"
+                  />
+                  <LineagePopover
+                    ids={token.dependents}
+                    label="aliases"
+                    colorScheme="purple"
+                  />
+                </HStack>
+              </Table.Cell>
+
               {showSource && (
                 <Table.Cell>
                   <Badge
                     variant="outline"
                     size="xs"
-                    colorScheme="gray"
+                    colorPalette="gray"
                     textTransform="lowercase"
                     fontWeight="normal"
                   >
@@ -133,32 +212,9 @@ export const TokenTable = ({
                   </Badge>
                 </Table.Cell>
               )}
+
               <Table.Cell>
-                <Text
-                  fontSize="xs"
-                  fontFamily="monospace"
-                  lineClamp={1}
-                  title={JSON.stringify(token.value)}
-                >
-                  {JSON.stringify(token.value)}
-                </Text>
-              </Table.Cell>
-              <Table.Cell>
-                <HStack gap={2}>
-                  <LineagePopover
-                    ids={token.dependents}
-                    label="aliases"
-                    colorScheme="purple"
-                  />
-                  <LineagePopover
-                    ids={token.references}
-                    label="upstream"
-                    colorScheme="blue"
-                  />
-                </HStack>
-              </Table.Cell>
-              <Table.Cell>
-                <VStack align="start" gap={2} overflow="hidden">
+                <VStack align="start" gap={1.5} overflow="hidden">
                   <CopyButton value={token.cssVariable} />
                   <CopyButton value={token.jsPath} />
                 </VStack>

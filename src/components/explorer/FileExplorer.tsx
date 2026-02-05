@@ -1,7 +1,8 @@
 import { Box, VStack, Text } from "@chakra-ui/react";
 import { useMemo, useEffect, useState } from 'react';
 import type { FileNode } from "../../utils/path-tree";
-import { mapManifestToTree, generateGlobalTree } from "../../utils/path-tree";
+import { mapManifestToTree } from "../../utils/path-tree";
+import { getDynamicTokenTree } from "../../utils/fs-scanner";
 import { FileTreeNode } from "./FileTreeNode";
 import type { Manifest, SidebarPanelId } from "../../schemas/manifest";
 
@@ -28,7 +29,18 @@ export const FileExplorer = ({ manifest, context, activePath, onSelect }: FileEx
   });
 
   const tree = useMemo(() => {
-    if (context === 'primitives') return generateGlobalTree();
+    const dynamicTree = getDynamicTokenTree();
+    
+    if (context === 'primitives') {
+      const globalNode = dynamicTree.find(n => n.name === 'global');
+      return globalNode?.children || [];
+    }
+
+    if (context === 'explorer') {
+      const clientsNode = dynamicTree.find(n => n.name === 'clients');
+      return clientsNode?.children || [];
+    }
+
     return mapManifestToTree(manifest);
   }, [manifest, context]);
 
