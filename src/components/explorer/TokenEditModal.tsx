@@ -75,10 +75,11 @@ export const TokenEditModal = ({ isOpen, onClose, token, targetPath, initialCate
   const [description, setDescription] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
 
-  // Reference Picker State
+  // Reference Picker & Smart Replace State
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [refSearch, setRefSearch] = useState('');
-  const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
+  const [anchorRect] = useState<DOMRect | null>(null);
+  const [previousLiteral, setPreviousLiteral] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -96,10 +97,12 @@ export const TokenEditModal = ({ isOpen, onClose, token, targetPath, initialCate
       setDescription('');
     }
     setIsPickerOpen(false);
+    setPreviousLiteral(null);
   }, [token, initialCategory, isOpen]);
 
   const handleValueChange = (val: string) => {
     setValue(val);
+    setPreviousLiteral(null); // Clear restore button if user starts typing manually
 
     // Detect { trigger
     const lastOpenBrace = val.lastIndexOf('{');
@@ -109,19 +112,27 @@ export const TokenEditModal = ({ isOpen, onClose, token, targetPath, initialCate
       const search = val.slice(lastOpenBrace + 1);
       setRefSearch(search);
       setIsPickerOpen(true);
-      if (inputRef.current) {
-        setAnchorRect(inputRef.current.getBoundingClientRect());
-      }
     } else {
       setIsPickerOpen(false);
     }
   };
 
   const handleSelectReference = (tokenName: string) => {
-    const lastOpenBrace = value.lastIndexOf('{');
-    const newValue = value.slice(0, lastOpenBrace) + `{${tokenName}}`;
-    setValue(newValue);
+    // If current value is a literal (no braces), cache it for restoration
+    if (!value.includes('{') && value.trim() !== '') {
+      setPreviousLiteral(value);
+    }
+    
+    // Total replacement with correctly formatted reference
+    setValue(`{${tokenName}}`);
     setIsPickerOpen(false);
+  };
+
+  const handleRestoreValue = () => {
+    if (previousLiteral !== null) {
+      setValue(previousLiteral);
+      setPreviousLiteral(null);
+    }
   };
 
   const handleSave = async () => {
@@ -242,6 +253,18 @@ export const TokenEditModal = ({ isOpen, onClose, token, targetPath, initialCate
                     <Box w="40px" h="40px" bg={value} borderRadius="md" border="1px solid" borderColor="gray.200" flexShrink={0} />
                   )}
                 </HStack>
+                {previousLiteral !== null && (
+                  <Button 
+                    variant="ghost" 
+                    size="xs" 
+                    color="blue.500" 
+                    mt={2} 
+                    onClick={handleRestoreValue}
+                    fontWeight="bold"
+                  >
+                    Restore original: {previousLiteral}
+                  </Button>
+                )}
               </Field.Root>
             </HStack>
 

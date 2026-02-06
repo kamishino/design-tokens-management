@@ -9,8 +9,8 @@
 
 _This section highlights the business value extracted from completed tasks._
 
+- ✅ **2026-02-06 Task 067:** smart-reference-overrider - Enhanced the reference selection logic to automatically replace literal values with tokens and added a 'Restore' utility to revert replacements, ensuring clean data integrity.
 - ✅ **2026-02-06 Task 066:** reference-picker-fix - Restored full interactivity and scrolling to the token reference picker by migrating to Chakra UI's native Popover system, resolving focus-trap and click-through conflicts in the editor.
-- ✅ **2026-02-06 Task 065:** standardized-token-types - Professionalized the Token Editor with grouped W3C and Tokens Studio standard types and implemented a visual 'Link' trigger for the reference picker.
 - ✅ **2026-02-06 Task 063:** canonical-identity-fix - Resolved React key collisions and enabled unambiguous token management by implementing a globally unique composite ID format ([sourceFile]:[tokenPath]).
 - ✅ **2026-02-06 Task 062:** token-crud-studio - Implemented a Figma-inspired Management Studio with View/Manage modes, a high-fidelity Modal Editor, and direct file-system CRUD synchronization for both Global and Client tokens.
 - ✅ **2026-02-06 Task 061:** path-standardization-fix - Resolved TokenViewer visibility issues by standardizing all file identifiers to absolute paths starting with '/' and updated the startup view to "All Global Tokens".
