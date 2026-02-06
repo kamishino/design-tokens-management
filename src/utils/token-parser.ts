@@ -57,7 +57,7 @@ export const parseTokensToDocs = (obj: any, path: string[] = [], sourceFile: str
           .replace(/[^a-zA-Z0-9]/g, '');
 
         results.push({
-          id: currentPath.join('.'),
+          id: `${sourceFile}:${currentPath.join('.')}`,
           name: currentPath.join('.'),
           path: currentPath,
           value: val,

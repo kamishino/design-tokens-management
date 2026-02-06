@@ -48,7 +48,9 @@ export const TokenEditModal = ({ isOpen, onClose, token, targetPath, initialCate
 
   useEffect(() => {
     if (token) {
-      setName(token.id);
+      // Extract the dot-notation path from the composite ID (e.g. "file:path" -> "path")
+      const dotPath = token.id.includes(':') ? token.id.split(':')[1] : token.id;
+      setName(dotPath);
       setValue(typeof token.value === 'object' ? JSON.stringify(token.value) : String(token.value));
       setType(token.type);
       setDescription(token.description || '');

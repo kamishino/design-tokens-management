@@ -276,15 +276,18 @@ export const TokenViewer = ({
   };
 
   const handleDelete = async (token: TokenDoc) => {
-    if (!window.confirm(`Are you sure you want to delete ${token.id}?`)) return;
+    if (!window.confirm(`Are you sure you want to delete ${token.name}?`)) return;
     
+    // Extract the dot-notation path part of the ID
+    const dotPath = token.id.includes(':') ? token.id.split(':')[1] : token.id;
+
     try {
       const response = await fetch('/api/save-token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           targetPath: token.sourceFile,
-          tokenPath: token.id,
+          tokenPath: dotPath,
           action: 'delete'
         })
       });
