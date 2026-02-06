@@ -1,6 +1,6 @@
 import { 
   Box, VStack, HStack, Text, Input, 
-  Textarea, Field
+  Textarea, Field, Group, IconButton
 } from "@chakra-ui/react";
 import { 
   DialogBody,
@@ -19,6 +19,7 @@ import { Button } from "../ui/button";
 import { useState, useEffect, useRef } from 'react';
 import type { TokenDoc } from "../../utils/token-parser";
 import { ReferencePicker } from "./ReferencePicker";
+import { LuLink } from "react-icons/lu";
 
 interface TokenEditModalProps {
   isOpen: boolean;
@@ -29,16 +30,37 @@ interface TokenEditModalProps {
   globalTokens: TokenDoc[];
 }
 
-const TOKEN_TYPES = [
-  { value: 'color', label: 'Color' },
-  { value: 'spacing', label: 'Spacing' },
-  { value: 'fontSize', label: 'Font Size' },
-  { value: 'fontWeight', label: 'Font Weight' },
-  { value: 'lineHeight', label: 'Line Height' },
-  { value: 'opacity', label: 'Opacity' },
-  { value: 'dimension', label: 'Dimension' },
-  { value: 'fontFamilies', label: 'Font Family' },
-  { value: 'other', label: 'Other' }
+const TOKEN_TYPE_GROUPS = [
+  {
+    label: 'Standard (W3C DTCG)',
+    items: [
+      { value: 'color', label: 'Color' },
+      { value: 'dimension', label: 'Dimension' },
+      { value: 'fontFamilies', label: 'Font Family' },
+      { value: 'fontWeights', label: 'Font Weight' },
+      { value: 'lineHeights', label: 'Line Height' },
+      { value: 'duration', label: 'Duration' },
+      { value: 'cubicBezier', label: 'Cubic Bezier' },
+    ]
+  },
+  {
+    label: 'Tokens Studio (Figma)',
+    items: [
+      { value: 'spacing', label: 'Spacing' },
+      { value: 'borderRadius', label: 'Border Radius' },
+      { value: 'borderWidth', label: 'Border Width' },
+      { value: 'opacity', label: 'Opacity' },
+      { value: 'boxShadow', label: 'Box Shadow' },
+      { value: 'fontSizes', label: 'Font Size' },
+      { value: 'letterSpacing', label: 'Letter Spacing' },
+    ]
+  },
+  {
+    label: 'Custom',
+    items: [
+      { value: 'other', label: 'Other / Raw' }
+    ]
+  }
 ];
 
 export const TokenEditModal = ({ isOpen, onClose, token, targetPath, initialCategory, globalTokens }: TokenEditModalProps) => {
@@ -154,22 +176,49 @@ export const TokenEditModal = ({ isOpen, onClose, token, targetPath, initialCate
                 <Field.Label fontWeight="bold">Type</Field.Label>
                 <NativeSelectRoot>
                   <NativeSelectField
-                    items={TOKEN_TYPES}
                     value={type}
                     onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setType(e.target.value)}
-                  />
+                  >
+                    {TOKEN_TYPE_GROUPS.map((group) => (
+                      <optgroup key={group.label} label={group.label}>
+                        {group.items.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </NativeSelectField>
                 </NativeSelectRoot>
               </Field.Root>
 
               <Field.Root flex={2}>
                 <Field.Label fontWeight="bold">Value</Field.Label>
                 <HStack gap={3}>
-                  <Input 
-                    ref={inputRef}
-                    placeholder="e.g. #FFFFFF or {color.blue.500}" 
-                    value={value} 
-                    onChange={(e) => handleValueChange(e.target.value)}
-                  />
+                  <Group attached w="full">
+                    <Input 
+                      ref={inputRef}
+                      placeholder="e.g. #FFFFFF or {color.blue.500}" 
+                      value={value} 
+                      onChange={(e) => handleValueChange(e.target.value)}
+                    />
+                    <IconButton
+                      aria-label="Link reference"
+                      variant="subtle"
+                      onClick={() => {
+                        if (!value.includes('{')) {
+                          setValue(value + '{');
+                          setRefSearch('');
+                        }
+                        setIsPickerOpen(true);
+                        if (inputRef.current) {
+                          setAnchorRect(inputRef.current.getBoundingClientRect());
+                        }
+                      }}
+                    >
+                      <LuLink />
+                    </IconButton>
+                  </Group>
                   {type === 'color' && !value.includes('{') && (
                     <Box w="40px" h="40px" bg={value} borderRadius="md" border="1px solid" borderColor="gray.200" flexShrink={0} />
                   )}

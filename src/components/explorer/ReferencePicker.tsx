@@ -3,7 +3,11 @@ import {
   Portal
 } from "@chakra-ui/react";
 import { useMemo } from "react";
-import { LuHash, LuRuler, LuType, LuBox } from "react-icons/lu";
+import { 
+  LuHash, LuRuler, LuType, LuBox, 
+  LuCircleDot, LuSquare, 
+  LuMoveHorizontal, LuClock, LuZap
+} from "react-icons/lu";
 import type { TokenDoc } from "../../utils/token-parser";
 
 interface ReferencePickerProps {
@@ -18,10 +22,18 @@ interface ReferencePickerProps {
 const TypeIcon = ({ type }: { type: string }) => {
   switch (type) {
     case 'color': return <LuHash size={12} />;
-    case 'spacing':
+    case 'spacing': return <LuMoveHorizontal size={12} />;
+    case 'borderRadius': return <LuCircleDot size={12} />;
+    case 'borderWidth': return <LuSquare size={12} />;
     case 'dimension': return <LuRuler size={12} />;
+    case 'fontFamilies': return <LuType size={12} />;
+    case 'fontWeights': return <LuType size={12} />;
     case 'fontSize':
-    case 'fontWeight': return <LuType size={12} />;
+    case 'fontSizes': return <LuType size={12} />;
+    case 'lineHeight':
+    case 'lineHeights': return <LuType size={12} />;
+    case 'duration': return <LuClock size={12} />;
+    case 'cubicBezier': return <LuZap size={12} />;
     default: return <LuBox size={12} />;
   }
 };
