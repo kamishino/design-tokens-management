@@ -82,3 +82,49 @@ export const findSourceFileForToken = (tokenId: string, tokens: TokenDoc[]): str
   return token.sourceFile;
 
 };
+
+
+
+/**
+
+ * Builds a Map of token names to docs, with priority: 
+
+ * Project > Client > Global.
+
+ */
+
+export const getPrioritizedTokenMap = (tokens: TokenDoc[], targetPath: string): Map<string, TokenDoc> => {
+
+  const tokenMap = new Map<string, TokenDoc>();
+
+  
+
+  // Sort tokens by priority (low to high so higher ones overwrite)
+
+  const sorted = [...tokens].sort((a, b) => {
+
+    const getPriority = (path: string) => {
+
+      if (path.includes(targetPath.split('/projects/')[0] + '/projects/')) return 3; // Project
+
+      if (path.includes(targetPath.split('/projects/')[0])) return 2; // Client
+
+      if (path.includes('/global/')) return 1; // Global
+
+      return 0;
+
+    };
+
+    return getPriority(a.sourceFile) - getPriority(b.sourceFile);
+
+  });
+
+
+
+  sorted.forEach(t => tokenMap.set(t.name, t));
+
+  return tokenMap;
+
+};
+
+

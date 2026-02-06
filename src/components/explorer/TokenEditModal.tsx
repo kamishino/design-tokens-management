@@ -21,10 +21,13 @@ import {
   PopoverTrigger,
 } from "../ui/popover";
 import { Button } from "../ui/button";
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { extractReferences } from "../../utils/token-parser";
+import { resolveTerminalValue, getPrioritizedTokenMap } from "../../utils/token-graph";
 import type { TokenDoc } from "../../utils/token-parser";
 import { ReferencePicker } from "./ReferencePicker";
 import { LuLink } from "react-icons/lu";
+import { parse, formatHex } from "culori";
 
 interface TokenEditModalProps {
   isOpen: boolean;
@@ -167,6 +170,47 @@ export const TokenEditModal = ({ isOpen, onClose, token, targetPath, initialCate
 
   const isNew = !token;
 
+  // Real-time Color Resolution & Validation
+  const resolutionResult = useMemo(() => {
+    if (!value || type !== 'color') return { isValid: false, status: 'none' };
+
+    const refs = extractReferences(value);
+    let terminalValue = value;
+    let status = 'literal';
+    let message = '';
+    let sourceFile = '';
+
+    if (refs.length > 0) {
+      const priorityMap = getPrioritizedTokenMap(globalTokens, targetPath);
+      const refTokenName = refs[0];
+      const sourceToken = priorityMap.get(refTokenName);
+
+      if (sourceToken) {
+        terminalValue = resolveTerminalValue(sourceToken, priorityMap);
+        status = 'reference';
+        sourceFile = sourceToken.sourceFile.split('/').pop() || '';
+        message = `Linked to: ${sourceFile} (${terminalValue})`;
+      } else {
+        return { isValid: false, status: 'broken', message: `⚠️ Reference '${refSearch}' not found.` };
+      }
+    }
+
+    // Validate if terminal value is a real color
+    const parsed = parse(terminalValue);
+    const isValid = parsed !== undefined;
+    
+    if (!isValid && status === 'literal' && !value.includes('{')) {
+      return { isValid: false, status: 'invalid-color', message: '⚠️ Invalid CSS color format.' };
+    }
+
+    return { 
+      isValid, 
+      value: isValid ? formatHex(parsed) : '', 
+      status, 
+      message 
+    };
+  }, [value, type, globalTokens, targetPath, refSearch]);
+
   return (
     <DialogRoot open={isOpen} onOpenChange={(details: { open: boolean }) => !details.open && onClose()} size="lg">
       <DialogContent>
@@ -258,21 +302,43 @@ export const TokenEditModal = ({ isOpen, onClose, token, targetPath, initialCate
                       />
                     </PopoverContent>
                   </PopoverRoot>
-                  {type === 'color' && !value.includes('{') && (
-                    <Box w="40px" h="40px" bg={value} borderRadius="md" border="1px solid" borderColor="gray.200" flexShrink={0} />
+                  {resolutionResult.isValid && (
+                    <Box 
+                      w="40px" 
+                      h="40px" 
+                      bg={resolutionResult.value} 
+                      borderRadius="md" 
+                      border="1px solid" 
+                      borderColor="gray.200" 
+                      flexShrink={0} 
+                    />
                   )}
                 </HStack>
-                {previousLiteral !== null && (
-                  <Button 
-                    variant="ghost" 
-                    size="xs" 
-                    color="blue.500" 
-                    mt={2} 
-                    onClick={handleRestoreValue}
-                    fontWeight="bold"
-                  >
-                    Restore original: {previousLiteral}
-                  </Button>
+                {(resolutionResult.message || previousLiteral !== null) && (
+                  <VStack align="start" gap={1} mt={2}>
+                    {resolutionResult.message && (
+                      <Text 
+                        fontSize="xs" 
+                        color={resolutionResult.status.startsWith('broken') || resolutionResult.status === 'invalid-color' ? 'red.500' : 'gray.500'}
+                        fontWeight="medium"
+                      >
+                        {resolutionResult.message}
+                      </Text>
+                    )}
+                    {previousLiteral !== null && (
+                      <Button 
+                        variant="ghost" 
+                        size="xs" 
+                        color="blue.500" 
+                        onClick={handleRestoreValue}
+                        fontWeight="bold"
+                        p={0}
+                        h="auto"
+                      >
+                        Restore original: {previousLiteral}
+                      </Button>
+                    )}
+                  </VStack>
                 )}
               </Field.Root>
             </HStack>
