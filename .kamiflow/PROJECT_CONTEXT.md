@@ -11,9 +11,9 @@
 
 > **INTEGRATOR RULE:** Always update all 4 fields (Phase, Last Action, Focus, Next Step) during `/kamiflow:ops:sync`.
 
-- **Last Completed Action:** Aligned Brand-A project stubs with global token schema (Task 060)
+- **Last Completed Action:** Standardized absolute paths for TokenViewer visibility (Task 061)
 - **Current Focus:** Distribution & Versioning
-- **Next Step:** Task 061 - Implement automated versioning and NPM distribution pipeline
+- **Next Step:** Task 062 - Implement automated versioning and NPM distribution pipeline
 
 ## 3. Knowledge Map (Directory Guide)
 

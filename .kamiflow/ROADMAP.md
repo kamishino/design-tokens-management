@@ -9,6 +9,7 @@
 
 _This section highlights the business value extracted from completed tasks._
 
+- ✅ **2026-02-06 Task 061:** path-standardization-fix - Resolved TokenViewer visibility issues by standardizing all file identifiers to absolute paths starting with '/' and updated the startup view to "All Global Tokens".
 - ✅ **2026-02-06 Task 060:** client-overrides-alignment - Established high-fidelity category-specific stubs for Brand-A that mirror global JSON paths, enabling precision overrides and improved organization.
 - ✅ **2026-02-06 Task 059:** domain-aware-token-graph - Achieved 100% token visibility by refactoring the loader to include client-specific JSON files and using full file-system paths as unique identifiers to prevent collisions.
 - ✅ **2026-02-05 Task 056:** token-table-optimization - Refactored TokenTable into a high-density interactive Data Grid with multi-column sorting, merged Identity/Swatch layout, and prioritized Lineage visibility.

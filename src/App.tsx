@@ -47,8 +47,6 @@ function App() {
       .then(res => res.json())
       .then(data => {
         setManifest(data);
-        const firstProject = Object.keys(data.projects)[0];
-        if (firstProject) setSelectedProject(firstProject);
         setLoading(false);
       })
       .catch(err => {

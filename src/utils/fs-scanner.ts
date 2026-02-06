@@ -21,7 +21,7 @@ export const getDynamicTokenTree = (): FileNode[] => {
 
     parts.forEach((part, index) => {
       const isLast = index === parts.length - 1;
-      const id = parts.slice(0, index + 1).join('/');
+      const id = '/' + parts.slice(0, index + 1).join('/');
       
       let existingNode = currentLevel.find(node => node.name === part);
 

@@ -66,15 +66,19 @@ export const getUpstreamLineage = (token: TokenDoc, tokenMap: Map<string, TokenD
 };
 
 /**
+
  * Finds the source file path for a given token ID.
+
  */
+
 export const findSourceFileForToken = (tokenId: string, tokens: TokenDoc[]): string | null => {
+
   const token = tokens.find(t => t.id === tokenId);
+
   if (!token) return null;
+
   
-  // Map simple filename to full explorer path
-  const isBase = token.sourceFile !== 'colors.json' && token.sourceFile !== 'typography.json';
-  const prefix = isBase ? 'global/base' : 'global/alias';
-  
-  return `${prefix}/${token.sourceFile}`;
+
+  return token.sourceFile;
+
 };
