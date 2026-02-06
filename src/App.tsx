@@ -16,12 +16,20 @@ function App() {
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [selectedProject, setSelectedProject] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [showLab, setShowLab] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('kami_explorer_lab_visible') === 'true';
+  });
 
   const { 
     overrides, updateOverride, undo, redo, canUndo, canRedo, resetOverrides 
   } = usePersistentPlayground();
 
   const { globalTokens } = useGlobalTokens();
+
+  useEffect(() => {
+    localStorage.setItem('kami_explorer_lab_visible', String(showLab));
+  }, [showLab]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -54,6 +62,8 @@ function App() {
 
   if (loading) return <Center h="100vh"><Spinner size="xl" /></Center>;
 
+  const isLabActuallyVisible = viewMode === 'studio' || (viewMode === 'explorer' && showLab);
+
   return (
     <Box minH="100vh">
       {viewMode === 'explorer' && (
@@ -67,6 +77,8 @@ function App() {
           overrides={overrides}
           updateOverride={updateOverride}
           resetOverrides={resetOverrides}
+          showLab={showLab}
+          onToggleLab={() => setShowLab(!showLab)}
         />
       )}
 
@@ -78,8 +90,8 @@ function App() {
         <DocsPortal manifest={manifest!} onExit={() => setViewMode('studio')} />
       )}
 
-      {/* Global Floating Lab - Hidden in Docs mode for clarity */}
-      {selectedProject && viewMode !== 'docs' && (
+      {/* Global Floating Lab - Now with controlled visibility */}
+      {selectedProject && isLabActuallyVisible && (
         <FloatingLab 
           clientId={manifest?.projects[selectedProject]?.client || ''} 
           projectId={manifest?.projects[selectedProject]?.project || ''} 

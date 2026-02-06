@@ -8,7 +8,7 @@ import { useGlobalTokens } from '../hooks/useGlobalTokens';
 import { groupTokensByFile } from '../utils/token-grouping';
 import { ToCOutline } from './explorer/ToCOutline';
 import { SettingsModal } from './explorer/SettingsModal';
-import { LuSearch, LuSettings, LuX, LuDatabase, LuLayers, LuArrowRight, LuCopy, LuCheck } from "react-icons/lu";
+import { LuSearch, LuSettings, LuX, LuDatabase, LuLayers, LuArrowRight, LuCopy, LuCheck, LuFlaskConical } from "react-icons/lu";
 import { Button } from "./ui/button";
 import { FileExplorer } from "./explorer/FileExplorer";
 import { ActivityBar } from "./explorer/ActivityBar";
@@ -25,6 +25,8 @@ interface TokenViewerProps {
   overrides: TokenOverrides;
   updateOverride: (newValues: Record<string, string | number>, label?: string) => void;
   resetOverrides: () => void;
+  showLab: boolean;
+  onToggleLab: () => void;
 }
 
 /**
@@ -146,7 +148,7 @@ const MasterSection = ({
 
 export const TokenViewer = ({
   manifest, selectedProject, onProjectChange, onEnterStudio,
-  overrides, resetOverrides
+  overrides, resetOverrides, showLab, onToggleLab
 }: TokenViewerProps) => {
 
   const { globalTokens, loading } = useGlobalTokens();
@@ -299,6 +301,16 @@ export const TokenViewer = ({
             </Box>
 
             <HStack gap={3}>
+              <IconButton
+                aria-label="Toggle Laboratory"
+                variant={showLab ? "subtle" : "ghost"}
+                colorPalette={showLab ? "blue" : "gray"}
+                size="sm"
+                onClick={onToggleLab}
+                title="Toggle Design Laboratory"
+              >
+                <LuFlaskConical />
+              </IconButton>
               <Button colorScheme="blue" size="sm" borderRadius="full" px={5} onClick={onEnterStudio}>
                 Studio 🚀
               </Button>

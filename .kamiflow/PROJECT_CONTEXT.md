@@ -11,9 +11,9 @@
 
 > **INTEGRATOR RULE:** Always update all 4 fields (Phase, Last Action, Focus, Next Step) during `/kamiflow:ops:sync`.
 
-- **Last Completed Action:** Refactored TokenTable into a high-density interactive Data Grid (Task 056)
+- **Last Completed Action:** Isolated Floating Lab to Studio with On-Demand Explorer toggle (Task 057)
 - **Current Focus:** Distribution & Versioning
-- **Next Step:** Task 057 - Implement automated versioning and NPM distribution pipeline
+- **Next Step:** Task 058 - Implement automated versioning and NPM distribution pipeline
 
 ## 3. Knowledge Map (Directory Guide)
 
