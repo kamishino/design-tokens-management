@@ -15,6 +15,11 @@ import {
   NativeSelectRoot,
   NativeSelectField
 } from "../ui/native-select";
+import { 
+  PopoverContent,
+  PopoverRoot,
+  PopoverTrigger,
+} from "../ui/popover";
 import { Button } from "../ui/button";
 import { useState, useEffect, useRef } from 'react';
 import type { TokenDoc } from "../../utils/token-parser";
@@ -195,45 +200,50 @@ export const TokenEditModal = ({ isOpen, onClose, token, targetPath, initialCate
               <Field.Root flex={2}>
                 <Field.Label fontWeight="bold">Value</Field.Label>
                 <HStack gap={3}>
-                  <Group attached w="full">
-                    <Input 
-                      ref={inputRef}
-                      placeholder="e.g. #FFFFFF or {color.blue.500}" 
-                      value={value} 
-                      onChange={(e) => handleValueChange(e.target.value)}
-                    />
-                    <IconButton
-                      aria-label="Link reference"
-                      variant="subtle"
-                      onClick={() => {
-                        if (!value.includes('{')) {
-                          setValue(value + '{');
-                          setRefSearch('');
-                        }
-                        setIsPickerOpen(true);
-                        if (inputRef.current) {
-                          setAnchorRect(inputRef.current.getBoundingClientRect());
-                        }
-                      }}
-                    >
-                      <LuLink />
-                    </IconButton>
-                  </Group>
+                  <PopoverRoot 
+                    open={isPickerOpen} 
+                    onOpenChange={(e) => setIsPickerOpen(e.open)}
+                    autoFocus={false}
+                    positioning={{ strategy: "fixed", placement: "bottom-start" }}
+                  >
+                    <PopoverTrigger asChild>
+                      <Group attached w="full">
+                        <Input 
+                          ref={inputRef}
+                          placeholder="e.g. #FFFFFF or {color.blue.500}" 
+                          value={value} 
+                          onChange={(e) => handleValueChange(e.target.value)}
+                        />
+                        <IconButton
+                          aria-label="Link reference"
+                          variant="subtle"
+                          onClick={() => {
+                            if (!value.includes('{')) {
+                              setValue(value + '{');
+                              setRefSearch('');
+                            }
+                            setIsPickerOpen(true);
+                          }}
+                        >
+                          <LuLink />
+                        </IconButton>
+                      </Group>
+                    </PopoverTrigger>
+                    <PopoverContent w={`${anchorRect?.width || 300}px`} zIndex={5000}>
+                      <ReferencePicker 
+                        tokens={globalTokens}
+                        searchTerm={refSearch}
+                        filterType={type}
+                        onSelect={handleSelectReference}
+                      />
+                    </PopoverContent>
+                  </PopoverRoot>
                   {type === 'color' && !value.includes('{') && (
                     <Box w="40px" h="40px" bg={value} borderRadius="md" border="1px solid" borderColor="gray.200" flexShrink={0} />
                   )}
                 </HStack>
               </Field.Root>
             </HStack>
-
-            <ReferencePicker 
-              isOpen={isPickerOpen}
-              tokens={globalTokens}
-              searchTerm={refSearch}
-              filterType={type}
-              onSelect={handleSelectReference}
-              anchorRect={anchorRect}
-            />
 
             <Field.Root>
               <Field.Label fontWeight="bold">Description</Field.Label>
