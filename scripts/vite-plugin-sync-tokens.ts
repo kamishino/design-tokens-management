@@ -2,6 +2,10 @@ import fs from 'fs';
 import path from 'path';
 import type { Plugin } from 'vite';
 
+/**
+ * Enhanced Sync Plugin supporting universal file writing and deletion.
+ * Security: Restricts all writes to the /tokens directory.
+ */
 export function syncTokensPlugin(): Plugin {
   return {
     name: 'vite-plugin-sync-tokens',
@@ -16,44 +20,52 @@ export function syncTokensPlugin(): Plugin {
           req.on('end', async () => {
             try {
               const data = JSON.parse(body);
-              const { clientId, projectId, tokens } = data;
+              const { targetPath, tokenPath, valueObj, action = 'update' } = data;
 
-              if (!clientId || !projectId) {
-                res.statusCode = 400;
-                return res.end('Missing clientId or projectId');
+              // Security Guard: Ensure we only write within the tokens/ directory
+              if (!targetPath || !targetPath.includes('/tokens/')) {
+                res.statusCode = 403;
+                return res.end(JSON.stringify({ error: 'Forbidden: Path outside of tokens directory' }));
               }
 
-              const projectDir = path.resolve(process.cwd(), 'tokens/clients', clientId, 'projects', projectId);
-              const targetFile = path.join(projectDir, 'overrides.json');
+              // Support both absolute and project-relative paths
+              const absoluteFilePath = targetPath.startsWith('/') 
+                ? path.join(process.cwd(), targetPath)
+                : path.join(process.cwd(), 'tokens', targetPath);
 
-              if (!fs.existsSync(projectDir)) {
-                fs.mkdirSync(projectDir, { recursive: true });
+              const dir = path.dirname(absoluteFilePath);
+              if (!fs.existsSync(dir)) {
+                fs.mkdirSync(dir, { recursive: true });
               }
 
               let currentJson: any = {};
-              if (fs.existsSync(targetFile)) {
-                currentJson = JSON.parse(fs.readFileSync(targetFile, 'utf8'));
+              if (fs.existsSync(absoluteFilePath)) {
+                currentJson = JSON.parse(fs.readFileSync(absoluteFilePath, 'utf8'));
               }
 
-              Object.entries(tokens).forEach(([tokenPath, valueObj]: [string, any]) => {
-                const keys = tokenPath.split('.');
-                let current = currentJson;
-                
-                keys.forEach((key, index) => {
-                  if (index === keys.length - 1) {
-                    current[key] = valueObj;
+              // Navigate to the deep key path
+              const keys = tokenPath.split('.');
+              let current = currentJson;
+              
+              keys.forEach((key: string, index: number) => {
+                if (index === keys.length - 1) {
+                  if (action === 'delete') {
+                    delete current[key];
                   } else {
-                    current[key] = current[key] || {};
-                    current = current[key];
+                    current[key] = valueObj;
                   }
-                });
+                } else {
+                  current[key] = current[key] || {};
+                  current = current[key];
+                }
               });
 
-              fs.writeFileSync(targetFile, JSON.stringify(currentJson, null, 2));
-              console.log(`💾 Successfully synced tokens to: ${targetFile}`);
+              // Write back to disk
+              fs.writeFileSync(absoluteFilePath, JSON.stringify(currentJson, null, 2));
+              console.log(`💾 [CRUD] ${action.toUpperCase()} ${tokenPath} in ${absoluteFilePath}`);
 
               res.setHeader('Content-Type', 'application/json');
-              res.end(JSON.stringify({ success: true, path: targetFile }));
+              res.end(JSON.stringify({ success: true, path: absoluteFilePath }));
             } catch (error: any) {
               console.error('❌ Sync Error:', error);
               res.statusCode = 500;

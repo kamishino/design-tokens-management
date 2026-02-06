@@ -8,12 +8,17 @@ import { useGlobalTokens } from '../hooks/useGlobalTokens';
 import { groupTokensByFile } from '../utils/token-grouping';
 import { ToCOutline } from './explorer/ToCOutline';
 import { SettingsModal } from './explorer/SettingsModal';
-import { LuSearch, LuSettings, LuX, LuDatabase, LuLayers, LuArrowRight, LuCopy, LuCheck, LuFlaskConical } from "react-icons/lu";
+import { 
+  LuSearch, LuSettings, LuX, LuDatabase, LuLayers, 
+  LuArrowRight, LuCopy, LuCheck, LuFlaskConical,
+  LuEye, LuLayoutDashboard, LuPlus
+} from "react-icons/lu";
 import { Button } from "./ui/button";
 import { FileExplorer } from "./explorer/FileExplorer";
 import { ActivityBar } from "./explorer/ActivityBar";
 import { TokenTable } from "./docs/TokenTable";
 import { findSourceFileForToken } from "../utils/token-graph";
+import { TokenEditModal } from "./explorer/TokenEditModal";
 import type { Manifest, TokenOverrides, SidebarPanelId } from "../schemas/manifest";
 import type { TokenDoc } from "../utils/token-parser";
 
@@ -105,9 +110,10 @@ const InspectorOverlay = ({ token, pos }: { token: TokenDoc | null, pos: { x: nu
 };
 
 const MasterSection = ({ 
-  title, icon: Icon, count, tokens, color, onJump, onHover 
+  title, icon: Icon, count, tokens, color, onJump, onHover, editMode, onCreate
 }: { 
-  title: string, icon: any, count: number, tokens: TokenDoc[], color: string, onJump: (id: string) => void, onHover: (token: TokenDoc | null, pos: { x: number, y: number } | null) => void 
+  title: string, icon: any, count: number, tokens: TokenDoc[], color: string, onJump: (id: string) => void, onHover: (token: TokenDoc | null, pos: { x: number, y: number } | null) => void,
+  editMode: boolean, onCreate: () => void
 }) => {
   if (tokens.length === 0) return null;
 
@@ -131,9 +137,16 @@ const MasterSection = ({
             </Text>
           </VStack>
         </HStack>
-        <Badge colorScheme={color} variant="solid" fontSize="10px" px={3} py={0.5} borderRadius="full">
-          {title === 'Semantic' ? 'Application Layer' : 'Foundation Layer'}
-        </Badge>
+        <HStack gap={3}>
+          {editMode && (
+            <Button size="xs" variant="subtle" colorPalette={color} onClick={onCreate} gap={1.5}>
+              <LuPlus size={14} /> Add Token
+            </Button>
+          )}
+          <Badge colorScheme={color} variant="solid" fontSize="10px" px={3} py={0.5} borderRadius="full">
+            {title === 'Semantic' ? 'Application Layer' : 'Foundation Layer'}
+          </Badge>
+        </HStack>
       </HStack>
 
       <TokenTable 
@@ -141,6 +154,7 @@ const MasterSection = ({
         onJump={onJump} 
         onHover={onHover}
         showSource={true} 
+        editMode={editMode}
       />
     </VStack>
   );
@@ -154,6 +168,7 @@ export const TokenViewer = ({
   const { globalTokens, loading } = useGlobalTokens();
   const [searchTerm, setSearchTerm] = useState('');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
   
   const [activePanel, setActivePanel] = useState<SidebarPanelId>(() => {
     if (typeof window === 'undefined') return 'explorer';
@@ -161,6 +176,9 @@ export const TokenViewer = ({
   });
 
   const [hoveredToken, setHoveredToken] = useState<{ token: TokenDoc | null, pos: { x: number, y: number } | null }>({ token: null, pos: null });
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [editingToken, setEditingToken] = useState<TokenDoc | null>(null);
+  const [initialCategory, setInitialCategory] = useState<string | undefined>();
 
   const [expandedMaster, setExpandedMaster] = useState<string[]>(() => {
     if (typeof window === 'undefined') return ['semantic', 'foundation'];
@@ -242,8 +260,42 @@ export const TokenViewer = ({
   }, []);
 
   const handleHover = useCallback((token: TokenDoc | null, pos: { x: number, y: number } | null) => {
+    if (editMode) return; 
     setHoveredToken({ token, pos });
-  }, []);
+  }, [editMode]);
+
+  const handleCreate = (category?: string) => {
+    setEditingToken(null);
+    setInitialCategory(category);
+    setIsEditorOpen(true);
+  };
+
+  const handleEdit = (token: TokenDoc) => {
+    setEditingToken(token);
+    setIsEditorOpen(true);
+  };
+
+  const handleDelete = async (token: TokenDoc) => {
+    if (!window.confirm(`Are you sure you want to delete ${token.id}?`)) return;
+    
+    try {
+      const response = await fetch('/api/save-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          targetPath: token.sourceFile,
+          tokenPath: token.id,
+          action: 'delete'
+        })
+      });
+
+      if (response.ok) {
+        window.location.reload(); 
+      }
+    } catch (e) {
+      console.error('Error deleting token', e);
+    }
+  };
 
   if (loading) return <Center h="100vh"><Spinner size="xl" /></Center>;
 
@@ -282,22 +334,29 @@ export const TokenViewer = ({
             </HStack>
 
             <Box flex={1} display="flex" justifyContent="center">
-              <HStack w="full" maxW="400px" position="relative">
-                <Box position="absolute" left={3} color="gray.400" zIndex={1}>
-                  <LuSearch size={14} />
-                </Box>
-                <Input
-                  placeholder="Search tokens across categories..."
-                  pl={9}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  size="sm"
-                  borderRadius="full"
-                  bg="white"
-                  border="1px solid"
-                  borderColor="gray.200"
-                  _focus={{ borderColor: "blue.400", boxShadow: "0 0 0 1px var(--chakra-colors-blue-400)" }}
-                />
+              <HStack bg="gray.100" p={1} borderRadius="lg" gap={1}>
+                <Button 
+                  size="xs" 
+                  variant={!editMode ? "solid" : "ghost"} 
+                  bg={!editMode ? "white" : "transparent"}
+                  color={!editMode ? "blue.600" : "gray.500"}
+                  boxShadow={!editMode ? "sm" : "none"}
+                  onClick={() => setEditMode(false)}
+                  gap={2}
+                >
+                  <LuEye size={14} /> View
+                </Button>
+                <Button 
+                  size="xs" 
+                  variant={editMode ? "solid" : "ghost"} 
+                  bg={editMode ? "white" : "transparent"}
+                  color={editMode ? "blue.600" : "gray.500"}
+                  boxShadow={editMode ? "sm" : "none"}
+                  onClick={() => setEditMode(true)}
+                  gap={2}
+                >
+                  <LuLayoutDashboard size={14} /> Manage
+                </Button>
               </HStack>
             </Box>
 
@@ -356,7 +415,23 @@ export const TokenViewer = ({
                   </HStack>
                 </VStack>
               </HStack>
-              <HStack gap={2}>
+              <HStack gap={4}>
+                <HStack w="full" maxW="300px" position="relative">
+                  <Box position="absolute" left={3} color="gray.400" zIndex={1}>
+                    <LuSearch size={14} />
+                  </Box>
+                  <Input
+                    placeholder="Search tokens..."
+                    pl={9}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    size="xs"
+                    borderRadius="full"
+                    bg="gray.50"
+                    border="1px solid"
+                    borderColor="gray.100"
+                  />
+                </HStack>
                 {isJsonFocus && (
                   <Button size="xs" variant="subtle" colorScheme="blue" onClick={() => onProjectChange('')}>
                     <LuX style={{ marginRight: '4px' }} /> Clear Focus
@@ -377,12 +452,20 @@ export const TokenViewer = ({
                           <Text fontSize="11px" color="blue.600" fontWeight="bold">{semanticTokens.length + foundationTokens.length} tokens in file</Text>
                         </VStack>
                       </HStack>
+                      {editMode && (
+                        <Button size="xs" colorPalette="blue" onClick={() => handleCreate()} gap={1.5}>
+                          <LuPlus size={14} /> Add Token
+                        </Button>
+                      )}
                     </HStack>
                     <TokenTable 
                       tokens={[...semanticTokens, ...foundationTokens]} 
                       onJump={handleJump} 
                       onHover={handleHover}
                       showSource={false} 
+                      editMode={editMode}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
                     />
                   </VStack>
                 ) : displayCategories.length > 0 ? (
@@ -395,6 +478,8 @@ export const TokenViewer = ({
                       color="purple"
                       onJump={handleJump}
                       onHover={handleHover}
+                      editMode={editMode}
+                      onCreate={() => handleCreate('semantic')}
                     />
 
                     <MasterSection 
@@ -405,6 +490,8 @@ export const TokenViewer = ({
                       color="blue"
                       onJump={handleJump}
                       onHover={handleHover}
+                      editMode={editMode}
+                      onCreate={() => handleCreate('color')}
                     />
                   </VStack>
                 ) : (
@@ -423,6 +510,17 @@ export const TokenViewer = ({
           </VStack>
         </Box>
       </VStack>
+
+      <TokenEditModal 
+        isOpen={isEditorOpen} 
+        onClose={(refresh) => {
+          setIsEditorOpen(false);
+          if (refresh) window.location.reload();
+        }}
+        token={editingToken}
+        targetPath={selectedProject}
+        initialCategory={initialCategory}
+      />
     </HStack>
   )
 }

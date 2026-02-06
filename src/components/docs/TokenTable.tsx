@@ -1,9 +1,12 @@
 import { 
-  Box, Table, Text, HStack, VStack, Clipboard, Badge
+  Box, Table, Text, HStack, VStack, Clipboard, Badge, IconButton
 } from "@chakra-ui/react";
 import { useState, useMemo } from 'react';
 import type { TokenDoc } from "../../utils/token-parser";
-import { LuCopy, LuCheck, LuArrowUpRight, LuArrowUpDown, LuArrowUp, LuArrowDown } from "react-icons/lu";
+import { 
+  LuCopy, LuCheck, LuArrowUpRight, LuArrowUpDown, 
+  LuArrowUp, LuArrowDown, LuPencil, LuTrash2 
+} from "react-icons/lu";
 import { LineagePopover } from "./LineagePopover";
 
 type SortKey = 'name' | 'sourceFile' | 'value' | 'type';
@@ -33,12 +36,18 @@ export const TokenTable = ({
   tokens, 
   onJump,
   onHover,
-  showSource = false 
+  showSource = false,
+  editMode = false,
+  onEdit,
+  onDelete
 }: { 
   tokens: TokenDoc[], 
   onJump?: (id: string) => void,
   onHover?: (token: TokenDoc | null, pos: { x: number, y: number } | null) => void,
-  showSource?: boolean
+  showSource?: boolean,
+  editMode?: boolean,
+  onEdit?: (token: TokenDoc) => void,
+  onDelete?: (token: TokenDoc) => void
 }) => {
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'name', direction: 'asc' });
 
@@ -214,10 +223,35 @@ export const TokenTable = ({
               )}
 
               <Table.Cell>
-                <VStack align="start" gap={1.5} overflow="hidden">
-                  <CopyButton value={token.cssVariable} />
-                  <CopyButton value={token.jsPath} />
-                </VStack>
+                {editMode ? (
+                  <HStack gap={2}>
+                    <IconButton
+                      aria-label="Edit Token"
+                      variant="ghost"
+                      size="xs"
+                      color="gray.400"
+                      _hover={{ bg: "blue.50", color: "blue.600" }}
+                      onClick={() => onEdit?.(token)}
+                    >
+                      <LuPencil size={14} />
+                    </IconButton>
+                    <IconButton
+                      aria-label="Delete Token"
+                      variant="ghost"
+                      size="xs"
+                      color="gray.400"
+                      _hover={{ bg: "red.50", color: "red.600" }}
+                      onClick={() => onDelete?.(token)}
+                    >
+                      <LuTrash2 size={14} />
+                    </IconButton>
+                  </HStack>
+                ) : (
+                  <VStack align="start" gap={1.5} overflow="hidden">
+                    <CopyButton value={token.cssVariable} />
+                    <CopyButton value={token.jsPath} />
+                  </VStack>
+                )}
               </Table.Cell>
             </Table.Row>
           ))}
