@@ -97,16 +97,19 @@ export const ReferencePicker = ({
             </Box>
           )}
           
-          <VStack align="start" gap={0} flex={1} overflow="hidden">
-            <Text fontSize="xs" fontWeight="bold" lineClamp={1}>
-              {token.name}
-            </Text>
-            <Text fontSize="9px" color="gray.400">
-              {token.sourceFile.split('/').pop()}
-            </Text>
-          </VStack>
-
-          {token.type === filterType && (
+                      <VStack align="start" gap={0} flex={1} overflow="hidden">
+                        <Text fontSize="xs" fontWeight="bold" lineClamp={1}>
+                          {token.name}
+                        </Text>
+                        <HStack gap={1} color="gray.400" fontSize="9px" lineClamp={1}>
+                          <Text>{token.sourceFile.split('/').pop()}</Text>
+                          <Text color="gray.300">•</Text>
+                          <Text fontFamily="'Space Mono', monospace" color="blue.500/80">
+                            {typeof token.resolvedValue === 'object' ? JSON.stringify(token.resolvedValue) : String(token.resolvedValue)}
+                          </Text>
+                        </HStack>
+                      </VStack>
+                    {token.type === filterType && (
             <Badge variant="subtle" size="xs" colorPalette="blue">Match</Badge>
           )}
         </HStack>
