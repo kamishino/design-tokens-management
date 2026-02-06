@@ -508,7 +508,7 @@ export const TokenViewer = ({
                   </Center>
                 )}
               </Box>
-              <Box w="240px" display={{ base: 'none', lg: 'block' }}>
+              <Box w="240px" display={{ base: 'none', lg: 'block' }} alignSelf="stretch">
                 <ToCOutline categories={displayCategories} />
               </Box>
             </HStack>

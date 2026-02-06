@@ -9,8 +9,8 @@
 
 _This section highlights the business value extracted from completed tasks._
 
-- ✅ **2026-02-06 Task 071:** reference-picker-metadata - Exposed terminal resolved values (hex, px, etc.) directly within the reference picker dropdown, providing critical technical context for informed linking.
-- ✅ **2026-02-06 Task 070:** token-render-performance - Eliminated perceptible lag during View/Manage mode transitions by implementing granular component memoization and stable callback references, restoring silky-smooth performance.
+- ✅ **2026-02-06 Task 073:** fix-toc-stickiness - Restored persistent navigation by fixing the ToCOutline's scroll track, ensuring the sidebar remains sticky throughout long design token lists.
+- ✅ **2026-02-06 Task 072:** outline-observer-navigation - Delivered IDE-grade navigation by overhauling ToCOutline with real-time IntersectionObserver synchronization, hierarchical file grouping, and fixed sticky header "push" behavior.
 - ✅ **2026-02-06 Task 063:** canonical-identity-fix - Resolved React key collisions and enabled unambiguous token management by implementing a globally unique composite ID format ([sourceFile]:[tokenPath]).
 - ✅ **2026-02-06 Task 062:** token-crud-studio - Implemented a Figma-inspired Management Studio with View/Manage modes, a high-fidelity Modal Editor, and direct file-system CRUD synchronization for both Global and Client tokens.
 - ✅ **2026-02-06 Task 061:** path-standardization-fix - Resolved TokenViewer visibility issues by standardizing all file identifiers to absolute paths starting with '/' and updated the startup view to "All Global Tokens".
