@@ -9,8 +9,8 @@
 
 _This section highlights the business value extracted from completed tasks._
 
+- ✅ **2026-02-06 Task 083:** stabilize-sidebar-menu - Stabilized the sidebar action menu by migrating to portalled UI components, resolving container clipping and anchor drift during scroll.
 - ✅ **2026-02-06 Task 082:** state-based-hover-fix - Eliminated the 'Ghost Hover' bug in Chrome by implementing deterministic React state tracking for sidebar interactions, ensuring 100% reliable background and action menu visibility.
-- ✅ **2026-02-06 Task 081:** restore-native-group-hover - Restored 100% stable sidebar action visibility by aligning with Chakra UI v3's native group prop, using a spread-based type bypass to ensure both functional and build stability.
 - ✅ **2026-02-06 Task 063:** canonical-identity-fix - Resolved React key collisions and enabled unambiguous token management by implementing a globally unique composite ID format ([sourceFile]:[tokenPath]).
 - ✅ **2026-02-06 Task 062:** token-crud-studio - Implemented a Figma-inspired Management Studio with View/Manage modes, a high-fidelity Modal Editor, and direct file-system CRUD synchronization for both Global and Client tokens.
 - ✅ **2026-02-06 Task 061:** path-standardization-fix - Resolved TokenViewer visibility issues by standardizing all file identifiers to absolute paths starting with '/' and updated the startup view to "All Global Tokens".

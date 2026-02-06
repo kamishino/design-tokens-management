@@ -1,7 +1,9 @@
 import { 
-  MenuTrigger, MenuContent, MenuItem,
-  IconButton, MenuRoot, Box, Text
+  IconButton, Box, Text
 } from "@chakra-ui/react";
+import { 
+  MenuTrigger, MenuContent, MenuItem, MenuRoot
+} from "../ui/menu";
 import { LuEllipsis, LuCopy, LuFileJson, LuTerminal } from "react-icons/lu";
 import { SUPPORTED_IDES, useAppSettings } from "../../hooks/useAppSettings";
 
@@ -28,7 +30,7 @@ export const FileActionMenu = ({ filename, displayName }: FileActionMenuProps) =
   };
   
   return (
-    <MenuRoot positioning={{ strategy: "fixed", placement: "bottom-start" }}>
+    <MenuRoot positioning={{ placement: "bottom-end", offset: { mainAxis: 4, crossAxis: 0 } }}>
       <Box position="relative">
         <MenuTrigger asChild>
           <IconButton 
