@@ -213,7 +213,16 @@ export const TokenEditModal = ({ isOpen, onClose, token, targetPath, initialCate
                 <HStack gap={3}>
                   <PopoverRoot 
                     open={isPickerOpen} 
-                    onOpenChange={(e) => setIsPickerOpen(e.open)}
+                    onOpenChange={(e) => {
+                      setIsPickerOpen(e.open);
+                      // Cleanup: Remove dangling '{' if closing without selection
+                      if (!e.open) {
+                        setRefSearch('');
+                        if (value.endsWith('{')) {
+                          setValue(prev => prev.slice(0, -1));
+                        }
+                      }
+                    }}
                     autoFocus={false}
                     positioning={{ strategy: "fixed", placement: "bottom-start" }}
                   >
