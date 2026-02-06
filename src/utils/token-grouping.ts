@@ -8,7 +8,9 @@ export interface FileCategory {
 }
 
 export const formatFileName = (filename: string): string => {
-  const name = filename.replace('.json', '');
+  // Extract leaf name if it's a full path
+  const leafName = filename.split('/').pop() || filename;
+  const name = leafName.replace('.json', '');
   return name
     .split('-')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))

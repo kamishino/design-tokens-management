@@ -179,7 +179,8 @@ export const TokenViewer = ({
   
   const displayCategories = useMemo(() => {
     if (!isJsonFocus) return categories;
-    return categories.filter(cat => selectedProject.toLowerCase().includes(cat.id.toLowerCase()));
+    // Strict equality check now that both are full paths
+    return categories.filter(cat => cat.id === selectedProject);
   }, [categories, selectedProject, isJsonFocus]);
 
   const { semanticTokens, foundationTokens } = useMemo(() => {

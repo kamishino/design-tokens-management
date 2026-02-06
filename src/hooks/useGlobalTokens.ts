@@ -11,13 +11,13 @@ export const useGlobalTokens = () => {
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        // Dynamically discover all token files
-        const allFiles = getDynamicTokenFiles().filter(f => f.path.includes('/global/'));
+        // Dynamically discover all token files across all domains
+        const allFiles = getDynamicTokenFiles();
 
         const promises = allFiles.map(file => 
           fetch(file.path)
             .then(res => res.json())
-            .then(json => ({ json, filename: file.name }))
+            .then(json => ({ json, filename: file.path })) // Use full path as identifier
         );
         
         const results = await Promise.all(promises);
