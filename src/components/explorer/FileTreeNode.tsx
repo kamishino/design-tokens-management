@@ -40,7 +40,7 @@ export const FileTreeNode = ({
         onClick={handleClick}
         borderRadius="md"
         position="relative"
-        role="group"
+        className="chakra-group"
       >
         <HStack gap={2} flex={1} overflow="hidden" pr="32px">
           {isActive && (
@@ -84,10 +84,10 @@ export const FileTreeNode = ({
           alignItems="center"
           px={2}
           opacity={0} 
-          visibility="hidden"
+          pointerEvents="none"
           _groupHover={{ 
             opacity: 1,
-            visibility: "visible",
+            pointerEvents: "auto",
             bg: isActive ? "blue.100" : "gray.50"
           }} 
           transition="all 0.1s"
