@@ -41,9 +41,9 @@ export const FileTreeNode = ({
         borderRadius="md"
         position="relative"
         role="group"
-        justify="space-between"
+        overflow="hidden"
       >
-        <HStack gap={2} flex={1} overflow="hidden">
+        <HStack gap={2} flex={1} overflow="hidden" pr="32px">
           {isActive && (
             <Box 
               position="absolute" left={0} top={1} bottom={1} w="2px" 
@@ -76,16 +76,25 @@ export const FileTreeNode = ({
           </Text>
         </HStack>
 
-        {!isFolder && (
-          <Box 
-            opacity={0} 
-            _groupHover={{ opacity: 1 }} 
-            transition="opacity 0.2s"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <FileActionMenu filename={node.fullPath} displayName={node.name} />
-          </Box>
-        )}
+        <Box 
+          position="absolute"
+          right="0"
+          top="0"
+          bottom="0"
+          display="flex"
+          alignItems="center"
+          px={2}
+          opacity={0} 
+          _groupHover={{ 
+            opacity: 1,
+            bg: isActive ? "blue.100" : "gray.50"
+          }} 
+          transition="all 0.1s"
+          onClick={(e) => e.stopPropagation()}
+          zIndex={5}
+        >
+          <FileActionMenu filename={node.fullPath || node.id} displayName={node.name} />
+        </Box>
       </HStack>
 
       {isFolder && isOpen && node.children && (
