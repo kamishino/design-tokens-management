@@ -264,18 +264,18 @@ export const TokenViewer = ({
     setHoveredToken({ token, pos });
   }, [editMode]);
 
-  const handleCreate = (category?: string) => {
+  const handleCreate = useCallback((category?: string) => {
     setEditingToken(null);
     setInitialCategory(category);
     setIsEditorOpen(true);
-  };
+  }, []);
 
-  const handleEdit = (token: TokenDoc) => {
+  const handleEdit = useCallback((token: TokenDoc) => {
     setEditingToken(token);
     setIsEditorOpen(true);
-  };
+  }, []);
 
-  const handleDelete = async (token: TokenDoc) => {
+  const handleDelete = useCallback(async (token: TokenDoc) => {
     if (!window.confirm(`Are you sure you want to delete ${token.name}?`)) return;
     
     // Extract the dot-notation path part of the ID
@@ -298,7 +298,7 @@ export const TokenViewer = ({
     } catch (e) {
       console.error('Error deleting token', e);
     }
-  };
+  }, []);
 
   if (loading) return <Center h="100vh"><Spinner size="xl" /></Center>;
 

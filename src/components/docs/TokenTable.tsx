@@ -1,7 +1,7 @@
 import { 
   Box, Table, Text, HStack, VStack, Clipboard, Badge, IconButton
 } from "@chakra-ui/react";
-import { useState, useMemo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import type { TokenDoc } from "../../utils/token-parser";
 import { 
   LuCopy, LuCheck, LuArrowUpRight, LuArrowUpDown, 
@@ -31,6 +31,156 @@ const CopyButton = ({ value }: { value: string }) => {
     </Clipboard.Root>
   );
 };
+
+interface TokenRowProps {
+  token: TokenDoc;
+  onJump?: (id: string) => void;
+  onHover?: (token: TokenDoc | null, pos: { x: number, y: number } | null) => void;
+  showSource: boolean;
+  editMode: boolean;
+  onEdit?: (token: TokenDoc) => void;
+  onDelete?: (token: TokenDoc) => void;
+}
+
+const TokenRow = memo(({ 
+  token, onJump, onHover, showSource, editMode, onEdit, onDelete 
+}: TokenRowProps) => {
+  return (
+    <Table.Row
+      _hover={{ bg: "blue.50/20" }}
+      id={`token-${token.id}`}
+      transition="background 0.2s"
+      onMouseMove={(e) => {
+        if (token.rawValue) {
+          onHover?.(token, { x: e.clientX, y: e.clientY });
+        }
+      }}
+      onMouseLeave={() => onHover?.(null, null)}
+    >
+      <Table.Cell>
+        <HStack gap={3} overflow="hidden">
+          {token.type === "color" && (
+            <Box
+              minW="24px"
+              w="24px"
+              h="24px"
+              bg={token.resolvedValue || token.value}
+              borderRadius="sm"
+              border="1px solid rgba(0,0,0,0.1)"
+              flexShrink={0}
+            />
+          )}
+          <VStack align="start" gap={0} overflow="hidden">
+            <Text
+              fontWeight="bold"
+              fontSize="xs"
+              lineClamp={1}
+              title={token.id}
+            >
+              {token.name}
+            </Text>
+            <Badge variant="subtle" size="xs" colorPalette="gray" textTransform="lowercase">
+              {token.type}
+            </Badge>
+          </VStack>
+        </HStack>
+      </Table.Cell>
+      
+      <Table.Cell>
+        <VStack align="start" gap={0.5} overflow="hidden">
+          <Text
+            fontSize="xs"
+            fontFamily="monospace"
+            fontWeight="bold"
+            lineClamp={1}
+            color="blue.700"
+            title={JSON.stringify(token.value)}
+          >
+            {JSON.stringify(token.value)}
+          </Text>
+          {token.rawValue && (
+            <HStack
+              gap={1}
+              color="gray.500"
+              cursor="pointer"
+              _hover={{ color: "blue.500", textDecoration: "underline" }}
+              onClick={() => onJump?.(token.references[0])}
+            >
+              <LuArrowUpRight size={10} />
+              <Text
+                fontSize="9px"
+                fontFamily="'Space Mono', monospace"
+              >
+                {token.rawValue}
+              </Text>
+            </HStack>
+          )}
+        </VStack>
+      </Table.Cell>
+
+      <Table.Cell>
+        <HStack gap={2}>
+          <LineagePopover
+            ids={token.references}
+            label="upstream"
+            colorScheme="blue"
+          />
+          <LineagePopover
+            ids={token.dependents}
+            label="aliases"
+            colorScheme="purple"
+          />
+        </HStack>
+      </Table.Cell>
+
+      {showSource && (
+        <Table.Cell>
+          <Badge
+            variant="outline"
+            size="xs"
+            colorPalette="gray"
+            textTransform="lowercase"
+            fontWeight="normal"
+          >
+            {token.sourceFile}
+          </Badge>
+        </Table.Cell>
+      )}
+
+      <Table.Cell>
+        {editMode ? (
+          <HStack gap={2}>
+            <IconButton
+              aria-label="Edit Token"
+              variant="ghost"
+              size="xs"
+              color="gray.400"
+              _hover={{ bg: "blue.50", color: "blue.600" }}
+              onClick={() => onEdit?.(token)}
+            >
+              <LuPencil size={14} />
+            </IconButton>
+            <IconButton
+              aria-label="Delete Token"
+              variant="ghost"
+              size="xs"
+              color="gray.400"
+              _hover={{ bg: "red.50", color: "red.600" }}
+              onClick={() => onDelete?.(token)}
+            >
+              <LuTrash2 size={14} />
+            </IconButton>
+          </HStack>
+        ) : (
+          <VStack align="start" gap={1.5} overflow="hidden">
+            <CopyButton value={token.cssVariable} />
+            <CopyButton value={token.jsPath} />
+          </VStack>
+        )}
+      </Table.Cell>
+    </Table.Row>
+  );
+});
 
 export const TokenTable = ({ 
   tokens, 
@@ -120,140 +270,16 @@ export const TokenTable = ({
         </Table.Header>
         <Table.Body>
           {sortedTokens.map((token) => (
-            <Table.Row
+            <TokenRow
               key={token.id}
-              _hover={{ bg: "blue.50/20" }}
-              id={`token-${token.id}`}
-              transition="background 0.2s"
-              onMouseMove={(e) => {
-                if (token.rawValue) {
-                  onHover?.(token, { x: e.clientX, y: e.clientY });
-                }
-              }}
-              onMouseLeave={() => onHover?.(null, null)}
-            >
-              <Table.Cell>
-                <HStack gap={3} overflow="hidden">
-                  {token.type === "color" && (
-                    <Box
-                      minW="24px"
-                      w="24px"
-                      h="24px"
-                      bg={token.resolvedValue || token.value}
-                      borderRadius="sm"
-                      border="1px solid rgba(0,0,0,0.1)"
-                      flexShrink={0}
-                    />
-                  )}
-                  <VStack align="start" gap={0} overflow="hidden">
-                    <Text
-                      fontWeight="bold"
-                      fontSize="xs"
-                      lineClamp={1}
-                      title={token.id}
-                    >
-                      {token.name}
-                    </Text>
-                    <Badge variant="subtle" size="xs" colorPalette="gray" textTransform="lowercase">
-                      {token.type}
-                    </Badge>
-                  </VStack>
-                </HStack>
-              </Table.Cell>
-              
-              <Table.Cell>
-                <VStack align="start" gap={0.5} overflow="hidden">
-                  <Text
-                    fontSize="xs"
-                    fontFamily="monospace"
-                    fontWeight="bold"
-                    lineClamp={1}
-                    color="blue.700"
-                    title={JSON.stringify(token.value)}
-                  >
-                    {JSON.stringify(token.value)}
-                  </Text>
-                  {token.rawValue && (
-                    <HStack
-                      gap={1}
-                      color="gray.500"
-                      cursor="pointer"
-                      _hover={{ color: "blue.500", textDecoration: "underline" }}
-                      onClick={() => onJump?.(token.references[0])}
-                    >
-                      <LuArrowUpRight size={10} />
-                      <Text
-                        fontSize="9px"
-                        fontFamily="'Space Mono', monospace"
-                      >
-                        {token.rawValue}
-                      </Text>
-                    </HStack>
-                  )}
-                </VStack>
-              </Table.Cell>
-
-              <Table.Cell>
-                <HStack gap={2}>
-                  <LineagePopover
-                    ids={token.references}
-                    label="upstream"
-                    colorScheme="blue"
-                  />
-                  <LineagePopover
-                    ids={token.dependents}
-                    label="aliases"
-                    colorScheme="purple"
-                  />
-                </HStack>
-              </Table.Cell>
-
-              {showSource && (
-                <Table.Cell>
-                  <Badge
-                    variant="outline"
-                    size="xs"
-                    colorPalette="gray"
-                    textTransform="lowercase"
-                    fontWeight="normal"
-                  >
-                    {token.sourceFile}
-                  </Badge>
-                </Table.Cell>
-              )}
-
-              <Table.Cell>
-                {editMode ? (
-                  <HStack gap={2}>
-                    <IconButton
-                      aria-label="Edit Token"
-                      variant="ghost"
-                      size="xs"
-                      color="gray.400"
-                      _hover={{ bg: "blue.50", color: "blue.600" }}
-                      onClick={() => onEdit?.(token)}
-                    >
-                      <LuPencil size={14} />
-                    </IconButton>
-                    <IconButton
-                      aria-label="Delete Token"
-                      variant="ghost"
-                      size="xs"
-                      color="gray.400"
-                      _hover={{ bg: "red.50", color: "red.600" }}
-                      onClick={() => onDelete?.(token)}
-                    >
-                      <LuTrash2 size={14} />
-                    </IconButton>
-                  </HStack>
-                ) : (
-                  <VStack align="start" gap={1.5} overflow="hidden">
-                    <CopyButton value={token.cssVariable} />
-                    <CopyButton value={token.jsPath} />
-                  </VStack>
-                )}
-              </Table.Cell>
-            </Table.Row>
+              token={token}
+              onJump={onJump}
+              onHover={onHover}
+              showSource={showSource}
+              editMode={editMode}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
           ))}
         </Table.Body>
       </Table.Root>
