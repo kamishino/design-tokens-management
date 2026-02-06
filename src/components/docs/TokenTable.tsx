@@ -33,6 +33,7 @@ const CopyButton = ({ value }: { value: string }) => {
 };
 
 interface TokenRowProps {
+  id?: string;
   token: TokenDoc;
   onJump?: (id: string) => void;
   onHover?: (token: TokenDoc | null, pos: { x: number, y: number } | null) => void;
@@ -43,12 +44,13 @@ interface TokenRowProps {
 }
 
 const TokenRow = memo(({ 
-  token, onJump, onHover, showSource, editMode, onEdit, onDelete 
+  id, token, onJump, onHover, showSource, editMode, onEdit, onDelete 
 }: TokenRowProps) => {
   return (
     <Table.Row
+      id={id || `token-${token.id}`}
       _hover={{ bg: "blue.50/20" }}
-      id={`token-${token.id}`}
+      scrollMarginTop="120px"
       transition="background 0.2s"
       onMouseMove={(e) => {
         if (token.rawValue) {
@@ -269,18 +271,24 @@ export const TokenTable = ({
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {sortedTokens.map((token) => (
-            <TokenRow
-              key={token.id}
-              token={token}
-              onJump={onJump}
-              onHover={onHover}
-              showSource={showSource}
-              editMode={editMode}
-              onEdit={onEdit}
-              onDelete={onDelete}
-            />
-          ))}
+          {sortedTokens.map((token, index) => {
+            const isFirstOfFile = index === 0 || token.sourceFile !== sortedTokens[index - 1].sourceFile;
+            const fileAnchorId = isFirstOfFile ? `file-${token.sourceFile.replace(/[^a-zA-Z0-9]/g, '-')}` : undefined;
+
+            return (
+              <TokenRow
+                key={token.id}
+                id={fileAnchorId}
+                token={token}
+                onJump={onJump}
+                onHover={onHover}
+                showSource={showSource}
+                editMode={editMode}
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
+            );
+          })}
         </Table.Body>
       </Table.Root>
     </Box>

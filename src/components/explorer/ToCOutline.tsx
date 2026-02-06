@@ -45,20 +45,36 @@ export const ToCOutline = ({ categories }: ToCOutlineProps) => {
     return () => observer.current?.disconnect();
   }, [categories]);
 
-  const scrollTo = (sectionId: string) => {
-    const el = document.getElementById(`section-${sectionId}`);
+  const scrollTo = (type: 'semantic' | 'foundation', fileId?: string) => {
+    let targetId = `section-${type}`;
+    let isRowTarget = false;
+
+    if (fileId) {
+      const sanitized = `file-${fileId.replace(/[^a-zA-Z0-9]/g, '-')}`;
+      const rowEl = document.getElementById(sanitized);
+      if (rowEl) {
+        targetId = sanitized;
+        isRowTarget = true;
+      }
+    }
+
+    const el = document.getElementById(targetId);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       
       // Pulse animation logic
-      const header = el.querySelector('.chakra-stack[position="sticky"]');
-      if (header) {
-        (header as HTMLElement).style.backgroundColor = 'var(--chakra-colors-blue-50)';
+      const pulseTarget = isRowTarget ? el : el.querySelector('.chakra-stack[position="sticky"]');
+      
+      if (pulseTarget) {
+        const target = pulseTarget as HTMLElement;
+        const originalBg = isRowTarget ? 'transparent' : 'white';
+        
+        target.style.backgroundColor = 'var(--chakra-colors-blue-50)';
         setTimeout(() => {
-          (header as HTMLElement).style.transition = 'background-color 1s ease-out';
-          (header as HTMLElement).style.backgroundColor = 'white';
+          target.style.transition = 'background-color 1s ease-out';
+          target.style.backgroundColor = originalBg;
           setTimeout(() => {
-            (header as HTMLElement).style.transition = '';
+            target.style.transition = '';
           }, 1000);
         }, 500);
       }
@@ -86,7 +102,7 @@ export const ToCOutline = ({ categories }: ToCOutlineProps) => {
             fontSize="11px"
             color="gray.600"
             _hover={{ color: "blue.500", textDecoration: "none" }}
-            onClick={() => scrollTo(type)} // Simplified for MasterSection targeting
+            onClick={() => scrollTo(type, cat.id)}
             cursor="pointer"
             fontWeight={cat.totalCount > 0 ? "medium" : "normal"}
             opacity={cat.totalCount > 0 ? 1 : 0.4}

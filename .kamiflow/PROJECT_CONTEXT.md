@@ -11,9 +11,9 @@
 
 > **INTEGRATOR RULE:** Always update all 4 fields (Phase, Last Action, Focus, Next Step) during `/kamiflow:ops:sync`.
 
-- **Last Completed Action:** Restored ToC stickiness by extending parent flex height (Task 073)
+- **Last Completed Action:** Implemented precision row-level navigation for ToC (Task 074)
 - **Current Focus:** Distribution & Versioning
-- **Next Step:** Task 074 - Implement automated versioning and NPM distribution pipeline
+- **Next Step:** Task 075 - Implement automated versioning and NPM distribution pipeline
 
 ## 3. Knowledge Map (Directory Guide)
 
