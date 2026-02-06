@@ -11,9 +11,9 @@
 
 > **INTEGRATOR RULE:** Always update all 4 fields (Phase, Last Action, Focus, Next Step) during `/kamiflow:ops:sync`.
 
-- **Last Completed Action:** Implemented definitive sidebar visibility fix using chakra-group (Task 080)
+- **Last Completed Action:** Restored native group hover behavior for sidebar (Task 081)
 - **Current Focus:** Distribution & Versioning
-- **Next Step:** Task 081 - Implement automated versioning and NPM distribution pipeline
+- **Next Step:** Task 082 - Implement automated versioning and NPM distribution pipeline
 
 ## 3. Knowledge Map (Directory Guide)
 

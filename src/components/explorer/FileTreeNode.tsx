@@ -40,7 +40,7 @@ export const FileTreeNode = ({
         onClick={handleClick}
         borderRadius="md"
         position="relative"
-        className="chakra-group"
+        {...({ group: true } as any)}
       >
         <HStack gap={2} flex={1} overflow="hidden" pr="32px">
           {isActive && (
