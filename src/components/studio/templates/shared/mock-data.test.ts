@@ -10,7 +10,7 @@ describe('generateStudioMockData', () => {
     expect(data).toHaveProperty('brand');
     
     expect(typeof data.product.name).toBe('string');
-    expect(data.dashboard.recentTransactions).toHaveLength(5);
+    expect(data.dashboard.recentTransactions).toHaveLength(8);
     expect(data.brand.tagline).toBeDefined();
   });
 
