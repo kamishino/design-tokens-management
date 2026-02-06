@@ -1,5 +1,6 @@
 import { Box, HStack, Text, Icon } from "@chakra-ui/react";
 import { LuFolder, LuFolderOpen, LuFileJson, LuChevronRight, LuChevronDown } from "react-icons/lu";
+import { useState } from "react";
 import type { FileNode } from "../../utils/path-tree";
 import { FileActionMenu } from "./FileActionMenu";
 
@@ -15,6 +16,7 @@ interface FileTreeNodeProps {
 export const FileTreeNode = ({ 
   node, depth, expandedPaths, activePath, onToggle, onSelect 
 }: FileTreeNodeProps) => {
+  const [isHovered, setIsHovered] = useState(false);
   const isOpen = expandedPaths.includes(node.id);
   const isActive = activePath === node.id || (node.type === 'file' && activePath === node.fullPath);
   const isFolder = node.type === 'folder';
@@ -34,13 +36,13 @@ export const FileTreeNode = ({
         px={2}
         pl={`${depth * 12 + 8}px`}
         cursor="pointer"
-        bg={isActive ? "blue.50" : "transparent"}
-        _hover={{ bg: isActive ? "blue.100" : "gray.50" }}
+        bg={isActive ? "blue.50" : (isHovered ? "gray.50" : "transparent")}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         transition="all 0.1s"
         onClick={handleClick}
         borderRadius="md"
         position="relative"
-        {...({ group: true } as any)}
       >
         <HStack gap={2} flex={1} overflow="hidden" pr="32px">
           {isActive && (
@@ -83,13 +85,9 @@ export const FileTreeNode = ({
           display="flex"
           alignItems="center"
           px={2}
-          opacity={0} 
-          pointerEvents="none"
-          _groupHover={{ 
-            opacity: 1,
-            pointerEvents: "auto",
-            bg: isActive ? "blue.100" : "gray.50"
-          }} 
+          opacity={isHovered ? 1 : 0} 
+          pointerEvents={isHovered ? "auto" : "none"}
+          bg={isActive ? "blue.100" : "gray.50"}
           transition="all 0.1s"
           onClick={(e) => e.stopPropagation()}
           zIndex={100}
