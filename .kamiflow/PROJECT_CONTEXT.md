@@ -11,9 +11,9 @@
 
 > **INTEGRATOR RULE:** Always update all 4 fields (Phase, Last Action, Focus, Next Step) during `/kamiflow:ops:sync`.
 
-- **Last Completed Action:** Implemented absolute overlay for sidebar actions (Task 077)
+- **Last Completed Action:** Resolved sidebar layout clipping and hover failures (Task 078)
 - **Current Focus:** Distribution & Versioning
-- **Next Step:** Task 078 - Implement automated versioning and NPM distribution pipeline
+- **Next Step:** Task 079 - Implement automated versioning and NPM distribution pipeline
 
 ## 3. Knowledge Map (Directory Guide)
 

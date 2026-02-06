@@ -41,7 +41,6 @@ export const FileTreeNode = ({
         borderRadius="md"
         position="relative"
         role="group"
-        overflow="hidden"
       >
         <HStack gap={2} flex={1} overflow="hidden" pr="32px">
           {isActive && (
