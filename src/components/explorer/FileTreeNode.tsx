@@ -1,6 +1,7 @@
 import { Box, HStack, Text, Icon } from "@chakra-ui/react";
 import { LuFolder, LuFolderOpen, LuFileJson, LuChevronRight, LuChevronDown } from "react-icons/lu";
 import type { FileNode } from "../../utils/path-tree";
+import { FileActionMenu } from "./FileActionMenu";
 
 interface FileTreeNodeProps {
   node: FileNode;
@@ -40,37 +41,51 @@ export const FileTreeNode = ({
         borderRadius="md"
         position="relative"
         role="group"
+        justify="space-between"
       >
-        {isActive && (
-          <Box 
-            position="absolute" left={0} top={1} bottom={1} w="2px" 
-            bg="blue.500" borderRadius="full" 
-          />
-        )}
-        
-        <Box color="gray.400" mr={-1}>
-          {isFolder ? (
-            isOpen ? <LuChevronDown size={12} /> : <LuChevronRight size={12} />
-          ) : (
-            <Box w={3} />
+        <HStack gap={2} flex={1} overflow="hidden">
+          {isActive && (
+            <Box 
+              position="absolute" left={0} top={1} bottom={1} w="2px" 
+              bg="blue.500" borderRadius="full" 
+            />
           )}
-        </Box>
+          
+          <Box color="gray.400" mr={-1}>
+            {isFolder ? (
+              isOpen ? <LuChevronDown size={12} /> : <LuChevronRight size={12} />
+            ) : (
+              <Box w={3} />
+            )}
+          </Box>
 
-        <Icon 
-          as={isFolder ? (isOpen ? LuFolderOpen : LuFolder) : LuFileJson} 
-          color={isFolder ? "orange.400" : "blue.400"}
-          boxSize="14px"
-        />
+          <Icon 
+            as={isFolder ? (isOpen ? LuFolderOpen : LuFolder) : LuFileJson} 
+            color={isFolder ? "orange.400" : "blue.400"}
+            boxSize="14px"
+          />
 
-        <Text 
-          fontSize="xs" 
-          fontWeight={isActive ? "bold" : "medium"} 
-          color={isActive ? "blue.700" : "gray.700"}
-          userSelect="none"
-          lineClamp={1}
-        >
-          {node.name}
-        </Text>
+          <Text 
+            fontSize="xs" 
+            fontWeight={isActive ? "bold" : "medium"} 
+            color={isActive ? "blue.700" : "gray.700"}
+            userSelect="none"
+            lineClamp={1}
+          >
+            {node.name}
+          </Text>
+        </HStack>
+
+        {!isFolder && (
+          <Box 
+            opacity={0} 
+            _groupHover={{ opacity: 1 }} 
+            transition="opacity 0.2s"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <FileActionMenu filename={node.fullPath} displayName={node.name} />
+          </Box>
+        )}
       </HStack>
 
       {isFolder && isOpen && node.children && (

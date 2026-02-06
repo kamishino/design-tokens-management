@@ -1,5 +1,5 @@
 import { Box, VStack, IconButton, Tooltip } from "@chakra-ui/react";
-import { LuFiles, LuGlobe, LuSearch, LuSettings } from "react-icons/lu";
+import { LuFiles, LuGlobe, LuSearch } from "react-icons/lu";
 import type { SidebarPanelId } from "../../schemas/manifest";
 
 interface ActivityBarProps {
@@ -57,18 +57,6 @@ export const ActivityBar = ({ activePanel, onPanelChange }: ActivityBarProps) =>
       })}
 
       <Box flex={1} />
-
-      <IconButton
-        aria-label="Settings"
-        variant="ghost"
-        color={activePanel === 'settings' ? "white" : "gray.500"}
-        _hover={{ color: "white", bg: "whiteAlpha.100" }}
-        onClick={() => onPanelChange('settings')}
-        size="sm"
-        mb={2}
-      >
-        <LuSettings size={20} />
-      </IconButton>
     </VStack>
   );
 };

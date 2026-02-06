@@ -48,7 +48,6 @@ export const FileExplorer = ({ manifest, context, activePath, onSelect }: FileEx
     switch(context) {
       case 'primitives': return 'Global Primitives';
       case 'search': return 'Search';
-      case 'settings': return 'Settings';
       default: return 'Explorer';
     }
   }, [context]);
@@ -68,7 +67,6 @@ export const FileExplorer = ({ manifest, context, activePath, onSelect }: FileEx
   };
 
   if (context === 'search') return <Box p={4}><Text fontSize="xs" color="gray.500">Search is coming soon...</Text></Box>;
-  if (context === 'settings') return <Box p={4}><Text fontSize="xs" color="gray.500">Global Settings Panel</Text></Box>;
 
   return (
     <VStack 

@@ -7,9 +7,8 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useGlobalTokens } from '../hooks/useGlobalTokens';
 import { groupTokensByFile } from '../utils/token-grouping';
 import { ToCOutline } from './explorer/ToCOutline';
-import { SettingsModal } from './explorer/SettingsModal';
 import { 
-  LuSearch, LuSettings, LuX, LuDatabase, LuLayers, 
+  LuSearch, LuX, LuDatabase, LuLayers, 
   LuArrowRight, LuCopy, LuCheck, LuFlaskConical,
   LuEye, LuLayoutDashboard, LuPlus
 } from "react-icons/lu";
@@ -17,7 +16,6 @@ import { Button } from "./ui/button";
 import { FileExplorer } from "./explorer/FileExplorer";
 import { ActivityBar } from "./explorer/ActivityBar";
 import { TokenTable } from "./docs/TokenTable";
-import { findSourceFileForToken } from "../utils/token-graph";
 import { TokenEditModal } from "./explorer/TokenEditModal";
 import type { Manifest, TokenOverrides, SidebarPanelId } from "../schemas/manifest";
 import type { TokenDoc } from "../utils/token-parser";
@@ -110,9 +108,9 @@ const InspectorOverlay = ({ token, pos }: { token: TokenDoc | null, pos: { x: nu
 };
 
 const MasterSection = ({ 
-  id, title, icon: Icon, count, tokens, color, onJump, onHover, editMode, onCreate
+  id, title, icon: Icon, count, tokens, color, onHover, editMode, onCreate
 }: { 
-  id?: string, title: string, icon: any, count: number, tokens: TokenDoc[], color: string, onJump: (id: string) => void, onHover: (token: TokenDoc | null, pos: { x: number, y: number } | null) => void,
+  id?: string, title: string, icon: any, count: number, tokens: TokenDoc[], color: string, onHover: (token: TokenDoc | null, pos: { x: number, y: number } | null) => void,
   editMode: boolean, onCreate: () => void
 }) => {
   if (tokens.length === 0) return null;
@@ -151,7 +149,6 @@ const MasterSection = ({
 
       <TokenTable 
         tokens={tokens} 
-        onJump={onJump} 
         onHover={onHover}
         showSource={true} 
         editMode={editMode}
@@ -167,7 +164,6 @@ export const TokenViewer = ({
 
   const { globalTokens, loading } = useGlobalTokens();
   const [searchTerm, setSearchTerm] = useState('');
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   
   const [activePanel, setActivePanel] = useState<SidebarPanelId>(() => {
@@ -180,7 +176,7 @@ export const TokenViewer = ({
   const [editingToken, setEditingToken] = useState<TokenDoc | null>(null);
   const [initialCategory, setInitialCategory] = useState<string | undefined>();
 
-  const [expandedMaster, setExpandedMaster] = useState<string[]>(() => {
+  const [expandedMaster] = useState<string[]>(() => {
     if (typeof window === 'undefined') return ['semantic', 'foundation'];
     const saved = localStorage.getItem('ide_expanded_master');
     return saved ? JSON.parse(saved) : ['semantic', 'foundation'];
@@ -217,27 +213,6 @@ export const TokenViewer = ({
     if (!isJsonFocus) return null;
     return selectedProject.split('/').pop() || selectedProject;
   }, [selectedProject, isJsonFocus]);
-
-  const handleJump = useCallback((tokenId: string) => {
-    const sourceFile = findSourceFileForToken(tokenId, globalTokens);
-    if (sourceFile) {
-      if (!expandedMaster.includes('foundation')) {
-        setExpandedMaster(prev => [...prev, 'foundation']);
-      }
-      
-      setTimeout(() => {
-        const element = document.getElementById(`token-${tokenId}`);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          element.style.transition = 'background-color 0.5s';
-          element.style.backgroundColor = 'var(--chakra-colors-blue-50)';
-          setTimeout(() => {
-            element.style.backgroundColor = '';
-          }, 2000);
-        }
-      }, 300);
-    }
-  }, [globalTokens, expandedMaster]);
 
   useEffect(() => {
     localStorage.setItem('ide_active_panel', activePanel);
@@ -389,22 +364,12 @@ export const TokenViewer = ({
                 >
                   Reset
                 </Button>
-                <IconButton
-                  aria-label="Settings"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsSettingsOpen(true)}
-                >
-                  <LuSettings />
-                </IconButton>
               </HStack>
             </HStack>
           </HStack>
         </Box>
 
         <Box p={8}>
-          <SettingsModal open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
-
           <VStack align="stretch" gap={10}>
             {/* Context Controls */}
             <HStack justify="space-between" bg="white" p={4} borderRadius="xl" border="1px solid" borderColor="gray.100" boxShadow="sm">
@@ -463,7 +428,6 @@ export const TokenViewer = ({
                     </HStack>
                     <TokenTable 
                       tokens={[...semanticTokens, ...foundationTokens]} 
-                      onJump={handleJump} 
                       onHover={handleHover}
                       showSource={false} 
                       editMode={editMode}
@@ -480,7 +444,6 @@ export const TokenViewer = ({
                       count={semanticTokens.length} 
                       tokens={semanticTokens} 
                       color="purple"
-                      onJump={handleJump}
                       onHover={handleHover}
                       editMode={editMode}
                       onCreate={() => handleCreate('semantic')}
@@ -493,7 +456,6 @@ export const TokenViewer = ({
                       count={foundationTokens.length} 
                       tokens={foundationTokens} 
                       color="blue"
-                      onJump={handleJump}
                       onHover={handleHover}
                       editMode={editMode}
                       onCreate={() => handleCreate('color')}

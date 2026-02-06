@@ -4,7 +4,7 @@ import {
 import { useState, useMemo, memo } from 'react';
 import type { TokenDoc } from "../../utils/token-parser";
 import { 
-  LuCopy, LuCheck, LuArrowUpRight, LuArrowUpDown, 
+  LuCopy, LuCheck, LuArrowUpDown, 
   LuArrowUp, LuArrowDown, LuPencil, LuTrash2 
 } from "react-icons/lu";
 import { LineagePopover } from "./LineagePopover";
@@ -35,7 +35,6 @@ const CopyButton = ({ value }: { value: string }) => {
 interface TokenRowProps {
   id?: string;
   token: TokenDoc;
-  onJump?: (id: string) => void;
   onHover?: (token: TokenDoc | null, pos: { x: number, y: number } | null) => void;
   showSource: boolean;
   editMode: boolean;
@@ -44,7 +43,7 @@ interface TokenRowProps {
 }
 
 const TokenRow = memo(({ 
-  id, token, onJump, onHover, showSource, editMode, onEdit, onDelete 
+  id, token, onHover, showSource, editMode, onEdit, onDelete 
 }: TokenRowProps) => {
   return (
     <Table.Row
@@ -101,21 +100,13 @@ const TokenRow = memo(({
             {JSON.stringify(token.value)}
           </Text>
           {token.rawValue && (
-            <HStack
-              gap={1}
+            <Text
+              fontSize="9px"
               color="gray.500"
-              cursor="pointer"
-              _hover={{ color: "blue.500", textDecoration: "underline" }}
-              onClick={() => onJump?.(token.references[0])}
+              fontFamily="'Space Mono', monospace"
             >
-              <LuArrowUpRight size={10} />
-              <Text
-                fontSize="9px"
-                fontFamily="'Space Mono', monospace"
-              >
-                {token.rawValue}
-              </Text>
-            </HStack>
+              {token.rawValue}
+            </Text>
           )}
         </VStack>
       </Table.Cell>
@@ -186,7 +177,6 @@ const TokenRow = memo(({
 
 export const TokenTable = ({ 
   tokens, 
-  onJump,
   onHover,
   showSource = false,
   editMode = false,
@@ -194,7 +184,6 @@ export const TokenTable = ({
   onDelete
 }: { 
   tokens: TokenDoc[], 
-  onJump?: (id: string) => void,
   onHover?: (token: TokenDoc | null, pos: { x: number, y: number } | null) => void,
   showSource?: boolean,
   editMode?: boolean,
@@ -280,7 +269,6 @@ export const TokenTable = ({
                 key={token.id}
                 id={fileAnchorId}
                 token={token}
-                onJump={onJump}
                 onHover={onHover}
                 showSource={showSource}
                 editMode={editMode}
