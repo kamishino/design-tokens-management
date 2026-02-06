@@ -9,8 +9,8 @@
 
 _This section highlights the business value extracted from completed tasks._
 
+- ✅ **2026-02-06 Task 079:** force-sidebar-action-visibility - Fixed the ghost rendering issue in Chrome by boosting z-index and implementing a visibility toggle, ensuring sidebar actions are 100% visible and reliable.
 - ✅ **2026-02-06 Task 078:** fix-sidebar-overflow-hover - Resolved layout clipping and hover failures in the sidebar by removing restrictive row overflow and refining the rendering boundaries, ensuring 100% reliable access to technical actions.
-- ✅ **2026-02-06 Task 077:** fix-sidebar-hover-actions - Restored reliable visibility for sidebar actions using an absolute overlay pattern and extended technical utilities (IDE, Copy Path) to folder nodes.
 - ✅ **2026-02-06 Task 063:** canonical-identity-fix - Resolved React key collisions and enabled unambiguous token management by implementing a globally unique composite ID format ([sourceFile]:[tokenPath]).
 - ✅ **2026-02-06 Task 062:** token-crud-studio - Implemented a Figma-inspired Management Studio with View/Manage modes, a high-fidelity Modal Editor, and direct file-system CRUD synchronization for both Global and Client tokens.
 - ✅ **2026-02-06 Task 061:** path-standardization-fix - Resolved TokenViewer visibility issues by standardizing all file identifiers to absolute paths starting with '/' and updated the startup view to "All Global Tokens".

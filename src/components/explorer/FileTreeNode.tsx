@@ -84,13 +84,15 @@ export const FileTreeNode = ({
           alignItems="center"
           px={2}
           opacity={0} 
+          visibility="hidden"
           _groupHover={{ 
             opacity: 1,
+            visibility: "visible",
             bg: isActive ? "blue.100" : "gray.50"
           }} 
           transition="all 0.1s"
           onClick={(e) => e.stopPropagation()}
-          zIndex={5}
+          zIndex={100}
         >
           <FileActionMenu filename={node.fullPath || node.id} displayName={node.name} />
         </Box>
