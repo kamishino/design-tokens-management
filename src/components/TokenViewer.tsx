@@ -523,6 +523,7 @@ export const TokenViewer = ({
         token={editingToken}
         targetPath={selectedProject}
         initialCategory={initialCategory}
+        globalTokens={globalTokens}
       />
     </HStack>
   )

@@ -16,8 +16,9 @@ import {
   NativeSelectField
 } from "../ui/native-select";
 import { Button } from "../ui/button";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { TokenDoc } from "../../utils/token-parser";
+import { ReferencePicker } from "./ReferencePicker";
 
 interface TokenEditModalProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ interface TokenEditModalProps {
   token?: TokenDoc | null;
   targetPath: string; // The physical file path
   initialCategory?: string;
+  globalTokens: TokenDoc[];
 }
 
 const TOKEN_TYPES = [
@@ -39,12 +41,18 @@ const TOKEN_TYPES = [
   { value: 'other', label: 'Other' }
 ];
 
-export const TokenEditModal = ({ isOpen, onClose, token, targetPath, initialCategory }: TokenEditModalProps) => {
+export const TokenEditModal = ({ isOpen, onClose, token, targetPath, initialCategory, globalTokens }: TokenEditModalProps) => {
   const [name, setName] = useState('');
   const [value, setValue] = useState('');
   const [type, setType] = useState('color');
   const [description, setDescription] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
+
+  // Reference Picker State
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [refSearch, setRefSearch] = useState('');
+  const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (token) {
@@ -60,7 +68,34 @@ export const TokenEditModal = ({ isOpen, onClose, token, targetPath, initialCate
       setType('color');
       setDescription('');
     }
+    setIsPickerOpen(false);
   }, [token, initialCategory, isOpen]);
+
+  const handleValueChange = (val: string) => {
+    setValue(val);
+
+    // Detect { trigger
+    const lastOpenBrace = val.lastIndexOf('{');
+    const lastCloseBrace = val.lastIndexOf('}');
+
+    if (lastOpenBrace !== -1 && lastOpenBrace > lastCloseBrace) {
+      const search = val.slice(lastOpenBrace + 1);
+      setRefSearch(search);
+      setIsPickerOpen(true);
+      if (inputRef.current) {
+        setAnchorRect(inputRef.current.getBoundingClientRect());
+      }
+    } else {
+      setIsPickerOpen(false);
+    }
+  };
+
+  const handleSelectReference = (tokenName: string) => {
+    const lastOpenBrace = value.lastIndexOf('{');
+    const newValue = value.slice(0, lastOpenBrace) + `{${tokenName}}`;
+    setValue(newValue);
+    setIsPickerOpen(false);
+  };
 
   const handleSave = async () => {
     setIsSyncing(true);
@@ -130,9 +165,10 @@ export const TokenEditModal = ({ isOpen, onClose, token, targetPath, initialCate
                 <Field.Label fontWeight="bold">Value</Field.Label>
                 <HStack gap={3}>
                   <Input 
+                    ref={inputRef}
                     placeholder="e.g. #FFFFFF or {color.blue.500}" 
                     value={value} 
-                    onChange={(e) => setValue(e.target.value)}
+                    onChange={(e) => handleValueChange(e.target.value)}
                   />
                   {type === 'color' && !value.includes('{') && (
                     <Box w="40px" h="40px" bg={value} borderRadius="md" border="1px solid" borderColor="gray.200" flexShrink={0} />
@@ -140,6 +176,15 @@ export const TokenEditModal = ({ isOpen, onClose, token, targetPath, initialCate
                 </HStack>
               </Field.Root>
             </HStack>
+
+            <ReferencePicker 
+              isOpen={isPickerOpen}
+              tokens={globalTokens}
+              searchTerm={refSearch}
+              filterType={type}
+              onSelect={handleSelectReference}
+              anchorRect={anchorRect}
+            />
 
             <Field.Root>
               <Field.Label fontWeight="bold">Description</Field.Label>
