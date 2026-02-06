@@ -110,18 +110,18 @@ const InspectorOverlay = ({ token, pos }: { token: TokenDoc | null, pos: { x: nu
 };
 
 const MasterSection = ({ 
-  title, icon: Icon, count, tokens, color, onJump, onHover, editMode, onCreate
+  id, title, icon: Icon, count, tokens, color, onJump, onHover, editMode, onCreate
 }: { 
-  title: string, icon: any, count: number, tokens: TokenDoc[], color: string, onJump: (id: string) => void, onHover: (token: TokenDoc | null, pos: { x: number, y: number } | null) => void,
+  id?: string, title: string, icon: any, count: number, tokens: TokenDoc[], color: string, onJump: (id: string) => void, onHover: (token: TokenDoc | null, pos: { x: number, y: number } | null) => void,
   editMode: boolean, onCreate: () => void
 }) => {
   if (tokens.length === 0) return null;
 
   return (
-    <VStack align="stretch" gap={4} mb={16}>
+    <VStack id={id} align="stretch" gap={4} mb={16} scrollMarginTop="80px">
       <HStack 
         position="sticky" top="60px" zIndex={10} py={3} 
-        bg="rgba(247, 250, 252, 0.95)" backdropFilter="blur(8px)"
+        bg="white"
         justify="space-between" borderBottom="2px solid" borderColor={`${color}.200`}
       >
         <HStack gap={3}>
@@ -474,6 +474,7 @@ export const TokenViewer = ({
                 ) : displayCategories.length > 0 ? (
                   <VStack align="stretch" gap={0}>
                     <MasterSection 
+                      id="section-semantic"
                       title="Semantic" 
                       icon={LuLayers} 
                       count={semanticTokens.length} 
@@ -486,6 +487,7 @@ export const TokenViewer = ({
                     />
 
                     <MasterSection 
+                      id="section-foundation"
                       title="Foundation" 
                       icon={LuDatabase} 
                       count={foundationTokens.length} 
