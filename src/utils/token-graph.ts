@@ -6,29 +6,38 @@ import type { TokenDoc } from './token-parser';
  */
 export const enrichTokensWithLineage = (tokens: TokenDoc[]): TokenDoc[] => {
   const idMap = new Map<string, TokenDoc>();
-  const nameMap = new Map<string, TokenDoc>();
+  const nameMap = new Map<string, TokenDoc[]>();
+
+  const getPriority = (path?: string) => {
+    if (!path) return 0;
+    if (path.includes('/clients/')) return 3;
+    if (path.includes('/global/alias/')) return 2;
+    if (path.includes('/global/base/')) return 1;
+    return 0;
+  };
 
   // 1. Build ID Map for physical relationships (Dependents)
   tokens.forEach(t => idMap.set(t.id, t));
 
-  // 2. Build prioritized Name Map for value resolution (Base < Alias < Client)
-  const sorted = [...tokens].sort((a, b) => {
-    const getPriority = (path?: string) => {
-      if (!path) return 0;
-      if (path.includes('/clients/')) return 3;
-      if (path.includes('/global/alias/')) return 2;
-      if (path.includes('/global/base/')) return 1;
-      return 0;
-    };
-    return getPriority(a.sourceFile) - getPriority(b.sourceFile);
+  // 2. Build multi-value Name Map for shadowing resolution
+  tokens.forEach(t => {
+    const name = t.name || t.id;
+    if (!nameMap.has(name)) nameMap.set(name, []);
+    nameMap.get(name)!.push(t);
   });
-  sorted.forEach(t => nameMap.set(t.name || t.id, t));
+
+  // Sort each candidate list by priority (high to low)
+  nameMap.forEach(list => {
+    list.sort((a, b) => getPriority(b.sourceFile) - getPriority(a.sourceFile));
+  });
 
   // 3. Build reverse relationships (Dependents) using ID Map
   tokens.forEach(token => {
     token.references.forEach(refName => {
-      // Find the parent by name in our prioritized map
-      const parent = nameMap.get(refName);
+      // Find the parent by name in our prioritized map, skipping current token if shadowing
+      const candidates = nameMap.get(refName) || [];
+      const parent = candidates.find(c => c.id !== token.id);
+      
       if (parent) {
         // We use the parent's actual unique ID from the ID map to store dependents
         const parentInIdMap = idMap.get(parent.id);
@@ -61,13 +70,14 @@ export const enrichTokensWithLineage = (tokens: TokenDoc[]): TokenDoc[] => {
 /**
  * Recursively resolves the terminal type of a token reference chain.
  */
-export const resolveTerminalType = (token: TokenDoc, nameMap: Map<string, TokenDoc>, depth = 0): string => {
+export const resolveTerminalType = (token: TokenDoc, nameMap: Map<string, TokenDoc[]>, depth = 0): string => {
   if (depth > 10 || token.references.length === 0) {
     return token.type || 'unknown';
   }
 
   const firstRefName = token.references[0];
-  const parent = nameMap.get(firstRefName);
+  const candidates = nameMap.get(firstRefName) || [];
+  const parent = candidates.find(c => c.id !== token.id);
 
   if (parent) {
     // If parent has a valid type, return it
@@ -82,14 +92,15 @@ export const resolveTerminalType = (token: TokenDoc, nameMap: Map<string, TokenD
 /**
  * Recursively resolves the terminal value of a token reference chain using a name-based map.
  */
-export const resolveTerminalValue = (token: TokenDoc, nameMap: Map<string, TokenDoc>, depth = 0): any => {
+export const resolveTerminalValue = (token: TokenDoc, nameMap: Map<string, TokenDoc[]>, depth = 0): any => {
   if (depth > 10 || token.references.length === 0) {
     return token.value;
   }
 
   // References currently store raw names like "color.blue.500"
   const firstRefName = token.references[0];
-  const parent = nameMap.get(firstRefName);
+  const candidates = nameMap.get(firstRefName) || [];
+  const parent = candidates.find(c => c.id !== token.id);
 
   if (parent) {
     const result = resolveTerminalValue(parent, nameMap, depth + 1);
@@ -104,12 +115,13 @@ export const resolveTerminalValue = (token: TokenDoc, nameMap: Map<string, Token
 /**
  * Recursively resolves the full upstream lineage of a token using name-based lookup.
  */
-export const getUpstreamLineage = (token: TokenDoc, nameMap: Map<string, TokenDoc>, depth = 0): TokenDoc[] => {
+export const getUpstreamLineage = (token: TokenDoc, nameMap: Map<string, TokenDoc[]>, depth = 0): TokenDoc[] => {
   if (depth > 5) return []; // Circular ref guard
   
   let lineage: TokenDoc[] = [];
   token.references.forEach(refName => {
-    const parent = nameMap.get(refName);
+    const candidates = nameMap.get(refName) || [];
+    const parent = candidates.find(c => c.id !== token.id);
     if (parent) {
       lineage.push(parent);
       lineage = lineage.concat(getUpstreamLineage(parent, nameMap, depth + 1));

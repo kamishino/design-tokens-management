@@ -7,3 +7,4 @@
 !.kamiflow/agents/
 !.temp/
 !.dist/
+!.kamirc.json

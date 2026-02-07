@@ -1,6 +1,6 @@
 {
   "$schema": "./.kamiflow/schemas/kamirc.schema.json",
-  "language": "vietnamese",
+  "language": "english",
   "strategy": "BALANCED",
   "maxRetries": 3,
   "currentEnv": "production",
