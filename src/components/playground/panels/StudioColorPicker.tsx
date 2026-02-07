@@ -3,15 +3,13 @@ import {
   Box, VStack, HStack, Text,
   Heading, Badge, SimpleGrid, Tabs, Input
 } from "@chakra-ui/react";
-import { useState, useEffect, useMemo, memo } from 'react';
+import { useState, useMemo, memo, useEffect } from 'react';
 import { 
   isOutofGamut,
   getContrastMetrics 
 } from '../../../utils/colors';
-import { useColorWorker } from '../../../hooks/useColorWorker';
 import baseColors from '../../../../tokens/global/base/colors.json';
 import { Slider } from "../../ui/slider";
-import { TechValue } from "../../ui/TechValue";
 import { useColorSync } from "../../../hooks/useColorSync";
 import { useRecentColors } from "../../../hooks/useRecentColors";
 
@@ -25,19 +23,23 @@ export const StudioColorPicker = memo(({ color, onChange, label }: StudioColorPi
   const { coords, updateFromHex, updateFromHSL, updateFromOklch } = useColorSync(color);
   const { recentColors, addColor } = useRecentColors(20);
   const [search, setSearch] = useState('');
-  const [suggestions, setSuggestions] = useState<any[]>([]);
-  const { suggestSwatches } = useColorWorker();
+  const [hexInput, setHexInput] = useState(color.toUpperCase());
   
+  // Sync internal input with external prop
+  useEffect(() => {
+    setHexInput(color.toUpperCase());
+  }, [color]);
+
   const contrast = getContrastMetrics(color, '#ffffff');
   const outOfGamut = coords?.oklch ? isOutofGamut('oklch', coords.oklch) : false;
 
   const swatches = useMemo(() => {
-    const flat: any[] = [];
+    const flat: { id: string; hex: string; group: string; name: string }[] = [];
     Object.entries(baseColors.color).forEach(([groupName, group]: [string, any]) => {
       if (typeof group === 'object' && !group.$value) {
         Object.entries(group).forEach(([name, data]: [string, any]) => {
           if (data.$value) {
-            flat.push({ id: `${groupName}.${name}`, hex: data.$value, group: groupName, name });
+            flat.push({ id: `${groupName}.${name}`, hex: data.$value as string, group: groupName, name });
           }
         });
       }
@@ -50,9 +52,15 @@ export const StudioColorPicker = memo(({ color, onChange, label }: StudioColorPi
     s.hex.toLowerCase().includes(search.toLowerCase())
   );
 
-  useEffect(() => {
-    suggestSwatches(color, swatches, 'text').then((res: any) => setSuggestions(res as any[]));
-  }, [color, swatches, suggestSwatches]);
+  const handleHexChange = (val: string) => {
+    setHexInput(val);
+    const hex = val.startsWith('#') ? val : `#${val}`;
+    if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
+      updateFromHex(hex);
+      onChange(hex);
+      addColor(hex);
+    }
+  };
 
   const handleColorChange = (hex: string) => {
     updateFromHex(hex);
@@ -68,64 +76,85 @@ export const StudioColorPicker = memo(({ color, onChange, label }: StudioColorPi
           {outOfGamut && <Badge colorScheme="orange">Out of Gamut</Badge>}
         </HStack>
         
-        <HStack gap={2}>
-          <VStack align="start" flex={1}>
-            <Text fontSize="8px" fontWeight="bold" color="gray.400">CURRENT</Text>
-            <Box w="full" h="40px" bg={color} borderRadius="md" border="1px solid rgba(0,0,0,0.1)" />
-            <Box mt={1}>
-              <TechValue label="HEX" value={color.toUpperCase()} />
-            </Box>
+        <HStack gap={4}>
+          <VStack align="start" flex={1} gap={1}>
+            <Text fontSize="8px" fontWeight="bold" color="gray.400">HEX</Text>
+            <Input 
+              size="sm" 
+              value={hexInput} 
+              onChange={(e) => handleHexChange(e.target.value)}
+              fontFamily="monospace"
+              fontWeight="bold"
+              borderRadius="md"
+              textAlign="center"
+              bg="gray.50"
+              borderColor={/^#[0-9A-Fa-f]{6}$/.test(hexInput.startsWith('#') ? hexInput : `#${hexInput}`) ? "gray.200" : "red.300"}
+            />
+            <Box w="full" h="8px" bg={color} borderRadius="sm" border="1px solid rgba(0,0,0,0.1)" mt={1} />
           </VStack>
-          <Box w="1px" h="40px" bg="gray.100" mt={4} />
+          <Box w="1px" h="40px" bg="gray.100" />
           <VStack align="start" flex={1}>
-            <Text fontSize="8px" fontWeight="bold" color="gray.400">WCAG 2.1</Text>
-            <Heading size="md" fontFamily="'Space Mono', monospace">{contrast.wcag.toFixed(1)}</Heading>
-            <Badge colorScheme={contrast.isAccessible ? "green" : "red"} size="xs">
+            <Text fontSize="8px" fontWeight="bold" color="gray.400">CONTRAST</Text>
+            <HStack align="baseline" gap={1}>
+              <Heading size="md" fontFamily="'Space Mono', monospace">{contrast.wcag.toFixed(1)}</Heading>
+              <Text fontSize="10px" fontWeight="bold" color="gray.400">:1</Text>
+            </HStack>
+            <Badge colorScheme={contrast.isAccessible ? "green" : "red"} size="xs" variant="solid">
               {contrast.isAccessible ? "PASS" : "FAIL"}
             </Badge>
           </VStack>
         </HStack>
       </Box>
 
-      <Tabs.Root defaultValue="sliders" size="sm" variant="subtle">
+      <Tabs.Root defaultValue="hsl" size="sm" variant="subtle">
         <Tabs.List bg="gray.50" p={1} gap={1}>
-          <Tabs.Trigger value="sliders" flex={1} fontWeight="bold">Sliders</Tabs.Trigger>
+          <Tabs.Trigger value="hsl" flex={1} fontWeight="bold">HSL</Tabs.Trigger>
+          <Tabs.Trigger value="oklch" flex={1} fontWeight="bold">OKLCH</Tabs.Trigger>
           <Tabs.Trigger value="swatches" flex={1} fontWeight="bold">Swatches</Tabs.Trigger>
-          <Tabs.Trigger value="suggest" flex={1} fontWeight="bold">Smart ✨</Tabs.Trigger>
         </Tabs.List>
 
         <Box p={4}>
-          <Tabs.Content value="sliders">
+          <Tabs.Content value="hsl">
             <VStack gap={4} align="stretch">
               <HexColorPicker color={color} onChange={handleColorChange} style={{ width: '100%' }} />
               
               <VStack gap={3} align="stretch" pt={2}>
-                <VStack align="stretch" gap={1}>
-                  <TechValue label="Oklch L" value={Math.round(coords.oklch.l * 100)} unit="%" />
-                  <Slider 
-                    min={0} max={1} step={0.01} 
-                    value={[coords.oklch.l]} 
-                    onValueChange={(v) => onChange(updateFromOklch(v.value[0], coords.oklch.c, coords.oklch.h))}
-                  />
-                </VStack>
-                
-                <VStack align="stretch" gap={1}>
-                  <TechValue label="HSL Hue" value={Math.round(coords.hsl.h)} unit="°" />
-                  <Slider 
-                    min={0} max={360} step={1} 
-                    value={[coords.hsl.h]} 
-                    onValueChange={(v) => onChange(updateFromHSL(v.value[0], coords.hsl.s, coords.hsl.l))}
-                  />
-                </VStack>
+                <SliderControl 
+                  label="Hue" value={Math.round(coords.hsl.h)} unit="°" min={0} max={360} 
+                  bg="linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)"
+                  onValueChange={(v) => onChange(updateFromHSL(v, coords.hsl.s, coords.hsl.l))}
+                />
+                <SliderControl 
+                  label="Saturation" value={Math.round(coords.hsl.s)} unit="%" min={0} max={100}
+                  onValueChange={(v) => onChange(updateFromHSL(coords.hsl.h, v, coords.hsl.l))}
+                />
+                <SliderControl 
+                  label="Lightness" value={Math.round(coords.hsl.l)} unit="%" min={0} max={100}
+                  bg="linear-gradient(to right, #000, #fff)"
+                  onValueChange={(v) => onChange(updateFromHSL(coords.hsl.h, coords.hsl.s, v))}
+                />
+              </VStack>
+            </VStack>
+          </Tabs.Content>
 
-                <VStack align="stretch" gap={1}>
-                  <TechValue label="HSL Sat" value={Math.round(coords.hsl.s)} unit="%" />
-                  <Slider 
-                    min={0} max={100} step={1} 
-                    value={[coords.hsl.s]} 
-                    onValueChange={(v) => onChange(updateFromHSL(coords.hsl.h, v.value[0], coords.hsl.l))}
-                  />
-                </VStack>
+          <Tabs.Content value="oklch">
+            <VStack gap={4} align="stretch">
+              <HexColorPicker color={color} onChange={handleColorChange} style={{ width: '100%' }} />
+              <VStack gap={3} align="stretch" pt={2}>
+                <SliderControl 
+                  label="Lightness" value={Math.round(coords.oklch.l * 100)} unit="%" min={0} max={1} step={0.01}
+                  bg="linear-gradient(to right, #000, #fff)"
+                  onValueChange={(v) => onChange(updateFromOklch(v, coords.oklch.c, coords.oklch.h))}
+                />
+                <SliderControl 
+                  label="Chroma" value={Number(coords.oklch.c.toFixed(3))} min={0} max={0.3} step={0.001}
+                  onValueChange={(v) => onChange(updateFromOklch(coords.oklch.l, v, coords.oklch.h))}
+                />
+                <SliderControl 
+                  label="Hue" value={Math.round(coords.oklch.h)} unit="°" min={0} max={360}
+                  bg="linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)"
+                  onValueChange={(v) => onChange(updateFromOklch(coords.oklch.l, coords.oklch.c, v))}
+                />
               </VStack>
             </VStack>
           </Tabs.Content>
@@ -169,34 +198,34 @@ export const StudioColorPicker = memo(({ color, onChange, label }: StudioColorPi
               </Box>
             </VStack>
           </Tabs.Content>
-
-          <Tabs.Content value="suggest">
-            <VStack align="stretch" gap={3}>
-              <Text fontSize="xs" fontWeight="bold" color="blue.600">Smart Alternatives ✨</Text>
-              <Box maxH="250px" overflowY="auto">
-                <VStack align="stretch" gap={2}>
-                  {suggestions.map((s: any) => (
-                    <HStack 
-                      key={s.id} p={2} borderRadius="md" border="1px solid" borderColor="gray.100" 
-                      cursor="pointer" _hover={{ bg: "blue.50" }}
-                      onClick={() => handleColorChange(s.hex)}
-                    >
-                      <Box w={8} h={8} bg={s.hex} borderRadius="sm" />
-                      <VStack align="start" gap={0} flex={1}>
-                        <TechValue label={s.id.split('.').pop()} value={s.hex.toUpperCase()} />
-                        <Text fontSize="9px" color="gray.400">{s.group}</Text>
-                      </VStack>
-                      <Badge colorScheme="green" variant="solid" size="sm" fontFamily="monospace">
-                        {s.wcag.toFixed(1)}
-                      </Badge>
-                    </HStack>
-                  ))}
-                </VStack>
-              </Box>
-            </VStack>
-          </Tabs.Content>
         </Box>
       </Tabs.Root>
     </VStack>
   );
 });
+
+interface SliderControlProps {
+  label: string;
+  value: number;
+  unit?: string;
+  min: number;
+  max: number;
+  step?: number;
+  bg?: string;
+  onValueChange: (val: number) => void;
+}
+
+const SliderControl = ({ label, value, unit = '', min, max, step, bg, onValueChange }: SliderControlProps) => (
+  <VStack align="stretch" gap={1}>
+    <HStack justify="space-between">
+      <Text fontSize="10px" fontWeight="bold" color="gray.500" textTransform="uppercase">{label}</Text>
+      <Text fontSize="10px" fontWeight="bold" fontFamily="monospace" color="blue.600">{value}{unit}</Text>
+    </HStack>
+    <Slider 
+      min={min} max={max} step={step} 
+      value={[value]} 
+      onValueChange={(v) => onValueChange(v.value[0])}
+      css={bg ? { '& .chakra-slider__track': { background: bg } } : undefined}
+    />
+  </VStack>
+);
