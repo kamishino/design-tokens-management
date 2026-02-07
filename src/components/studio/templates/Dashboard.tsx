@@ -218,7 +218,7 @@ export const Dashboard = ({ data }: { data: StudioMockData }) => {
 };
 
 // Internal IconButton for demo
-const IconButton = ({ icon, variant, ...props }: any) => (
+const IconButton = ({ icon, ...props }: { icon: React.ReactNode, [key: string]: unknown }) => (
   <Box 
     p={2} borderRadius="var(--radius2)" cursor="pointer" 
     _hover={{ bg: "gray.100" }} transition="all 0.2s" 

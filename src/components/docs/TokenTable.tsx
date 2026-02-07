@@ -42,7 +42,7 @@ interface TokenRowProps {
   onDelete?: (token: TokenDoc) => void;
 }
 
-const isColorValue = (val: any): boolean => {
+const isColorValue = (val: string | number | boolean | object | undefined | null): boolean => {
   if (typeof val !== 'string') return false;
   // Explicitly reject references to prevent invalid CSS
   if (val.trim().startsWith('{')) return false;
@@ -229,15 +229,18 @@ export const TokenTable = ({
     if (!sortConfig.direction) return tokens;
 
     return [...tokens].sort((a, b) => {
-      let valA: any = a[sortConfig.key];
-      let valB: any = b[sortConfig.key];
+      let valA: string | number | boolean | object = a[sortConfig.key];
+      let valB: string | number | boolean | object = b[sortConfig.key];
 
       // Handle objects (like value)
-      if (typeof valA === 'object') valA = JSON.stringify(valA);
-      if (typeof valB === 'object') valB = JSON.stringify(valB);
+      if (typeof valA === 'object' && valA !== null) valA = JSON.stringify(valA);
+      if (typeof valB === 'object' && valB !== null) valB = JSON.stringify(valB);
 
-      if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
-      if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+      const strA = String(valA);
+      const strB = String(valB);
+
+      if (strA < strB) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (strA > strB) return sortConfig.direction === 'asc' ? 1 : -1;
       return 0;
     });
   }, [tokens, sortConfig]);

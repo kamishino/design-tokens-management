@@ -1,7 +1,8 @@
 import { 
   Box, VStack, HStack, Input, Text, 
-  Heading, SimpleGrid, Button, Badge, BoxProps
+  Heading, SimpleGrid, Button, Badge
 } from "@chakra-ui/react";
+import type { BoxProps } from "@chakra-ui/react";
 import { useState, useMemo } from 'react';
 import { LuCheckCircle } from "react-icons/lu";
 import fonts from '../../../data/google-fonts.json';

@@ -12,6 +12,7 @@ import {
   LuArrowRight, LuCopy, LuCheck,
   LuEye, LuLayoutDashboard, LuPlus
 } from "react-icons/lu";
+import type { IconType } from "react-icons";
 import { Button } from "./ui/button";
 import { FileExplorer } from "./explorer/FileExplorer";
 import { ActivityBar } from "./explorer/ActivityBar";
@@ -107,7 +108,7 @@ const InspectorOverlay = ({ token, pos }: { token: TokenDoc | null, pos: { x: nu
 const MasterSection = ({ 
   id, title, icon: Icon, count, tokens, color, onHover, editMode, onCreate
 }: { 
-  id?: string, title: string, icon: any, count: number, tokens: TokenDoc[], color: string, onHover: (token: TokenDoc | null, pos: { x: number, y: number } | null) => void,
+  id?: string, title: string, icon: IconType, count: number, tokens: TokenDoc[], color: string, onHover: (token: TokenDoc | null, pos: { x: number, y: number } | null) => void,
   editMode: boolean, onCreate: () => void
 }) => {
   if (tokens.length === 0) return null;

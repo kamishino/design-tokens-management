@@ -5,7 +5,7 @@ export interface TokenDoc {
   id: string;
   name: string;
   path: string[];
-  value: any;
+  value: string | number | boolean | object;
   rawValue?: string;      // The raw {ref} string if it exists
   references: string[];   // Upstream token IDs (what this token points to)
   dependents: string[];   // Downstream token IDs (what points to this token - computed later)
@@ -14,14 +14,14 @@ export interface TokenDoc {
   cssVariable: string;
   jsPath: string;
   sourceFile: string;     // origin file like "colors.json"
-  resolvedValue?: any;    // The final resolved value after following reference chains
+  resolvedValue?: string | number | boolean | object;    // The final resolved value after following reference chains
 }
 
 /**
  * Extracts reference IDs from a token value string.
  * Example: "{color.blue.600}" -> ["color.blue.600"]
  */
-export const extractReferences = (value: any): string[] => {
+export const extractReferences = (value: string | number | boolean | object): string[] => {
   if (typeof value !== 'string') return [];
   const regex = /\{([^}]+)\}/g;
   const refs: string[] = [];
@@ -32,7 +32,7 @@ export const extractReferences = (value: any): string[] => {
   return refs;
 };
 
-export const parseTokensToDocs = (obj: any, path: string[] = [], sourceFile: string = ''): TokenDoc[] => {
+export const parseTokensToDocs = (obj: Record<string, unknown>, path: string[] = [], sourceFile: string = ''): TokenDoc[] => {
   let results: TokenDoc[] = [];
 
   for (const key in obj) {
@@ -85,6 +85,6 @@ export const findReference = (hex: string, swatches: TokenDoc[]): TokenDoc | nul
   return swatches.find(s =>
     s.type === 'color' &&
     typeof s.value === 'string' &&
-    s.value.toLowerCase() === target
+    String(s.value).toLowerCase() === target
   ) || null;
 };

@@ -22,7 +22,7 @@ interface FloatingLabProps {
   clientId?: string;
   projectId?: string;
   overrides?: TokenOverrides;
-  updateOverride?: (newValues: Record<string, any>, label?: string) => void;
+  updateOverride?: (newValues: Record<string, string | number>, label?: string) => void;
   undo?: () => void;
   redo?: () => void;
   canUndo?: boolean;
@@ -30,8 +30,8 @@ interface FloatingLabProps {
   globalTokens?: TokenDoc[];
   filteredIds?: string[]; 
   onClearFilter?: () => void;
-  onReset?: () => void; // New
-  hasOverrides?: boolean; // New
+  onReset?: () => void;
+  hasOverrides?: boolean;
 }
 
 // ... existing SEMANTIC_CHANNELS ...

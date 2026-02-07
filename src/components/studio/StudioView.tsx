@@ -55,7 +55,6 @@ export const StudioView = ({
 
   // Generate new mock data whenever refreshKey changes
   const mockData = useMemo(() => {
-    // We use refreshKey as a dependency to force re-generation
     return generateStudioMockData();
   }, [refreshKey]);
 

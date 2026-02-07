@@ -15,9 +15,10 @@ import {
   SelectTrigger,
   SelectValueText,
 } from "../ui/select";
+import type { Manifest } from "../../schemas/manifest";
 
 interface DocsPortalProps {
-  manifest: any;
+  manifest: Manifest;
   onExit: () => void;
 }
 
@@ -25,7 +26,7 @@ export const DocsPortal = ({ manifest, onExit }: DocsPortalProps) => {
   const [selectedProject, setSelectedProject] = useState(Object.keys(manifest.projects)[0]);
   const [activePage, setActivePage] = useState({ type: 'md', id: 'introduction' });
   const [mdContent, setMdContent] = useState('');
-  const [tokensJson, setTokensJson] = useState<any>(null);
+  const [tokensJson, setTokensJson] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
