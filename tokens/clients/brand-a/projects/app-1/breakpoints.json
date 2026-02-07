@@ -1,10 +1,3 @@
 {
-  "breakpoint": {
-    "xs": { "$value": "", "$type": "dimension" },
-    "sm": { "$value": "", "$type": "dimension" },
-    "md": { "$value": "", "$type": "dimension" },
-    "lg": { "$value": "", "$type": "dimension" },
-    "xl": { "$value": "", "$type": "dimension" },
-    "2xl": { "$value": "", "$type": "dimension" }
-  }
+  "breakpoint": {}
 }

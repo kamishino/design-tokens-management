@@ -9,6 +9,7 @@
 
 _This section highlights the business value extracted from completed tasks._
 
+- ✅ **2026-02-07 Task 087:** ghost-token-fallback-resolution - Implemented smart resolution logic that ignores "ghost tokens" (empty placeholders) in override files, ensuring fallback to valid global definitions.
 - ✅ **2026-02-07 Task 086:** robust-token-resolution-ui-guard - Hardened token resolution logic to drill down to terminal values even through shadowing, and added strict UI guards to prevent invalid CSS.
 - ✅ **2026-02-07 Task 085:** shadowing-aware-token-resolution - Upgraded the Token Graph to support shadowing, enabling references to resolve correctly even when multiple tokens share the same name across different files.
 - ✅ **2026-02-07 Task 084:** fix-reference-swatch-display - Fixed missing color swatches for Alias tokens by implementing type propagation in the Token Graph and deepening reference resolution.
