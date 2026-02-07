@@ -3,7 +3,7 @@
   "language": "english",
   "strategy": "BALANCED",
   "maxRetries": 3,
-  "currentEnv": "production",
+  "currentEnv": "development",
   "plugins": {
     "seed": {
       "minFeasibility": 0.7

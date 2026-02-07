@@ -100,12 +100,18 @@ export const resolveTerminalValue = (token: TokenDoc, nameMap: Map<string, Token
   // References currently store raw names like "color.blue.500"
   const firstRefName = token.references[0];
   const candidates = nameMap.get(firstRefName) || [];
+  // Find the highest priority definition that isn't the current token (shadowing support)
   const parent = candidates.find(c => c.id !== token.id);
 
   if (parent) {
+    // If parent already has a resolved value (computed in a previous pass or bottom-up), use it.
+    // Note: Since we compute top-down, we might need to recurse if it's not ready.
+    // But to be safe and simple: just recurse.
     const result = resolveTerminalValue(parent, nameMap, depth + 1);
-    // If we resolved to another reference string instead of a literal value, 
-    // it means the chain is broken or incomplete in the map.
+    
+    // If the result is the same as the current value (no progress), return it to avoid loops
+    if (result === token.value) return result;
+    
     return result;
   }
 

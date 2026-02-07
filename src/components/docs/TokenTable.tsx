@@ -44,7 +44,9 @@ interface TokenRowProps {
 
 const isColorValue = (val: any): boolean => {
   if (typeof val !== 'string') return false;
-  return /^(#|rgba?\(|hsla?\(|oklch\(|oklch\()/.test(val);
+  // Explicitly reject references to prevent invalid CSS
+  if (val.trim().startsWith('{')) return false;
+  return /^(#|rgba?\(|hsla?\(|oklch\(|var\()|[a-z]{3,}$/i.test(val);
 };
 
 const TokenRow = memo(({ 

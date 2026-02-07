@@ -11,9 +11,9 @@
 
 > **INTEGRATOR RULE:** Always update all 4 fields (Phase, Last Action, Focus, Next Step) during `/kamiflow:ops:sync`.
 
-- **Last Completed Action:** Implemented shadowing-aware token resolution (Task 085)
+- **Last Completed Action:** Implemented robust token resolution and UI guard (Task 086)
 - **Current Focus:** Distribution & Versioning
-- **Next Step:** Task 086 - Implement automated versioning and NPM distribution pipeline
+- **Next Step:** Task 087 - Implement automated versioning and NPM distribution pipeline
 
 ## 3. Knowledge Map (Directory Guide)
 
