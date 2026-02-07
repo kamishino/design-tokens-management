@@ -12,7 +12,8 @@
 .LSOverride
 
 # Icon must end with two \r
-Icon
+Icon
+
 
 # Thumbnails
 ._*
@@ -107,6 +108,8 @@ $RECYCLE.BIN/
 .kamiflow/tasks/
 .kamiflow/handoff_logs/
 .kamiflow/.backup/
+.kamiflow/.index/
+.kamiflow/.sync/
 .kamiflow/docs/assets/
 .kamiflow/agents/
 .gemini/
@@ -118,3 +121,4 @@ $RECYCLE.BIN/
 /temp/
 /dist/
 .env.local
+/.kamirc.json
