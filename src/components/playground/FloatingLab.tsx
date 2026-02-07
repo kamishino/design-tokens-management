@@ -59,31 +59,11 @@ export const FloatingLab = ({
   }, [overrides['--brandPrimary'], overrides['--bgCanvas']]);
 
   const handleApply = async () => {
-    // ... existing handleApply ...
-    const response = await fetch('/api/save-token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        clientId,
-        projectId,
-        tokens: {
-          'brand.primary': { '$value': overrides['--brandPrimary'] },
-          'brand.secondary': { '$value': overrides['--brandSecondary'] },
-          'brand.accent': { '$value': overrides['--brandAccent'] },
-          'text.primary': { '$value': overrides['--textPrimary'] },
-          'bg.canvas': { '$value': overrides['--bgCanvas'] },
-          'fontFamily.base': { '$value': overrides['--fontFamilyBase'] },
-          'typography.config.scaleRatio': { '$value': overrides['--typographyConfigScaleRatio'] }
-        }
-      })
+    // RAM-only persistence per user request
+    toaster.success({
+      title: "Session Applied",
+      description: "Tuned tokens are active in your browser session!",
     });
-    const result = await response.json();
-    if (result.success) {
-      toaster.success({
-        title: "Tokens Saved",
-        description: "Studio changes permanently saved to project JSON!",
-      });
-    }
   };
 
   const handleFontSelect = (family: string) => {

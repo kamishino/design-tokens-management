@@ -16,6 +16,7 @@ function App() {
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [selectedProject, setSelectedProject] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [inspectedTokens, setInspectedTokens] = useState<string[] | undefined>(undefined);
   const [showLab, setShowLab] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
     return localStorage.getItem('kami_explorer_lab_visible') === 'true';
@@ -60,7 +61,8 @@ function App() {
 
   if (loading) return <Center h="100vh"><Spinner size="xl" /></Center>;
 
-  const isLabActuallyVisible = viewMode === 'studio' || (viewMode === 'explorer' && showLab);
+  // Lab only visible in Studio mode per user request
+  const isLabActuallyVisible = viewMode === 'studio';
 
   return (
     <Box minH="100vh">
@@ -81,14 +83,21 @@ function App() {
       )}
 
       {viewMode === 'studio' && (
-        <StudioView onExit={() => setViewMode('explorer')} onOpenDocs={() => setViewMode('docs')} />
+        <StudioView 
+          onExit={() => {
+            setViewMode('explorer');
+            setInspectedTokens(undefined);
+          }} 
+          onOpenDocs={() => setViewMode('docs')}
+          onInspectChange={setInspectedTokens}
+        />
       )}
 
       {viewMode === 'docs' && (
         <DocsPortal manifest={manifest!} onExit={() => setViewMode('studio')} />
       )}
 
-      {/* Global Floating Lab - Now with controlled visibility */}
+      {/* Global Floating Lab - Unified instance */}
       {selectedProject && isLabActuallyVisible && (
         <FloatingLab 
           clientId={manifest?.projects[selectedProject]?.client || ''} 
@@ -100,6 +109,8 @@ function App() {
           canUndo={canUndo}
           canRedo={canRedo}
           globalTokens={globalTokens}
+          filteredIds={inspectedTokens}
+          onClearFilter={() => setInspectedTokens(undefined)}
         />
       )}
     </Box>

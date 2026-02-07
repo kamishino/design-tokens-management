@@ -20,6 +20,7 @@ import { FloatingLab } from "../playground/FloatingLab";
 interface StudioViewProps {
   onExit: () => void;
   onOpenDocs: () => void;
+  onInspectChange: (tokens: string[] | undefined) => void;
 }
 
 const templates = createListCollection({
@@ -30,11 +31,10 @@ const templates = createListCollection({
   ],
 })
 
-export const StudioView = ({ onExit, onOpenDocs }: StudioViewProps) => {
+export const StudioView = ({ onExit, onOpenDocs, onInspectChange }: StudioViewProps) => {
   const [template, setTemplate] = useState('landing');
   const [refreshKey, setRefreshKey] = useState(0);
   const [isInspectMode, setIsInspectMode] = useState(false);
-  const [inspectedTokens, setInspectedTokens] = useState<string[] | undefined>(undefined);
   const [hoveredRect, setHoveredRect] = useState<{top: number, left: number, width: number, height: number} | null>(null);
 
   // Generate new mock data whenever refreshKey or template changes
@@ -55,7 +55,6 @@ export const StudioView = ({ onExit, onOpenDocs }: StudioViewProps) => {
       
       if (inspectable) {
         const rect = inspectable.getBoundingClientRect();
-        // Adjust for scroll if necessary, but fixed position overlay usually relative to viewport
         setHoveredRect({
           top: rect.top,
           left: rect.left,
@@ -70,18 +69,18 @@ export const StudioView = ({ onExit, onOpenDocs }: StudioViewProps) => {
     const handleClick = (e: MouseEvent) => {
       if (!isInspectMode) return;
       const target = e.target as HTMLElement;
-      // Ignore clicks on toolbar or lab
-      if (target.closest('.studio-toolbar') || target.closest('.floating-lab')) return;
+      
+      // We no longer need to check for .floating-lab here because it's not a child anymore
+      if (target.closest('.studio-toolbar')) return;
 
       const inspectable = target.closest('[data-tokens]');
       if (inspectable) {
         e.preventDefault();
         e.stopPropagation();
         const tokens = inspectable.getAttribute('data-tokens')?.split(',').map(t => t.trim()) || [];
-        setInspectedTokens(tokens.length > 0 ? tokens : undefined);
+        onInspectChange(tokens.length > 0 ? tokens : undefined);
       } else {
-        // Clear selection if clicking empty space
-        setInspectedTokens(undefined);
+        onInspectChange(undefined);
       }
     };
 
@@ -92,7 +91,7 @@ export const StudioView = ({ onExit, onOpenDocs }: StudioViewProps) => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('click', handleClick, true);
     };
-  }, [isInspectMode]);
+  }, [isInspectMode, onInspectChange]);
 
   return (
     <Box position="relative" bg="white" minH="100vh" cursor={isInspectMode ? 'crosshair' : 'default'}>
@@ -158,7 +157,7 @@ export const StudioView = ({ onExit, onOpenDocs }: StudioViewProps) => {
             colorScheme={isInspectMode ? "blue" : "gray"}
             onClick={() => {
               setIsInspectMode(!isInspectMode);
-              if (isInspectMode) setInspectedTokens(undefined); // Clear on exit
+              if (isInspectMode) onInspectChange(undefined); // Clear on exit
             }}
           >
             <LuScanEye size={14} style={{ marginRight: 6 }} />
@@ -179,14 +178,6 @@ export const StudioView = ({ onExit, onOpenDocs }: StudioViewProps) => {
         {template === 'landing' && <LandingPage data={mockData} />}
         {template === 'dashboard' && <Dashboard data={mockData} />}
         {template === 'ecommerce' && <ProductDetail data={mockData} />}
-      </Box>
-
-      {/* Floating Lab Integration */}
-      <Box className="floating-lab">
-        <FloatingLab 
-          filteredIds={inspectedTokens} 
-          onClearFilter={() => setInspectedTokens(undefined)}
-        />
       </Box>
     </Box>
   );
