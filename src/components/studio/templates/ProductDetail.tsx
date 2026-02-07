@@ -20,16 +20,16 @@ export const ProductDetail = ({ data }: { data: StudioMockData }) => {
   const [selectedSize, setSelectedSize] = useState('M');
 
   return (
-    <Box bg="white" minH="100vh" py={12} fontFamily="var(--fontFamilyBase)" color="gray.800">
+    <Box bg="var(--bgCanvas)" minH="100vh" py={12} fontFamily="var(--fontFamilyBase)" color="var(--textPrimary)">
       <Container maxW="container.xl">
         
         {/* 1. Breadcrumbs */}
         <HStack gap={2} mb={12} color="gray.400" fontSize="xs" fontWeight="bold">
-          <Text cursor="pointer" _hover={{ color: "var(--brandPrimary)" }}>Shop</Text>
+          <Text cursor="pointer" _hover={{ color: "var(--brandSecondary)" }}>Shop</Text>
           <LuChevronRight size={12} />
-          <Text cursor="pointer" _hover={{ color: "var(--brandPrimary)" }}>{data.product.category}</Text>
+          <Text cursor="pointer" _hover={{ color: "var(--brandSecondary)" }}>{data.product.category}</Text>
           <LuChevronRight size={12} />
-          <Text color="gray.800">{data.product.name}</Text>
+          <Text color="var(--textPrimary)">{data.product.name}</Text>
         </HStack>
 
         <SimpleGrid columns={{ base: 1, md: 2 }} gap={20}>
@@ -52,7 +52,7 @@ export const ProductDetail = ({ data }: { data: StudioMockData }) => {
               />
               <Badge 
                 position="absolute" top={8} left={8} 
-                bg="red.500" color="white" variant="solid" px={6} py={1.5}
+                bg="var(--brandAccent)" color="white" variant="solid" px={6} py={1.5}
                 borderRadius="full" fontWeight="var(--fontWeightExtrabold)"
                 boxShadow="xl"
               >
@@ -91,21 +91,21 @@ export const ProductDetail = ({ data }: { data: StudioMockData }) => {
                 </HStack>
               </HStack>
               
-              <Heading size="3xl" letterSpacing="tight" fontWeight="var(--fontWeightExtrabold)">{data.product.name}</Heading>
+              <Heading size="3xl" letterSpacing="tight" fontWeight="var(--fontWeightExtrabold)" color="var(--textPrimary)">{data.product.name}</Heading>
               
               <HStack gap={6} mt={2}>
-                <Text fontSize="3xl" fontWeight="var(--fontWeightExtrabold)" color="var(--brandPrimary)">
+                <Text fontSize="3xl" fontWeight="var(--fontWeightExtrabold)" color="var(--brandAccent)">
                   {data.product.price}
                 </Text>
                 <VStack align="start" gap={0}>
                   <Text fontSize="lg" color="gray.300" textDecoration="line-through">
                     {data.product.oldPrice}
                   </Text>
-                  <Text fontSize="10px" color="red.500" fontWeight="bold">SAVE 40% TODAY</Text>
+                  <Text fontSize="10px" color="var(--brandAccent)" fontWeight="bold">SAVE 40% TODAY</Text>
                 </VStack>
               </HStack>
 
-              <Text color="gray.500" fontSize="md" lineHeight="tall" maxW="xl">
+              <Text color="var(--textPrimary)" opacity={0.8} fontSize="md" lineHeight="tall" maxW="xl">
                 {data.product.description}
               </Text>
             </VStack>
@@ -132,16 +132,16 @@ export const ProductDetail = ({ data }: { data: StudioMockData }) => {
               <VStack align="start" gap={4} w="full">
                 <HStack justify="space-between" w="full">
                   <Text fontWeight="bold" fontSize="xs" textTransform="uppercase" color="gray.400" letterSpacing="widest">Select Size</Text>
-                  <Button size="xs" variant="plain" color="var(--brandPrimary)" fontWeight="bold">Size Guide</Button>
+                  <Button size="xs" variant="plain" color="var(--brandSecondary)" fontWeight="bold">Size Guide</Button>
                 </HStack>
                 <HStack gap={3}>
                   {data.product.variants.sizes.map((size) => (
                     <Button 
                       key={size} 
                       variant={selectedSize === size ? "solid" : "outline"} 
-                      bg={selectedSize === size ? "gray.900" : "transparent"}
-                      color={selectedSize === size ? "white" : "gray.600"}
-                      borderColor={selectedSize === size ? "gray.900" : "gray.200"}
+                      bg={selectedSize === size ? "var(--textPrimary)" : "transparent"}
+                      color={selectedSize === size ? "var(--bgCanvas)" : "var(--textPrimary)"}
+                      borderColor={selectedSize === size ? "var(--textPrimary)" : "var(--brandSecondary)"}
                       size="md" px={8} 
                       borderRadius="var(--radius2)"
                       fontWeight="bold"
@@ -166,7 +166,7 @@ export const ProductDetail = ({ data }: { data: StudioMockData }) => {
                 >
                   <LuShoppingBag /> Add to Cart
                 </Button>
-                <Button size="xl" flex={1} variant="outline" borderRadius="var(--radius3)" borderColor="gray.200" _hover={{ bg: "red.50", borderColor: "red.100", color: "red.500" }}>
+                <Button size="xl" flex={1} variant="outline" borderRadius="var(--radius3)" borderColor="var(--brandSecondary)" _hover={{ bg: "red.50", borderColor: "red.100", color: "red.500" }}>
                   <LuHeart />
                 </Button>
               </HStack>
@@ -179,7 +179,7 @@ export const ProductDetail = ({ data }: { data: StudioMockData }) => {
                   <LuShieldCheck /> <Text>2 Year Warranty</Text>
                 </HStack>
                 <Separator orientation="vertical" h="12px" />
-                <HStack gap={2} color="orange.500" fontSize="xs" fontWeight="bold">
+                <HStack gap={2} color="var(--brandAccent)" fontSize="xs" fontWeight="bold">
                   <LuPackage /> <Text>In Stock</Text>
                 </HStack>
               </HStack>
@@ -188,21 +188,21 @@ export const ProductDetail = ({ data }: { data: StudioMockData }) => {
             {/* 6. Technical Tabs */}
             <Tabs.Root defaultValue="details" w="full" variant="line" colorPalette="blue">
               <Tabs.List mb={6}>
-                <Tabs.Trigger value="details" fontWeight="bold">Details</Tabs.Trigger>
-                <Tabs.Trigger value="specs" fontWeight="bold">Specifications</Tabs.Trigger>
-                <Tabs.Trigger value="reviews" fontWeight="bold">Reviews ({data.product.reviewsCount})</Tabs.Trigger>
+                <Tabs.Trigger value="details" fontWeight="bold" color="var(--textPrimary)">Details</Tabs.Trigger>
+                <Tabs.Trigger value="specs" fontWeight="bold" color="var(--textPrimary)">Specifications</Tabs.Trigger>
+                <Tabs.Trigger value="reviews" fontWeight="bold" color="var(--textPrimary)">Reviews ({data.product.reviewsCount})</Tabs.Trigger>
               </Tabs.List>
               <Tabs.Content value="details" py={4}>
-                <Text fontSize="sm" color="gray.600" lineHeight="relaxed">
+                <Text fontSize="sm" color="var(--textPrimary)" opacity={0.7} lineHeight="relaxed">
                   Experience the perfect blend of form and function. This piece was designed with our core design tokens to ensure maximum visual harmony and accessibility.
                 </Text>
               </Tabs.Content>
               <Tabs.Content value="specs" py={4}>
                 <VStack align="stretch" gap={3}>
                   {data.product.specs.map(spec => (
-                    <HStack key={spec.label} justify="space-between" p={3} bg="gray.50" borderRadius="var(--radius1)">
+                    <HStack key={spec.label} justify="space-between" p={3} bg="gray.50" borderRadius="var(--radius1)" border="1px solid" borderColor="var(--brandSecondary)">
                       <Text fontSize="xs" fontWeight="bold" color="gray.500">{spec.label}</Text>
-                      <Text fontSize="xs" fontWeight="bold">{spec.value}</Text>
+                      <Text fontSize="xs" fontWeight="bold" color="var(--textPrimary)">{spec.value}</Text>
                     </HStack>
                   ))}
                 </VStack>
@@ -210,15 +210,15 @@ export const ProductDetail = ({ data }: { data: StudioMockData }) => {
               <Tabs.Content value="reviews" py={4}>
                 <VStack align="stretch" gap={6}>
                   {data.product.reviews.map((rev, i) => (
-                    <VStack key={i} align="start" gap={2} p={4} border="1px solid" borderColor="gray.100" borderRadius="var(--radius2)">
+                    <VStack key={i} align="start" gap={2} p={4} border="1px solid" borderColor="var(--brandSecondary)" borderRadius="var(--radius2)">
                       <HStack justify="space-between" w="full">
-                        <Text fontSize="xs" fontWeight="bold">{rev.user}</Text>
+                        <Text fontSize="xs" fontWeight="bold" color="var(--textPrimary)">{rev.user}</Text>
                         <Text fontSize="10px" color="gray.400">{rev.date}</Text>
                       </HStack>
                       <HStack color="orange.400" gap={0}>
                         {[1,2,3,4,5].map(s => <LuStar key={s} size={10} fill={s <= rev.rating ? "currentColor" : "none"} />)}
                       </HStack>
-                      <Text fontSize="xs" color="gray.600">{rev.comment}</Text>
+                      <Text fontSize="xs" color="var(--textPrimary)" opacity={0.8}>{rev.comment}</Text>
                     </VStack>
                   ))}
                 </VStack>
@@ -229,19 +229,19 @@ export const ProductDetail = ({ data }: { data: StudioMockData }) => {
 
         {/* 7. Related Items */}
         <Box mt={32} pt={20} borderTop="1px solid" borderColor="gray.100">
-          <Heading size="xl" mb={12} letterSpacing="tight">Complete the Look</Heading>
+          <Heading size="xl" mb={12} letterSpacing="tight" color="var(--textPrimary)">Complete the Look</Heading>
           <SimpleGrid columns={{ base: 2, md: 4 }} gap={8}>
             {[1,2,3,4].map(i => (
               <VStack key={i} align="start" gap={4} role="group" cursor="pointer">
                 <Box bg="gray.50" borderRadius="var(--radius3)" overflow="hidden" w="full" position="relative">
                   <Image src={data.product.image} filter="grayscale(0.5)" _groupHover={{ filter: "grayscale(0)", transform: "scale(1.05)" }} transition="all 0.5s" />
                   <Float placement="bottom-end" offset={4}>
-                    <Button size="xs" bg="white" color="gray.800" borderRadius="full" boxShadow="md" fontWeight="bold">Quick Add</Button>
+                    <Button size="xs" bg="var(--bgCanvas)" color="var(--textPrimary)" border="1px solid" borderColor="var(--brandSecondary)" borderRadius="full" boxShadow="md" fontWeight="bold">Quick Add</Button>
                   </Float>
                 </Box>
                 <VStack align="start" gap={0}>
-                  <Text fontWeight="bold" fontSize="sm">{faker.commerce.productName()}</Text>
-                  <Text color="gray.400" fontSize="xs">{data.product.price}</Text>
+                  <Text fontWeight="bold" fontSize="sm" color="var(--textPrimary)">{faker.commerce.productName()}</Text>
+                  <Text color="var(--brandAccent)" fontSize="xs" fontWeight="bold">{data.product.price}</Text>
                 </VStack>
               </VStack>
             ))}

@@ -43,17 +43,17 @@ export const Dashboard = ({ data }: { data: StudioMockData }) => {
   );
 
   return (
-    <Box bg="gray.50" minH="100vh" fontFamily="var(--fontFamilyBase)" color="gray.800">
+    <Box bg="var(--bgCanvas)" minH="100vh" fontFamily="var(--fontFamilyBase)" color="var(--textPrimary)">
       {/* 1. Dashboard Header */}
-      <Box bg="white" borderBottom="1px solid" borderColor="gray.200" py={4} px={8} position="sticky" top={0} zIndex={10}>
+      <Box bg="var(--bgCanvas)" borderBottom="1px solid" borderColor="var(--brandSecondary)" py={4} px={8} position="sticky" top={0} zIndex={10}>
         <Container maxW="container.xl">
           <HStack justify="space-between">
             <HStack gap={8}>
               <VStack align="start" gap={0}>
-                <Heading size="md" letterSpacing="tight" fontWeight="var(--fontWeightExtrabold)">Dashboard</Heading>
+                <Heading size="md" letterSpacing="tight" fontWeight="var(--fontWeightExtrabold)" color="var(--textPrimary)">Dashboard</Heading>
                 <Text fontSize="xs" color="gray.500">{data.brand.name} Analytics</Text>
               </VStack>
-              <HStack gap={4} bg="gray.50" px={4} py={2} borderRadius="var(--radius2)" border="1px solid" borderColor="gray.100">
+              <HStack gap={4} bg="gray.50" px={4} py={2} borderRadius="var(--radius2)" border="1px solid" borderColor="var(--brandSecondary)">
                 <LuSearch size={14} color="gray" />
                 <Input 
                   placeholder="Quick search..." 
@@ -63,15 +63,16 @@ export const Dashboard = ({ data }: { data: StudioMockData }) => {
                   fontSize="xs"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
+                  color="var(--textPrimary)"
                 />
               </HStack>
             </HStack>
             <HStack gap={4}>
-              <IconButton icon={<LuBell size={18} />} variant="ghost" />
+              <IconButton icon={<LuBell size={18} />} variant="ghost" color="var(--textPrimary)" />
               <HStack gap={3}>
                 <Circle size="32px" bg="var(--brandPrimary)" color="white" fontWeight="bold" fontSize="xs">TH</Circle>
                 <VStack align="start" gap={0} display={{ base: 'none', md: 'flex' }}>
-                  <Text fontSize="xs" fontWeight="bold">Admin User</Text>
+                  <Text fontSize="xs" fontWeight="bold" color="var(--textPrimary)">Admin User</Text>
                   <Text fontSize="10px" color="gray.400">System Architect</Text>
                 </VStack>
               </HStack>
@@ -88,43 +89,43 @@ export const Dashboard = ({ data }: { data: StudioMockData }) => {
             {/* 2. Stats Grid */}
             <SimpleGrid columns={{ base: 1, md: 4 }} gap={6}>
               {[
-                { label: "Revenue", value: data.dashboard.totalRevenue, trend: "+12.5%", color: "green", icon: LuDollarSign },
-                { label: "Users", value: data.dashboard.activeUsers.toLocaleString(), trend: "+3.2%", color: "blue", icon: LuUsers },
+                { label: "Revenue", value: data.dashboard.totalRevenue, trend: "+12.5%", color: "var(--brandAccent)", icon: LuDollarSign },
+                { label: "Users", value: data.dashboard.activeUsers.toLocaleString(), trend: "+3.2%", color: "var(--brandPrimary)", icon: LuUsers },
                 { label: "Rate", value: data.dashboard.conversionRate, trend: "-0.4%", color: "red", icon: LuTrendingUp },
-                { label: "Sales", value: data.dashboard.salesCount.toLocaleString(), trend: "+18.1%", icon: LuShoppingCart }
+                { label: "Sales", value: data.dashboard.salesCount.toLocaleString(), trend: "+18.1%", color: "var(--brandAccent)", icon: LuShoppingCart }
               ].map((stat, i) => (
-                <VStack key={i} align="stretch" p={6} bg="white" borderRadius="var(--radius3)" boxShadow="sm" border="1px solid" borderColor="gray.100" gap={4}>
+                <VStack key={i} align="stretch" p={6} bg="white" borderRadius="var(--radius3)" boxShadow="sm" border="1px solid" borderColor="var(--brandSecondary)" gap={4}>
                   <HStack justify="space-between" w="full">
                     <Text fontSize="xs" fontWeight="bold" color="gray.400" textTransform="uppercase">{stat.label}</Text>
-                    <Icon as={stat.icon} color="gray.300" boxSize="16px" />
+                    <Icon as={stat.icon} color={stat.color || "gray.300"} boxSize="16px" />
                   </HStack>
                   <VStack align="start" gap={1}>
-                    <Heading size="xl" letterSpacing="tighter">{stat.value}</Heading>
+                    <Heading size="xl" letterSpacing="tighter" color="var(--textPrimary)">{stat.value}</Heading>
                     {stat.trend && (
-                      <HStack gap={1} color={`${stat.color}.500`}>
+                      <HStack gap={1} color={stat.color}>
                         {stat.trend.startsWith('+') ? <LuArrowUpRight size={12} /> : <LuArrowDownRight size={12} />}
                         <Text fontSize="xs" fontWeight="bold">{stat.trend}</Text>
                       </HStack>
                     )}
                   </VStack>
-                  <MiniSparkline data={data.dashboard.statsHistory} color={stat.color || 'gray'} />
+                  <MiniSparkline data={data.dashboard.statsHistory} color={stat.color === 'red' ? 'red' : 'blue'} />
                 </VStack>
               ))}
             </SimpleGrid>
 
             {/* 3. Main Transaction Table */}
-            <Box bg="white" p={8} borderRadius="var(--radius4)" boxShadow="sm" border="1px solid" borderColor="gray.100">
+            <Box bg="white" p={8} borderRadius="var(--radius4)" boxShadow="sm" border="1px solid" borderColor="var(--brandSecondary)">
               <HStack justify="space-between" mb={8}>
                 <VStack align="start" gap={1}>
-                  <Heading size="md">Recent Transactions</Heading>
+                  <Heading size="md" color="var(--textPrimary)">Recent Transactions</Heading>
                   <Text fontSize="xs" color="gray.400">Processing real-time payment data</Text>
                 </VStack>
-                <Button size="sm" variant="outline" borderRadius="var(--radius2)">Export CSV</Button>
+                <Button size="sm" variant="outline" borderColor="var(--brandSecondary)" color="var(--textPrimary)" borderRadius="var(--radius2)">Export CSV</Button>
               </HStack>
               
               <Table.Root size="sm" variant="line">
                 <Table.Header>
-                  <Table.Row>
+                  <Table.Row borderColor="var(--brandSecondary)">
                     <Table.ColumnHeader color="gray.400" fontSize="10px" textTransform="uppercase">Transaction ID</Table.ColumnHeader>
                     <Table.ColumnHeader color="gray.400" fontSize="10px" textTransform="uppercase">Customer</Table.ColumnHeader>
                     <Table.ColumnHeader color="gray.400" fontSize="10px" textTransform="uppercase">Amount</Table.ColumnHeader>
@@ -134,10 +135,10 @@ export const Dashboard = ({ data }: { data: StudioMockData }) => {
                 </Table.Header>
                 <Table.Body>
                   {filteredTransactions.map((tx) => (
-                    <Table.Row key={tx.id} _hover={{ bg: "gray.50/50" }}>
-                      <Table.Cell><Text fontSize="xs" fontWeight="bold" fontFamily="monospace" color="blue.600">{tx.id}</Text></Table.Cell>
-                      <Table.Cell><Text fontSize="xs" fontWeight="bold">{tx.user}</Text></Table.Cell>
-                      <Table.Cell><Text fontSize="xs" fontWeight="var(--fontWeightExtrabold)">{tx.amount}</Text></Table.Cell>
+                    <Table.Row key={tx.id} _hover={{ bg: "gray.50/50" }} borderColor="var(--brandSecondary)">
+                      <Table.Cell><Text fontSize="xs" fontWeight="bold" fontFamily="monospace" color="var(--brandPrimary)">{tx.id}</Text></Table.Cell>
+                      <Table.Cell><Text fontSize="xs" fontWeight="bold" color="var(--textPrimary)">{tx.user}</Text></Table.Cell>
+                      <Table.Cell><Text fontSize="xs" fontWeight="var(--fontWeightExtrabold)" color="var(--textPrimary)">{tx.amount}</Text></Table.Cell>
                       <Table.Cell>
                         <Badge 
                           colorPalette={tx.status === 'success' ? 'green' : tx.status === 'pending' ? 'orange' : 'red'} 
@@ -166,14 +167,14 @@ export const Dashboard = ({ data }: { data: StudioMockData }) => {
                   <Heading size="md">Scale Higher</Heading>
                   <Text fontSize="sm" opacity={0.8}>Upgrade to Enterprise for multi-tenant token support and advanced lineage.</Text>
                 </VStack>
-                <Button size="md" w="full" bg="white" color="blue.600" fontWeight="var(--fontWeightExtrabold)" borderRadius="var(--radius2)" _hover={{ transform: "translateY(-2px)" }}>
+                <Button size="md" w="full" bg="white" color="var(--brandPrimary)" fontWeight="var(--fontWeightExtrabold)" borderRadius="var(--radius2)" _hover={{ transform: "translateY(-2px)" }}>
                   Upgrade Plan
                 </Button>
               </VStack>
             </Box>
 
-            <Box bg="white" p={8} borderRadius="var(--radius4)" boxShadow="sm" border="1px solid" borderColor="gray.100">
-              <Heading size="sm" mb={6}>Live Feed</Heading>
+            <Box bg="white" p={8} borderRadius="var(--radius4)" boxShadow="sm" border="1px solid" borderColor="var(--brandSecondary)">
+              <Heading size="sm" mb={6} color="var(--textPrimary)">Live Feed</Heading>
               <VStack align="stretch" gap={6}>
                 {[
                   { label: "Token Updated", desc: "brand.primary changed to #3B82F6", time: "2m ago" },
@@ -181,9 +182,9 @@ export const Dashboard = ({ data }: { data: StudioMockData }) => {
                   { label: "New Project", desc: "Brand B initialized", time: "1h ago" }
                 ].map((item, i) => (
                   <HStack key={i} align="flex-start" gap={4}>
-                    <Box mt={1}><Circle size="8px" bg={i === 0 ? "var(--brandPrimary)" : "gray.200"} /></Box>
+                    <Box mt={1}><Circle size="8px" bg={i === 0 ? "var(--brandAccent)" : "gray.200"} /></Box>
                     <VStack align="start" gap={0.5}>
-                      <Text fontSize="xs" fontWeight="bold">{item.label}</Text>
+                      <Text fontSize="xs" fontWeight="bold" color="var(--textPrimary)">{item.label}</Text>
                       <Text fontSize="10px" color="gray.500">{item.desc}</Text>
                       <Text fontSize="9px" color="gray.300" fontWeight="bold">{item.time}</Text>
                     </VStack>
@@ -193,14 +194,14 @@ export const Dashboard = ({ data }: { data: StudioMockData }) => {
               <Button size="xs" variant="ghost" w="full" mt={6} color="gray.400">View All <LuChevronRight /></Button>
             </Box>
 
-            <Box bg="white" p={8} borderRadius="var(--radius4)" boxShadow="sm" border="1px solid" borderColor="gray.100">
-              <Heading size="sm" mb={6}>Top Categories</Heading>
+            <Box bg="white" p={8} borderRadius="var(--radius4)" boxShadow="sm" border="1px solid" borderColor="var(--brandSecondary)">
+              <Heading size="sm" mb={6} color="var(--textPrimary)">Top Categories</Heading>
               <VStack align="stretch" gap={4}>
                 {data.dashboard.topProducts.map((p, i) => (
                   <VStack key={i} align="stretch" gap={1}>
                     <HStack justify="space-between">
-                      <Text fontSize="xs" fontWeight="bold" lineClamp={1}>{p.name}</Text>
-                      <Text fontSize="10px" color="green.500" fontWeight="bold">{p.growth}</Text>
+                      <Text fontSize="xs" fontWeight="bold" lineClamp={1} color="var(--textPrimary)">{p.name}</Text>
+                      <Text fontSize="10px" color="var(--brandAccent)" fontWeight="bold">{p.growth}</Text>
                     </HStack>
                     <Flex h="4px" bg="gray.100" borderRadius="full" overflow="hidden">
                       <Box w={`${(p.sales / 500) * 100}%`} bg="var(--brandPrimary)" borderRadius="full" />

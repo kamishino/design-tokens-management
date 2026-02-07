@@ -11,9 +11,9 @@
 
 > **INTEGRATOR RULE:** Always update all 4 fields (Phase, Last Action, Focus, Next Step) during `/kamiflow:ops:sync`.
 
-- **Last Completed Action:** Implemented Studio Onboarding & Project Home (Task 091)
+- **Last Completed Action:** Instrumented high-fidelity studio theming (Task 093)
 - **Current Focus:** Distribution & Versioning
-- **Next Step:** Task 092 - Implement automated versioning and NPM distribution pipeline
+- **Next Step:** Task 094 - Implement automated versioning and NPM distribution pipeline
 
 ## 3. Knowledge Map (Directory Guide)
 
