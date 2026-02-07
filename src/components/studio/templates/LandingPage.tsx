@@ -16,7 +16,7 @@ import { Tabs } from "@chakra-ui/react";
  */
 export const LandingPage = ({ data }: { data: StudioMockData }) => {
   return (
-    <Box bg="var(--bgCanvas)" minH="100vh" fontFamily="var(--fontFamilyBase)" color="var(--textPrimary)">
+    <Box bg="var(--bgCanvas)" minH="100vh" fontFamily="var(--fontFamilyBody)" color="var(--textPrimary)">
       {/* 1. Sticky Navbar */}
       <Box 
         position="sticky" top={0} zIndex={100} 
@@ -28,7 +28,7 @@ export const LandingPage = ({ data }: { data: StudioMockData }) => {
             <HStack gap={8}>
               <HStack gap={2}>
                 <Box w={8} h={8} bg="var(--brandPrimary)" borderRadius="var(--radius2)" />
-                <Text fontWeight="var(--fontWeightExtrabold)" fontSize="lg" letterSpacing="tight" color="var(--textPrimary)">
+                <Text fontWeight="var(--fontWeightExtrabold)" fontSize="lg" letterSpacing="tight" color="var(--textPrimary)" fontFamily="var(--fontFamilyHeading)">
                   {data.brand.name}
                 </Text>
               </HStack>
@@ -79,16 +79,18 @@ export const LandingPage = ({ data }: { data: StudioMockData }) => {
               lineHeight="1.1"
               maxW="4xl"
               letterSpacing="tight"
-              data-tokens="text.primary,fontFamily.base"
+              data-tokens="text.primary,fontFamily.heading"
               data-inspect="Main Heading"
               color="var(--textPrimary)"
+              fontFamily="var(--fontFamilyHeading)"
             >
               {data.brand.heroTitle} <Box as="span" color="var(--brandPrimary)" data-tokens="brand.primary" data-inspect="Heading Highlight">Simplified.</Box>
             </Heading>
             <Text 
               fontSize="var(--fontSizeScale1)" color="var(--textPrimary)" opacity={0.8} maxW="2xl" lineHeight="tall"
-              data-tokens="text.secondary,fontFamily.base"
+              data-tokens="text.secondary,fontFamily.body"
               data-inspect="Subheading"
+              fontFamily="var(--fontFamilyBody)"
             >
               {data.brand.heroDesc}
             </Text>

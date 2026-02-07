@@ -43,15 +43,15 @@ export const Dashboard = ({ data }: { data: StudioMockData }) => {
   );
 
   return (
-    <Box bg="var(--bgCanvas)" minH="100vh" fontFamily="var(--fontFamilyBase)" color="var(--textPrimary)">
+    <Box bg="var(--bgCanvas)" minH="100vh" fontFamily="var(--fontFamilyBody)" color="var(--textPrimary)">
       {/* 1. Dashboard Header */}
       <Box bg="var(--bgCanvas)" borderBottom="1px solid" borderColor="var(--brandSecondary)" py={4} px={8} position="sticky" top={0} zIndex={10}>
         <Container maxW="container.xl">
           <HStack justify="space-between">
             <HStack gap={8}>
               <VStack align="start" gap={0}>
-                <Heading size="md" letterSpacing="tight" fontWeight="var(--fontWeightExtrabold)" color="var(--textPrimary)">Dashboard</Heading>
-                <Text fontSize="xs" color="gray.500">{data.brand.name} Analytics</Text>
+                <Heading size="md" letterSpacing="tight" fontWeight="var(--fontWeightExtrabold)" color="var(--textPrimary)" fontFamily="var(--fontFamilyHeading)">Dashboard</Heading>
+                <Text fontSize="xs" color="gray.500" fontFamily="var(--fontFamilyBody)">{data.brand.name} Analytics</Text>
               </VStack>
               <HStack gap={4} bg="gray.50" px={4} py={2} borderRadius="var(--radius2)" border="1px solid" borderColor="var(--brandSecondary)">
                 <LuSearch size={14} color="gray" />
@@ -100,11 +100,11 @@ export const Dashboard = ({ data }: { data: StudioMockData }) => {
                     <Icon as={stat.icon} color={stat.color || "gray.300"} boxSize="16px" />
                   </HStack>
                   <VStack align="start" gap={1}>
-                    <Heading size="xl" letterSpacing="tighter" color="var(--textPrimary)">{stat.value}</Heading>
+                    <Heading size="xl" letterSpacing="tighter" color="var(--textPrimary)" fontFamily="var(--fontFamilyHeading)">{stat.value}</Heading>
                     {stat.trend && (
                       <HStack gap={1} color={stat.color}>
                         {stat.trend.startsWith('+') ? <LuArrowUpRight size={12} /> : <LuArrowDownRight size={12} />}
-                        <Text fontSize="xs" fontWeight="bold">{stat.trend}</Text>
+                        <Text fontSize="xs" fontWeight="bold" fontFamily="var(--fontFamilyBody)">{stat.trend}</Text>
                       </HStack>
                     )}
                   </VStack>
@@ -117,8 +117,8 @@ export const Dashboard = ({ data }: { data: StudioMockData }) => {
             <Box bg="white" p={8} borderRadius="var(--radius4)" boxShadow="sm" border="1px solid" borderColor="var(--brandSecondary)">
               <HStack justify="space-between" mb={8}>
                 <VStack align="start" gap={1}>
-                  <Heading size="md" color="var(--textPrimary)">Recent Transactions</Heading>
-                  <Text fontSize="xs" color="gray.400">Processing real-time payment data</Text>
+                  <Heading size="md" color="var(--textPrimary)" fontFamily="var(--fontFamilyHeading)">Recent Transactions</Heading>
+                  <Text fontSize="xs" color="gray.400" fontFamily="var(--fontFamilyBody)">Processing real-time payment data</Text>
                 </VStack>
                 <Button size="sm" variant="outline" borderColor="var(--brandSecondary)" color="var(--textPrimary)" borderRadius="var(--radius2)">Export CSV</Button>
               </HStack>
@@ -126,19 +126,19 @@ export const Dashboard = ({ data }: { data: StudioMockData }) => {
               <Table.Root size="sm" variant="line">
                 <Table.Header>
                   <Table.Row borderColor="var(--brandSecondary)">
-                    <Table.ColumnHeader color="gray.400" fontSize="10px" textTransform="uppercase">Transaction ID</Table.ColumnHeader>
-                    <Table.ColumnHeader color="gray.400" fontSize="10px" textTransform="uppercase">Customer</Table.ColumnHeader>
-                    <Table.ColumnHeader color="gray.400" fontSize="10px" textTransform="uppercase">Amount</Table.ColumnHeader>
-                    <Table.ColumnHeader color="gray.400" fontSize="10px" textTransform="uppercase">Status</Table.ColumnHeader>
-                    <Table.ColumnHeader textAlign="end" color="gray.400" fontSize="10px" textTransform="uppercase">Date</Table.ColumnHeader>
+                    <Table.ColumnHeader color="gray.400" fontSize="10px" textTransform="uppercase" fontFamily="var(--fontFamilyBody)">Transaction ID</Table.ColumnHeader>
+                    <Table.ColumnHeader color="gray.400" fontSize="10px" textTransform="uppercase" fontFamily="var(--fontFamilyBody)">Customer</Table.ColumnHeader>
+                    <Table.ColumnHeader color="gray.400" fontSize="10px" textTransform="uppercase" fontFamily="var(--fontFamilyBody)">Amount</Table.ColumnHeader>
+                    <Table.ColumnHeader color="gray.400" fontSize="10px" textTransform="uppercase" fontFamily="var(--fontFamilyBody)">Status</Table.ColumnHeader>
+                    <Table.ColumnHeader textAlign="end" color="gray.400" fontSize="10px" textTransform="uppercase" fontFamily="var(--fontFamilyBody)">Date</Table.ColumnHeader>
                   </Table.Row>
                 </Table.Header>
                 <Table.Body>
                   {filteredTransactions.map((tx) => (
                     <Table.Row key={tx.id} _hover={{ bg: "gray.50/50" }} borderColor="var(--brandSecondary)">
-                      <Table.Cell><Text fontSize="xs" fontWeight="bold" fontFamily="monospace" color="var(--brandPrimary)">{tx.id}</Text></Table.Cell>
-                      <Table.Cell><Text fontSize="xs" fontWeight="bold" color="var(--textPrimary)">{tx.user}</Text></Table.Cell>
-                      <Table.Cell><Text fontSize="xs" fontWeight="var(--fontWeightExtrabold)" color="var(--textPrimary)">{tx.amount}</Text></Table.Cell>
+                      <Table.Cell><Text fontSize="xs" fontWeight="bold" fontFamily="var(--fontFamilyCode)" color="var(--brandPrimary)">{tx.id}</Text></Table.Cell>
+                      <Table.Cell><Text fontSize="xs" fontWeight="bold" color="var(--textPrimary)" fontFamily="var(--fontFamilyBody)">{tx.user}</Text></Table.Cell>
+                      <Table.Cell><Text fontSize="xs" fontWeight="var(--fontWeightExtrabold)" color="var(--textPrimary)" fontFamily="var(--fontFamilyHeading)">{tx.amount}</Text></Table.Cell>
                       <Table.Cell>
                         <Badge 
                           colorPalette={tx.status === 'success' ? 'green' : tx.status === 'pending' ? 'orange' : 'red'} 

@@ -20,11 +20,11 @@ export const ProductDetail = ({ data }: { data: StudioMockData }) => {
   const [selectedSize, setSelectedSize] = useState('M');
 
   return (
-    <Box bg="var(--bgCanvas)" minH="100vh" py={12} fontFamily="var(--fontFamilyBase)" color="var(--textPrimary)">
+    <Box bg="var(--bgCanvas)" minH="100vh" py={12} fontFamily="var(--fontFamilyBody)" color="var(--textPrimary)">
       <Container maxW="container.xl">
         
         {/* 1. Breadcrumbs */}
-        <HStack gap={2} mb={12} color="gray.400" fontSize="xs" fontWeight="bold">
+        <HStack gap={2} mb={12} color="gray.400" fontSize="xs" fontWeight="bold" fontFamily="var(--fontFamilyBody)">
           <Text cursor="pointer" _hover={{ color: "var(--brandSecondary)" }}>Shop</Text>
           <LuChevronRight size={12} />
           <Text cursor="pointer" _hover={{ color: "var(--brandSecondary)" }}>{data.product.category}</Text>
@@ -55,6 +55,7 @@ export const ProductDetail = ({ data }: { data: StudioMockData }) => {
                 bg="var(--brandAccent)" color="white" variant="solid" px={6} py={1.5}
                 borderRadius="full" fontWeight="var(--fontWeightExtrabold)"
                 boxShadow="xl"
+                fontFamily="var(--fontFamilyHeading)"
               >
                 SPECIAL EDITION
               </Badge>
@@ -79,7 +80,7 @@ export const ProductDetail = ({ data }: { data: StudioMockData }) => {
           <VStack align="start" gap={10}>
             <VStack align="start" gap={4} w="full">
               <HStack justify="space-between" w="full">
-                <Badge variant="subtle" colorPalette="blue" px={3} py={1} borderRadius="var(--radius1)">
+                <Badge variant="subtle" colorPalette="blue" px={3} py={1} borderRadius="var(--radius1)" fontFamily="var(--fontFamilyHeading)">
                   {data.product.category}
                 </Badge>
                 <HStack gap={1}>
@@ -91,10 +92,10 @@ export const ProductDetail = ({ data }: { data: StudioMockData }) => {
                 </HStack>
               </HStack>
               
-              <Heading size="3xl" letterSpacing="tight" fontWeight="var(--fontWeightExtrabold)" color="var(--textPrimary)">{data.product.name}</Heading>
+              <Heading size="3xl" letterSpacing="tight" fontWeight="var(--fontWeightExtrabold)" color="var(--textPrimary)" fontFamily="var(--fontFamilyHeading)">{data.product.name}</Heading>
               
               <HStack gap={6} mt={2}>
-                <Text fontSize="3xl" fontWeight="var(--fontWeightExtrabold)" color="var(--brandAccent)">
+                <Text fontSize="3xl" fontWeight="var(--fontWeightExtrabold)" color="var(--brandAccent)" fontFamily="var(--fontFamilyHeading)">
                   {data.product.price}
                 </Text>
                 <VStack align="start" gap={0}>

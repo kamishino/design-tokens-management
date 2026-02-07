@@ -13,9 +13,19 @@ interface GoogleFont {
 }
 
 interface FontExplorerProps {
-  onSelect: (family: string) => void;
-  currentFamily: string;
+  onSelect: (family: string, role: string) => void;
+  headingFamily: string;
+  bodyFamily: string;
+  codeFamily: string;
 }
+
+type FontRole = 'heading' | 'body' | 'code';
+
+const ROLES: { id: FontRole; label: string }[] = [
+  { id: 'heading', label: 'Heading' },
+  { id: 'body', label: 'Body' },
+  { id: 'code', label: 'Code' }
+];
 
 const CATEGORIES = [
   { id: 'all', label: 'All' },
@@ -26,7 +36,13 @@ const CATEGORIES = [
   { id: 'handwriting', label: 'Script' }
 ];
 
-export const FontExplorer = ({ onSelect, currentFamily }: FontExplorerProps) => {
+export const FontExplorer = ({ 
+  onSelect, 
+  headingFamily, 
+  bodyFamily, 
+  codeFamily 
+}: FontExplorerProps) => {
+  const [activeRole, setActiveRole] = useState<FontRole>('heading');
   const [search, setSearch] = useState('');
   const [previewText, setPreviewText] = useState('Design Tokens');
   const [category, setCategory] = useState('all');
@@ -36,13 +52,22 @@ export const FontExplorer = ({ onSelect, currentFamily }: FontExplorerProps) => 
     return saved ? JSON.parse(saved) : [];
   });
 
+  // Derived Values
+  const currentFamily = useMemo(() => {
+    if (activeRole === 'heading') return headingFamily;
+    if (activeRole === 'body') return bodyFamily;
+    return codeFamily;
+  }, [activeRole, headingFamily, bodyFamily, codeFamily]);
+
+  const effectiveCategory = activeRole === 'code' ? 'monospace' : category;
+
   const filteredFonts = useMemo(() => {
     return (fonts as GoogleFont[]).filter(f => {
       const matchesSearch = f.family.toLowerCase().includes(search.toLowerCase());
-      const matchesCategory = category === 'all' || f.category === category;
+      const matchesCategory = effectiveCategory === 'all' || f.category === effectiveCategory;
       return matchesSearch && matchesCategory;
     });
-  }, [search, category]);
+  }, [search, effectiveCategory]);
 
   const loadGoogleFont = (family: string) => {
     const linkId = `google-font-${family.replace(/\s+/g, '-').toLowerCase()}`;
@@ -57,7 +82,7 @@ export const FontExplorer = ({ onSelect, currentFamily }: FontExplorerProps) => 
 
   const handleSelect = (family: string) => {
     loadGoogleFont(family);
-    onSelect(family);
+    onSelect(family, activeRole);
     setRecentFonts(prev => {
       const next = [family, ...prev.filter(f => f !== family)].slice(0, 5);
       localStorage.setItem('kami_recent_fonts', JSON.stringify(next));
@@ -66,10 +91,32 @@ export const FontExplorer = ({ onSelect, currentFamily }: FontExplorerProps) => 
   };
 
   return (
-    <VStack p={4} gap={4} align="stretch" w="500px" maxH="600px" bg="white">
+    <VStack p={4} gap={4} align="stretch" w="500px" maxH="650px" bg="white">
       <HStack justify="space-between">
-        <Heading size="xs" textTransform="uppercase" color="gray.500">Typography Gallery</Heading>
+        <Heading size="xs" textTransform="uppercase" color="gray.500">Typography Studio</Heading>
         <Badge variant="subtle" colorPalette="blue" size="xs">Google Fonts</Badge>
+      </HStack>
+
+      {/* ROLE SWITCHER */}
+      <HStack gap={1} bg="gray.100" p={1} borderRadius="lg">
+        {ROLES.map(role => (
+          <Button
+            key={role.id}
+            flex={1}
+            size="xs"
+            variant={activeRole === role.id ? "solid" : "ghost"}
+            bg={activeRole === role.id ? "white" : "transparent"}
+            color={activeRole === role.id ? "blue.600" : "gray.500"}
+            boxShadow={activeRole === role.id ? "sm" : "none"}
+            onClick={() => {
+              setActiveRole(role.id);
+              if (role.id === 'code') setCategory('monospace');
+            }}
+            borderRadius="md"
+          >
+            {role.label}
+          </Button>
+        ))}
       </HStack>
       
       <VStack gap={2} align="stretch">
@@ -86,11 +133,13 @@ export const FontExplorer = ({ onSelect, currentFamily }: FontExplorerProps) => 
             <Button 
               key={cat.id} 
               size="xs" 
-              variant={category === cat.id ? "solid" : "ghost"}
-              colorPalette={category === cat.id ? "blue" : "gray"}
+              variant={effectiveCategory === cat.id ? "solid" : "ghost"}
+              colorPalette={effectiveCategory === cat.id ? "blue" : "gray"}
               onClick={() => setCategory(cat.id)}
               borderRadius="full"
               flexShrink={0}
+              disabled={activeRole === 'code' && cat.id !== 'monospace'}
+              opacity={activeRole === 'code' && cat.id !== 'monospace' ? 0.3 : 1}
             >
               {cat.label}
             </Button>
@@ -110,7 +159,7 @@ export const FontExplorer = ({ onSelect, currentFamily }: FontExplorerProps) => 
       <Box overflowY="auto" flex={1} px={1}>
         <VStack align="stretch" gap={6}>
           {/* Recent Fonts Section */}
-          {recentFonts.length > 0 && !search && category === 'all' && (
+          {recentFonts.length > 0 && !search && effectiveCategory === 'all' && (
             <VStack align="stretch" gap={3}>
               <Text fontSize="10px" fontWeight="bold" color="gray.400" textTransform="uppercase" letterSpacing="wider">
                 Recently Used
