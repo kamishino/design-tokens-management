@@ -61,15 +61,11 @@ export const FloatingLab = ({
   hasOverrides = false
 }: FloatingLabProps) => {
   
-  // Extract values to simple expressions for lint compliance
-  const primaryOverride = overrides['--brandPrimary'] as string;
-  const canvasOverride = overrides['--bgCanvas'] as string;
-
-  const mainContrast = useMemo(() => {
-    const fg = primaryOverride || '#a0544f';
-    const bg = canvasOverride || '#ffffff';
-    return getContrastMetrics(fg, bg);
-  }, [primaryOverride, canvasOverride]);
+  const handleFontSelect = (family: string) => {
+    const currentStack = (overrides['--fontFamilyBase'] as string) || 'Inter, sans-serif';
+    const newStack = prependFont(family, currentStack);
+    updateOverride({ '--fontFamilyBase': newStack }, 'Changed Font');
+  };
 
   const handleApply = async () => {
     // RAM-only persistence per user request
@@ -79,11 +75,14 @@ export const FloatingLab = ({
     });
   };
 
-  const handleFontSelect = (family: string) => {
-    const currentStack = (overrides['--fontFamilyBase'] as string) || 'Inter, sans-serif';
-    const newStack = prependFont(family, currentStack);
-    updateOverride({ '--fontFamilyBase': newStack }, 'Changed Font');
-  };
+  const primaryColor = overrides['--brandPrimary'] as string;
+  const canvasColor = overrides['--bgCanvas'] as string;
+
+  const mainContrast = useMemo(() => {
+    const fg = primaryColor || '#a0544f';
+    const bg = canvasColor || '#ffffff';
+    return getContrastMetrics(fg, bg);
+  }, [primaryColor, canvasColor]);
 
   // 🏠 Home Screen (Empty State)
   if (!projectId) {
@@ -238,30 +237,33 @@ export const FloatingLab = ({
 
           <Box w="1px" h="24px" bg="gray.200" />
 
-          {/* GROUP 3: TYPOGRAPHY (Scale + Font) */}
-          <HStack gap={4}>
-            <TypeScaleSelector 
-              activeRatio={Number(overrides['--typographyConfigScaleRatio']) || 1.25}
-              onSelect={(val) => updateOverride({ '--typographyConfigScaleRatio': val }, 'Changed Type Scale')}
-            />
-            
-            <Popover.Root positioning={{ placement: 'top', gutter: 12 }} lazyMount unmountOnExit>
-              <Popover.Trigger asChild>
-                <Button size="xs" variant="outline" borderRadius="full">Font</Button>
-              </Popover.Trigger>
-              <Portal>
-                <Popover.Positioner>
-                  <Popover.Content w="auto" borderRadius="xl" boxShadow="2xl" overflow="hidden" border="none">
-                    <FontExplorer 
-                      currentFamily={(overrides['--fontFamilyBase'] as string) || 'Inter, sans-serif'} 
-                      onSelect={handleFontSelect} 
+                  {/* GROUP 3: TYPOGRAPHY (Scale + Font) */}
+                  <HStack gap={4}>
+                    <TypeScaleSelector 
+                      activeRatio={Number(overrides['--typographyConfigScaleRatio']) || 1.25}
+                      onSelect={(val) => updateOverride({ '--typographyConfigScaleRatio': val }, 'Changed Type Scale')}
                     />
-                  </Popover.Content>
-                </Popover.Positioner>
-              </Portal>
-            </Popover.Root>
-          </HStack>
-
+                    
+                    <Popover.Root positioning={{ placement: 'top', gutter: 12 }} lazyMount unmountOnExit>
+                      <Popover.Trigger asChild>
+                        <Button size="xs" variant="outline" borderRadius="full" px={4}>
+                          <Text fontSize="10px" fontWeight="bold" color="blue.600">
+                            {((overrides['--fontFamilyBase'] as string) || 'Inter').split(',')[0].replace(/['"]/g, '')}
+                          </Text>
+                        </Button>
+                      </Popover.Trigger>
+                      <Portal>
+                        <Popover.Positioner>
+                          <Popover.Content w="auto" borderRadius="xl" boxShadow="2xl" overflow="hidden" border="none">
+                            <FontExplorer 
+                              currentFamily={(overrides['--fontFamilyBase'] as string) || 'Inter, sans-serif'} 
+                              onSelect={handleFontSelect} 
+                            />
+                          </Popover.Content>
+                        </Popover.Positioner>
+                      </Portal>
+                    </Popover.Root>
+                  </HStack>
           <Box w="1px" h="24px" bg="gray.200" />
 
           {/* GROUP 4: VALIDATION */}

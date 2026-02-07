@@ -1,8 +1,9 @@
 import { 
   Box, VStack, HStack, Input, Text, 
-  Heading, SimpleGrid, Button, Badge
+  Heading, SimpleGrid, Button, Badge, BoxProps
 } from "@chakra-ui/react";
 import { useState, useMemo } from 'react';
+import { LuCheckCircle } from "react-icons/lu";
 import fonts from '../../../data/google-fonts.json';
 
 interface GoogleFont {
@@ -173,44 +174,58 @@ interface FontCardProps {
 
 const FontCard = ({ font, previewText, isSelected, onClick, onMouseEnter }: FontCardProps) => (
   <Box 
-    p={3}
-    borderRadius="lg"
+    p={4}
+    borderRadius="xl"
     cursor="pointer"
-    border="1px solid"
-    borderColor={isSelected ? "blue.200" : "gray.100"}
-    bg={isSelected ? "blue.50/50" : "white"}
-    _hover={{ bg: isSelected ? "blue.50" : "gray.50", transform: "translateY(-1px)", boxShadow: "sm" }}
+    border="2px solid"
+    borderColor={isSelected ? "blue.500" : "gray.100"}
+    bg={isSelected ? "blue.50/30" : "white"}
+    _hover={{ borderColor: isSelected ? "blue.500" : "blue.200", transform: "translateY(-2px)", boxShadow: "md" }}
     transition="all 0.2s"
     onClick={onClick}
     onMouseEnter={onMouseEnter}
     position="relative"
     overflow="hidden"
   >
-    <VStack align="start" gap={2}>
-      <HStack justify="space-between" w="full">
-        <Text fontSize="9px" fontWeight="bold" color="gray.400" textTransform="uppercase">
+    {/* Selection Overlay */}
+    {isSelected && (
+      <Box position="absolute" top={2} right={2} color="blue.500">
+        <LuCheckCircle size={18} fill="white" />
+      </Box>
+    )}
+
+    <VStack align="start" gap={3}>
+      <VStack align="start" gap={0.5} w="full">
+        <Text fontSize="10px" fontWeight="bold" color="gray.400" textTransform="uppercase" letterSpacing="wider">
           {font.category.split('-')[0]}
         </Text>
-        <Text fontSize="9px" color="gray.300" fontWeight="medium">{font.family}</Text>
-      </HStack>
+        <Text 
+          style={{ fontFamily: `"${font.family}", sans-serif` }} 
+          fontSize="xl" 
+          fontWeight="bold"
+          lineClamp={1}
+          color={isSelected ? "blue.700" : "gray.800"}
+          title={font.family}
+        >
+          {font.family}
+        </Text>
+      </VStack>
+      
+      <Box h="1px" w="full" bg="gray.100" opacity={0.5} />
+
       <Text 
         style={{ fontFamily: `"${font.family}", sans-serif` }} 
-        fontSize="md" 
+        fontSize="xs" 
+        color="gray.500"
         lineClamp={1}
-        title={font.family}
       >
-        {previewText || font.family}
+        {previewText}
       </Text>
     </VStack>
   </Box>
 );
 
-interface CenterProps {
-  children: React.ReactNode;
-  [key: string]: any;
-}
-
-const Center = ({ children, ...props }: CenterProps) => (
+const Center = ({ children, ...props }: { children: React.ReactNode } & BoxProps) => (
   <Box display="flex" alignItems="center" justifyContent="center" {...props}>
     {children}
   </Box>
