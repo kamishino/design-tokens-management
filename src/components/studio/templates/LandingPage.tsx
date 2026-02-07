@@ -51,14 +51,25 @@ export const LandingPage = ({ data }: { data: StudioMockData }) => {
       </Box>
 
       {/* 2. Hero Section */}
-      <Box pt={24} pb={32} position="relative" overflow="hidden">
+      <Box 
+        pt={24} pb={32} position="relative" overflow="hidden"
+        data-tokens="bg.canvas"
+        data-inspect="Hero Container"
+      >
         <Box 
           position="absolute" top="-10%" right="-5%" w="600px" h="600px"
           bg="var(--brandPrimary)" opacity={0.05} filter="blur(100px)" borderRadius="full"
+          data-tokens="brand.primary"
+          data-inspect="Hero Glow Effect"
         />
         <Container maxW="container.xl">
           <VStack gap={10} align="center" textAlign="center">
-            <Badge variant="subtle" colorPalette="blue" borderRadius="full" px={4} py={1} textTransform="uppercase" letterSpacing="widest" fontSize="10px" fontWeight="bold">
+            <Badge 
+              variant="subtle" colorPalette="blue" borderRadius="full" px={4} py={1} 
+              textTransform="uppercase" letterSpacing="widest" fontSize="10px" fontWeight="bold"
+              data-tokens="brand.secondary"
+              data-inspect="Tagline Badge"
+            >
               {data.brand.tagline}
             </Badge>
             <Heading 
@@ -68,10 +79,16 @@ export const LandingPage = ({ data }: { data: StudioMockData }) => {
               lineHeight="1.1"
               maxW="4xl"
               letterSpacing="tight"
+              data-tokens="text.primary,fontFamily.base"
+              data-inspect="Main Heading"
             >
-              {data.brand.heroTitle} <Box as="span" color="var(--brandPrimary)">Simplified.</Box>
+              {data.brand.heroTitle} <Box as="span" color="var(--brandPrimary)" data-tokens="brand.primary" data-inspect="Heading Highlight">Simplified.</Box>
             </Heading>
-            <Text fontSize="var(--fontSizeScale1)" color="gray.600" maxW="2xl" lineHeight="tall">
+            <Text 
+              fontSize="var(--fontSizeScale1)" color="gray.600" maxW="2xl" lineHeight="tall"
+              data-tokens="text.secondary,fontFamily.base"
+              data-inspect="Subheading"
+            >
               {data.brand.heroDesc}
             </Text>
             <HStack gap={4}>
@@ -80,6 +97,8 @@ export const LandingPage = ({ data }: { data: StudioMockData }) => {
                 borderRadius="var(--radius3)" boxShadow="0 20px 40px -10px var(--brandPrimary)"
                 _hover={{ transform: "translateY(-2px)", opacity: 0.9 }}
                 transition="all 0.2s"
+                data-tokens="brand.primary,text.inverse"
+                data-inspect="Primary CTA"
               >
                 Start Building <LuChevronRight />
               </Button>
