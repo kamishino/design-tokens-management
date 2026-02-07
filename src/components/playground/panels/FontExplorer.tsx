@@ -1,10 +1,10 @@
 import { 
   Box, VStack, HStack, Input, Text, 
-  Heading, SimpleGrid, Button, Badge
+  Heading, SimpleGrid, Button, Badge, Circle
 } from "@chakra-ui/react";
 import type { BoxProps } from "@chakra-ui/react";
 import { useState, useMemo } from 'react';
-import { LuCheckCircle } from "react-icons/lu";
+import { LuCheck } from "react-icons/lu";
 import fonts from '../../../data/google-fonts.json';
 
 interface GoogleFont {
@@ -190,8 +190,10 @@ const FontCard = ({ font, previewText, isSelected, onClick, onMouseEnter }: Font
   >
     {/* Selection Overlay */}
     {isSelected && (
-      <Box position="absolute" top={2} right={2} color="blue.500">
-        <LuCheckCircle size={18} fill="white" />
+      <Box position="absolute" top={2} right={2}>
+        <Circle size="20px" bg="blue.500" color="white">
+          <LuCheck size={12} />
+        </Circle>
       </Box>
     )}
 
