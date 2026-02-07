@@ -1,22 +1,46 @@
 import { 
   Box, VStack, HStack, Input, Text, 
-  Heading
+  Heading, SimpleGrid, Button, Badge
 } from "@chakra-ui/react";
 import { useState, useMemo } from 'react';
 import fonts from '../../../data/google-fonts.json';
+
+interface GoogleFont {
+  family: string;
+  category: string;
+}
 
 interface FontExplorerProps {
   onSelect: (family: string) => void;
   currentFamily: string;
 }
 
+const CATEGORIES = [
+  { id: 'all', label: 'All' },
+  { id: 'sans-serif', label: 'Sans' },
+  { id: 'serif', label: 'Serif' },
+  { id: 'monospace', label: 'Mono' },
+  { id: 'display', label: 'Display' },
+  { id: 'handwriting', label: 'Script' }
+];
+
 export const FontExplorer = ({ onSelect, currentFamily }: FontExplorerProps) => {
   const [search, setSearch] = useState('');
   const [previewText, setPreviewText] = useState('Design Tokens');
+  const [category, setCategory] = useState('all');
+  const [recentFonts, setRecentFonts] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return [];
+    const saved = localStorage.getItem('kami_recent_fonts');
+    return saved ? JSON.parse(saved) : [];
+  });
 
   const filteredFonts = useMemo(() => {
-    return fonts.filter(f => f.family.toLowerCase().includes(search.toLowerCase()));
-  }, [search]);
+    return (fonts as GoogleFont[]).filter(f => {
+      const matchesSearch = f.family.toLowerCase().includes(search.toLowerCase());
+      const matchesCategory = category === 'all' || f.category === category;
+      return matchesSearch && matchesCategory;
+    });
+  }, [search, category]);
 
   const loadGoogleFont = (family: string) => {
     const linkId = `google-font-${family.replace(/\s+/g, '-').toLowerCase()}`;
@@ -29,17 +53,48 @@ export const FontExplorer = ({ onSelect, currentFamily }: FontExplorerProps) => 
     }
   };
 
+  const handleSelect = (family: string) => {
+    loadGoogleFont(family);
+    onSelect(family);
+    setRecentFonts(prev => {
+      const next = [family, ...prev.filter(f => f !== family)].slice(0, 5);
+      localStorage.setItem('kami_recent_fonts', JSON.stringify(next));
+      return next;
+    });
+  };
+
   return (
-    <VStack p={4} gap={4} align="stretch" w="400px" maxH="500px" bg="white">
-      <Heading size="xs" textTransform="uppercase" color="gray.500">Font Explorer</Heading>
+    <VStack p={4} gap={4} align="stretch" w="500px" maxH="600px" bg="white">
+      <HStack justify="space-between">
+        <Heading size="xs" textTransform="uppercase" color="gray.500">Typography Gallery</Heading>
+        <Badge variant="subtle" colorPalette="blue" size="xs">Google Fonts</Badge>
+      </HStack>
       
-      <Input 
-        placeholder="Search fonts..." 
-        size="sm" 
-        value={search} 
-        onChange={(e) => setSearch(e.target.value)} 
-        bg="gray.50"
-      />
+      <VStack gap={2} align="stretch">
+        <Input 
+          placeholder="Search fonts..." 
+          size="sm" 
+          value={search} 
+          onChange={(e) => setSearch(e.target.value)} 
+          bg="gray.50"
+          borderRadius="md"
+        />
+        <HStack gap={1} overflowX="auto" pb={1} sx={{ '&::-webkit-scrollbar': { display: 'none' } }}>
+          {CATEGORIES.map(cat => (
+            <Button 
+              key={cat.id} 
+              size="xs" 
+              variant={category === cat.id ? "solid" : "ghost"}
+              colorPalette={category === cat.id ? "blue" : "gray"}
+              onClick={() => setCategory(cat.id)}
+              borderRadius="full"
+              flexShrink={0}
+            >
+              {cat.label}
+            </Button>
+          ))}
+        </HStack>
+      </VStack>
 
       <Input 
         placeholder="Preview text..." 
@@ -47,40 +102,116 @@ export const FontExplorer = ({ onSelect, currentFamily }: FontExplorerProps) => 
         value={previewText} 
         onChange={(e) => setPreviewText(e.target.value)} 
         bg="gray.50"
+        borderRadius="md"
       />
 
-      <Box overflowY="auto" flex={1}>
-        <VStack align="stretch" gap={1}>
-          {filteredFonts.map((font) => {
-            const isSelected = currentFamily.includes(font.family);
-            return (
-              <Box 
-                key={font.family}
-                p={3}
-                borderRadius="md"
-                cursor="pointer"
-                bg={isSelected ? "blue.50" : "transparent"}
-                _hover={{ bg: "gray.50" }}
-                onClick={() => {
-                  loadGoogleFont(font.family);
-                  onSelect(font.family);
-                }}
-                onMouseEnter={() => loadGoogleFont(font.family)}
-              >
-                <HStack justify="space-between">
-                  <VStack align="start" gap={0}>
-                    <Text fontSize="xs" color="gray.400">{font.category}</Text>
-                    <Text style={{ fontFamily: `"${font.family}", sans-serif` }} fontSize="lg">
-                      {previewText || font.family}
-                    </Text>
-                  </VStack>
-                  <Text fontSize="2xs" color="gray.300">{font.family}</Text>
-                </HStack>
-              </Box>
-            );
-          })}
+      <Box overflowY="auto" flex={1} px={1}>
+        <VStack align="stretch" gap={6}>
+          {/* Recent Fonts Section */}
+          {recentFonts.length > 0 && !search && category === 'all' && (
+            <VStack align="stretch" gap={3}>
+              <Text fontSize="10px" fontWeight="bold" color="gray.400" textTransform="uppercase" letterSpacing="wider">
+                Recently Used
+              </Text>
+              <SimpleGrid columns={2} gap={3}>
+                {recentFonts.map(family => {
+                  const font = (fonts as GoogleFont[]).find(f => f.family === family);
+                  if (!font) return null;
+                  const isSelected = currentFamily.includes(family);
+                  return (
+                    <FontCard 
+                      key={`recent-${family}`}
+                      font={font}
+                      previewText={previewText}
+                      isSelected={isSelected}
+                      onClick={() => handleSelect(family)}
+                      onMouseEnter={() => loadGoogleFont(family)}
+                    />
+                  );
+                })}
+              </SimpleGrid>
+              <Box h="1px" bg="gray.100" my={2} />
+            </VStack>
+          )}
+
+          <VStack align="stretch" gap={3}>
+            {filteredFonts.length > 0 ? (
+              <SimpleGrid columns={2} gap={3}>
+                {filteredFonts.map((font) => {
+                  const isSelected = currentFamily.includes(font.family);
+                  return (
+                    <FontCard 
+                      key={font.family}
+                      font={font}
+                      previewText={previewText}
+                      isSelected={isSelected}
+                      onClick={() => handleSelect(font.family)}
+                      onMouseEnter={() => loadGoogleFont(font.family)}
+                    />
+                  );
+                })}
+              </SimpleGrid>
+            ) : (
+              <Center p={8}>
+                <Text fontSize="xs" color="gray.400">No fonts found matching your search.</Text>
+              </Center>
+            )}
+          </VStack>
         </VStack>
       </Box>
     </VStack>
   );
 };
+
+interface FontCardProps {
+  font: GoogleFont;
+  previewText: string;
+  isSelected: boolean;
+  onClick: () => void;
+  onMouseEnter: () => void;
+}
+
+const FontCard = ({ font, previewText, isSelected, onClick, onMouseEnter }: FontCardProps) => (
+  <Box 
+    p={3}
+    borderRadius="lg"
+    cursor="pointer"
+    border="1px solid"
+    borderColor={isSelected ? "blue.200" : "gray.100"}
+    bg={isSelected ? "blue.50/50" : "white"}
+    _hover={{ bg: isSelected ? "blue.50" : "gray.50", transform: "translateY(-1px)", boxShadow: "sm" }}
+    transition="all 0.2s"
+    onClick={onClick}
+    onMouseEnter={onMouseEnter}
+    position="relative"
+    overflow="hidden"
+  >
+    <VStack align="start" gap={2}>
+      <HStack justify="space-between" w="full">
+        <Text fontSize="9px" fontWeight="bold" color="gray.400" textTransform="uppercase">
+          {font.category.split('-')[0]}
+        </Text>
+        <Text fontSize="9px" color="gray.300" fontWeight="medium">{font.family}</Text>
+      </HStack>
+      <Text 
+        style={{ fontFamily: `"${font.family}", sans-serif` }} 
+        fontSize="md" 
+        lineClamp={1}
+        title={font.family}
+      >
+        {previewText || font.family}
+      </Text>
+    </VStack>
+  </Box>
+);
+
+interface CenterProps {
+  children: React.ReactNode;
+  [key: string]: any;
+}
+
+const Center = ({ children, ...props }: CenterProps) => (
+  <Box display="flex" alignItems="center" justifyContent="center" {...props}>
+    {children}
+  </Box>
+);
