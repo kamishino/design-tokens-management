@@ -93,38 +93,42 @@ export const FloatingLab = ({
   };
 
   return (
-    <VStack gap={0} alignItems="center">
-      {/* Inspector Banner */}
-      {filteredIds && (
-        <HStack 
-          bg="blue.600" px={4} py={1.5} borderRadius="t-lg" w="100%"
-          justifyContent="space-between" boxShadow="md" mb="-1px" zIndex={1001}
-        >
-          <HStack gap={2}>
-            <LuScanEye size={14} color="white" />
-            <Text fontSize="xs" fontWeight="bold" color="white">
-              Inspecting {filteredIds.length} tokens
-            </Text>
-          </HStack>
-          <IconButton 
-            aria-label="Clear Filter" 
-            size="xs" variant="ghost" colorPalette="whiteAlpha"
-            onClick={onClearFilter} h="18px" minW="18px"
-          >
-            <LuX size={12} />
-          </IconButton>
-        </HStack>
-      )}
-
-      <Box 
-        position="relative" 
-        zIndex={1000} bg="rgba(255, 255, 255, 0.9)" backdropFilter="blur(15px)"
-        p={2} px={6} 
-        borderRadius={filteredIds ? "b-2xl" : "full"} // Square top if banner present
-        boxShadow="2xl" border="1px solid" borderColor="gray.200"
-        w="fit-content" maxW="95vw"
+    <Portal>
+      <VStack 
+        position="fixed" bottom="8" left="50%" transform="translateX(-50%)"
+        zIndex={3000} gap={0} alignItems="center" w="fit-content"
       >
-        <HStack gap={4} h="52px">
+        {/* Inspector Banner */}
+        {filteredIds && (
+          <HStack 
+            bg="blue.600" px={4} py={1.5} borderRadius="t-lg" w="100%"
+            justifyContent="space-between" boxShadow="md" mb="-1px" zIndex={1001}
+          >
+            <HStack gap={2}>
+              <LuScanEye size={14} color="white" />
+              <Text fontSize="xs" fontWeight="bold" color="white">
+                Inspecting {filteredIds.length} tokens
+              </Text>
+            </HStack>
+            <IconButton 
+              aria-label="Clear Filter" 
+              size="xs" variant="ghost" colorPalette="whiteAlpha"
+              onClick={onClearFilter} h="18px" minW="18px"
+            >
+              <LuX size={12} />
+            </IconButton>
+          </HStack>
+        )}
+
+        <Box 
+          position="relative" 
+          zIndex={1000} bg="rgba(255, 255, 255, 0.9)" backdropFilter="blur(15px)"
+          p={2} px={6} 
+          borderRadius={filteredIds ? "b-2xl" : "full"} // Square top if banner present
+          boxShadow="2xl" border="1px solid" borderColor="gray.200"
+          w="fit-content" maxW="95vw"
+        >
+          <HStack gap={4} h="52px">
           {/* ... existing content ... */}
           {/* GROUP 1: HISTORY */}
           <HStack gap={1} bg="gray.50" p={1} borderRadius="full">
@@ -236,5 +240,6 @@ export const FloatingLab = ({
         </HStack>
       </Box>
     </VStack>
+    </Portal>
   );
 };

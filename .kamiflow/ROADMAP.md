@@ -9,6 +9,7 @@
 
 _This section highlights the business value extracted from completed tasks._
 
+- ✅ **2026-02-07 Task 089:** portal-floating-lab - Restored the Floating Lab's functionality by moving it into a React Portal, ensuring it remains fixed to the viewport regardless of parent container styles.
 - ✅ **2026-02-07 Task 088:** studio-inspector-mode - Transformed the Design Studio into an interactive "Playground V2" with point-and-click inspection, enabling designers to tweak tokens directly from high-fidelity templates.
 - ✅ **2026-02-07 Task 087:** ghost-token-fallback-resolution - Implemented smart resolution logic that ignores "ghost tokens" (empty placeholders) in override files, ensuring fallback to valid global definitions.
 - ✅ **2026-02-07 Task 086:** robust-token-resolution-ui-guard - Hardened token resolution logic to drill down to terminal values even through shadowing, and added strict UI guards to prevent invalid CSS.

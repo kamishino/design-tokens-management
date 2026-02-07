@@ -11,9 +11,9 @@
 
 > **INTEGRATOR RULE:** Always update all 4 fields (Phase, Last Action, Focus, Next Step) during `/kamiflow:ops:sync`.
 
-- **Last Completed Action:** Implemented Studio Inspector Mode (Playground V2) (Task 088)
+- **Last Completed Action:** Implemented Portal-based Floating Lab (Task 089)
 - **Current Focus:** Distribution & Versioning
-- **Next Step:** Task 089 - Implement automated versioning and NPM distribution pipeline
+- **Next Step:** Task 090 - Implement automated versioning and NPM distribution pipeline
 
 ## 3. Knowledge Map (Directory Guide)
 
