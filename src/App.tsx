@@ -23,11 +23,6 @@ function App() {
     return saved ? JSON.parse(saved) : [];
   });
 
-  const [showLab, setShowLab] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    return localStorage.getItem('kami_explorer_lab_visible') === 'true';
-  });
-
   const { 
     overrides, updateOverride, undo, redo, canUndo, canRedo, resetOverrides 
   } = usePersistentPlayground();
@@ -44,10 +39,6 @@ function App() {
       });
     }
   };
-
-  useEffect(() => {
-    localStorage.setItem('kami_explorer_lab_visible', String(showLab));
-  }, [showLab]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -91,9 +82,6 @@ function App() {
           onEnterStudio={() => setViewMode('studio')}
           overrides={overrides}
           updateOverride={updateOverride}
-          resetOverrides={resetOverrides}
-          showLab={showLab}
-          onToggleLab={() => setShowLab(!showLab)}
         />
       )}
 
@@ -125,6 +113,8 @@ function App() {
           projectId={manifest?.projects[selectedProject]?.project || ''} 
           overrides={overrides}
           updateOverride={updateOverride}
+          onReset={resetOverrides} // Passed to Lab
+          hasOverrides={Object.keys(overrides).length > 0} // Passed to Lab
           undo={undo}
           redo={redo}
           canUndo={canUndo}

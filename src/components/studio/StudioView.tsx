@@ -35,8 +35,8 @@ const templates = createListCollection({
 })
 
 export const StudioView = ({ 
-  manifest, selectedProject, onProjectChange, onExit, onOpenDocs, onInspectChange 
-}: StudioViewProps) => {
+  manifest, selectedProject, onProjectChange, onExit, onInspectChange 
+}: Omit<StudioViewProps, 'onOpenDocs'>) => {
   const [template, setTemplate] = useState('landing');
   const [refreshKey, setRefreshKey] = useState(0);
   const [isInspectMode, setIsInspectMode] = useState(false);
@@ -206,9 +206,6 @@ export const StudioView = ({
             {isInspectMode ? "Exit Inspect" : "Inspect Mode"}
           </Button>
 
-          <Button size="xs" variant="solid" colorScheme="blue" onClick={onOpenDocs}>
-            View Documentation 📚
-          </Button>
           <Button size="xs" variant="outline" onClick={onExit}>
             Exit Studio
           </Button>

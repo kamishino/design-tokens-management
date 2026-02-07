@@ -9,7 +9,7 @@ import { groupTokensByFile } from '../utils/token-grouping';
 import { ToCOutline } from './explorer/ToCOutline';
 import { 
   LuSearch, LuX, LuDatabase, LuLayers, 
-  LuArrowRight, LuCopy, LuCheck, LuFlaskConical,
+  LuArrowRight, LuCopy, LuCheck,
   LuEye, LuLayoutDashboard, LuPlus
 } from "react-icons/lu";
 import { Button } from "./ui/button";
@@ -27,9 +27,6 @@ interface TokenViewerProps {
   onEnterStudio: () => void;
   overrides: TokenOverrides;
   updateOverride: (newValues: Record<string, string | number>, label?: string) => void;
-  resetOverrides: () => void;
-  showLab: boolean;
-  onToggleLab: () => void;
 }
 
 /**
@@ -159,7 +156,7 @@ const MasterSection = ({
 
 export const TokenViewer = ({
   manifest, selectedProject, onProjectChange, onEnterStudio,
-  overrides, resetOverrides, showLab, onToggleLab
+  overrides
 }: TokenViewerProps) => {
 
   const { globalTokens, loading } = useGlobalTokens();
@@ -339,32 +336,9 @@ export const TokenViewer = ({
             </Box>
 
             <HStack gap={3}>
-              <IconButton
-                aria-label="Toggle Laboratory"
-                variant={showLab ? "subtle" : "ghost"}
-                colorPalette={showLab ? "blue" : "gray"}
-                size="sm"
-                onClick={onToggleLab}
-                title="Toggle Design Laboratory"
-              >
-                <LuFlaskConical />
-              </IconButton>
               <Button colorScheme="blue" size="sm" borderRadius="full" px={5} onClick={onEnterStudio}>
                 Studio 🚀
               </Button>
-              <Box w="1px" h="20px" bg="gray.200" />
-              <HStack gap={1}>
-                <Button
-                  colorScheme="red"
-                  variant="ghost"
-                  size="sm"
-                  onClick={resetOverrides}
-                  disabled={!hasOverrides}
-                  fontSize="xs"
-                >
-                  Reset
-                </Button>
-              </HStack>
             </HStack>
           </HStack>
         </Box>
