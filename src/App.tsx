@@ -2,6 +2,12 @@ import { useState, useEffect } from 'react'
 import { Box, Spinner, Center } from "@chakra-ui/react"
 import type { Manifest } from './schemas/manifest'
 import { TokenViewer } from "./components/TokenViewer"
+import { StudioView } from "./components/studio/StudioView"
+import { DocsPortal } from "./components/docs/DocsPortal"
+import { useTokenLoader } from './hooks/useTokenLoader'
+import { usePersistentPlayground } from './hooks/usePersistentPlayground'
+import { FloatingLab } from './components/playground/FloatingLab'
+import { useGlobalTokens } from './hooks/useGlobalTokens'
 
 type ViewMode = 'explorer' | 'studio' | 'docs';
 
