@@ -11,9 +11,9 @@
 
 > **INTEGRATOR RULE:** Always update all 4 fields (Phase, Last Action, Focus, Next Step) during `/kamiflow:ops:sync`.
 
-- **Last Completed Action:** Stabilized sidebar action menu via portalling (Task 083)
+- **Last Completed Action:** Fixed reference swatch display and type propagation (Task 084)
 - **Current Focus:** Distribution & Versioning
-- **Next Step:** Task 084 - Implement automated versioning and NPM distribution pipeline
+- **Next Step:** Task 085 - Implement automated versioning and NPM distribution pipeline
 
 ## 3. Knowledge Map (Directory Guide)
 

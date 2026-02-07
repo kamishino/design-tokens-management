@@ -47,7 +47,36 @@ export const enrichTokensWithLineage = (tokens: TokenDoc[]): TokenDoc[] => {
     }
   });
 
+  // 5. Propagate types from parents to children if type is unknown
+  tokens.forEach(token => {
+    const enrichedToken = idMap.get(token.id);
+    if (enrichedToken && (enrichedToken.type === 'unknown' || !enrichedToken.type)) {
+      enrichedToken.type = resolveTerminalType(enrichedToken, nameMap);
+    }
+  });
+
   return Array.from(idMap.values());
+};
+
+/**
+ * Recursively resolves the terminal type of a token reference chain.
+ */
+export const resolveTerminalType = (token: TokenDoc, nameMap: Map<string, TokenDoc>, depth = 0): string => {
+  if (depth > 10 || token.references.length === 0) {
+    return token.type || 'unknown';
+  }
+
+  const firstRefName = token.references[0];
+  const parent = nameMap.get(firstRefName);
+
+  if (parent) {
+    // If parent has a valid type, return it
+    if (parent.type && parent.type !== 'unknown') return parent.type;
+    // Otherwise recurse
+    return resolveTerminalType(parent, nameMap, depth + 1);
+  }
+
+  return token.type || 'unknown';
 };
 
 /**
@@ -63,7 +92,10 @@ export const resolveTerminalValue = (token: TokenDoc, nameMap: Map<string, Token
   const parent = nameMap.get(firstRefName);
 
   if (parent) {
-    return resolveTerminalValue(parent, nameMap, depth + 1);
+    const result = resolveTerminalValue(parent, nameMap, depth + 1);
+    // If we resolved to another reference string instead of a literal value, 
+    // it means the chain is broken or incomplete in the map.
+    return result;
   }
 
   return token.value;

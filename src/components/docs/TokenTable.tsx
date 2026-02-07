@@ -42,9 +42,17 @@ interface TokenRowProps {
   onDelete?: (token: TokenDoc) => void;
 }
 
+const isColorValue = (val: any): boolean => {
+  if (typeof val !== 'string') return false;
+  return /^(#|rgba?\(|hsla?\(|oklch\(|oklch\()/.test(val);
+};
+
 const TokenRow = memo(({ 
   id, token, onHover, showSource, editMode, onEdit, onDelete 
 }: TokenRowProps) => {
+  const displayColor = token.resolvedValue || token.value;
+  const shouldShowSwatch = token.type === "color" || isColorValue(displayColor);
+
   return (
     <Table.Row
       id={id || `token-${token.id}`}
@@ -60,12 +68,12 @@ const TokenRow = memo(({
     >
       <Table.Cell>
         <HStack gap={3} overflow="hidden">
-          {token.type === "color" && (
+          {shouldShowSwatch && (
             <Box
               minW="24px"
               w="24px"
               h="24px"
-              bg={token.resolvedValue || token.value}
+              bg={displayColor}
               borderRadius="sm"
               border="1px solid rgba(0,0,0,0.1)"
               flexShrink={0}

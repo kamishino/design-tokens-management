@@ -9,6 +9,7 @@
 
 _This section highlights the business value extracted from completed tasks._
 
+- ✅ **2026-02-07 Task 084:** fix-reference-swatch-display - Fixed missing color swatches for Alias tokens by implementing type propagation in the Token Graph and deepening reference resolution.
 - ✅ **2026-02-06 Task 083:** stabilize-sidebar-menu - Stabilized the sidebar action menu by migrating to portalled UI components, resolving container clipping and anchor drift during scroll.
 - ✅ **2026-02-06 Task 082:** state-based-hover-fix - Eliminated the 'Ghost Hover' bug in Chrome by implementing deterministic React state tracking for sidebar interactions, ensuring 100% reliable background and action menu visibility.
 - ✅ **2026-02-06 Task 063:** canonical-identity-fix - Resolved React key collisions and enabled unambiguous token management by implementing a globally unique composite ID format ([sourceFile]:[tokenPath]).
