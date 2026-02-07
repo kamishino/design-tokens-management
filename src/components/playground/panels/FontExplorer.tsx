@@ -61,6 +61,10 @@ export const FontExplorer = ({
 
   const effectiveCategory = activeRole === 'code' ? 'monospace' : category;
 
+  const primarySelected = useMemo(() => {
+    return currentFamily.split(',')[0].replace(/['"]/g, '').trim();
+  }, [currentFamily]);
+
   const filteredFonts = useMemo(() => {
     return (fonts as GoogleFont[]).filter(f => {
       const matchesSearch = f.family.toLowerCase().includes(search.toLowerCase());
@@ -168,7 +172,7 @@ export const FontExplorer = ({
                 {recentFonts.map(family => {
                   const font = (fonts as GoogleFont[]).find(f => f.family === family);
                   if (!font) return null;
-                  const isSelected = currentFamily.includes(family);
+                  const isSelected = family === primarySelected;
                   return (
                     <FontCard 
                       key={`recent-${family}`}
@@ -189,7 +193,7 @@ export const FontExplorer = ({
             {filteredFonts.length > 0 ? (
               <SimpleGrid columns={2} gap={3}>
                 {filteredFonts.map((font) => {
-                  const isSelected = currentFamily.includes(font.family);
+                  const isSelected = font.family === primarySelected;
                   return (
                     <FontCard 
                       key={font.family}
