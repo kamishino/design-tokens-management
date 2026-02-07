@@ -34,16 +34,16 @@ function App() {
 
   const { globalTokens } = useGlobalTokens();
 
-  // Track Recent Projects
-  useEffect(() => {
-    if (selectedProject) {
+  const handleProjectChange = (key: string) => {
+    setSelectedProject(key);
+    if (key) {
       setRecentProjects(prev => {
-        const next = [selectedProject, ...prev.filter(p => p !== selectedProject)].slice(0, 3);
+        const next = [key, ...prev.filter(p => p !== key)].slice(0, 3);
         localStorage.setItem('kami_recent_projects', JSON.stringify(next));
         return next;
       });
     }
-  }, [selectedProject]);
+  };
 
   useEffect(() => {
     localStorage.setItem('kami_explorer_lab_visible', String(showLab));
@@ -87,9 +87,7 @@ function App() {
         <TokenViewer 
           manifest={manifest!}
           selectedProject={selectedProject}
-          onProjectChange={(val) => {
-            setSelectedProject(val);
-          }}
+          onProjectChange={handleProjectChange}
           onEnterStudio={() => setViewMode('studio')}
           overrides={overrides}
           updateOverride={updateOverride}
@@ -103,7 +101,7 @@ function App() {
         <StudioView 
           manifest={manifest}
           selectedProject={selectedProject}
-          onProjectChange={setSelectedProject}
+          onProjectChange={handleProjectChange}
           onExit={() => {
             setViewMode('explorer');
             setInspectedTokens(undefined);
@@ -122,7 +120,7 @@ function App() {
         <FloatingLab 
           manifest={manifest}
           recentProjects={recentProjects}
-          onProjectSelect={setSelectedProject}
+          onProjectSelect={handleProjectChange}
           clientId={manifest?.projects[selectedProject]?.client || ''} 
           projectId={manifest?.projects[selectedProject]?.project || ''} 
           overrides={overrides}

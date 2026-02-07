@@ -1,6 +1,6 @@
 import { 
   Box, HStack, Button, Text, Heading, 
-  createListCollection, IconButton 
+  createListCollection 
 } from "@chakra-ui/react";
 import { useState, useMemo, useEffect } from 'react';
 import { LandingPage } from './templates/LandingPage';
@@ -14,26 +14,7 @@ import {
   SelectValueText,
 } from "../ui/select";
 import { generateStudioMockData } from './templates/shared/mock-data';
-import { LuScanEye, LuX } from "react-icons/lu";
-import { FloatingLab } from "../playground/FloatingLab";
-
-import { 
-  Box, HStack, Button, Text, Heading, 
-  createListCollection, IconButton 
-} from "@chakra-ui/react";
-import { useState, useMemo, useEffect } from 'react';
-import { LandingPage } from './templates/LandingPage';
-import { Dashboard } from './templates/Dashboard';
-import { ProductDetail } from './templates/ProductDetail';
-import { AppSelectRoot } from "../ui/AppSelect";
-import {
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValueText,
-} from "../ui/select";
-import { generateStudioMockData } from './templates/shared/mock-data';
-import { LuScanEye, LuX, LuInfo } from "react-icons/lu";
+import { LuScanEye, LuInfo } from "react-icons/lu";
 import type { Manifest } from "../../schemas/manifest";
 
 interface StudioViewProps {
@@ -72,17 +53,17 @@ export const StudioView = ({
     });
   }, [manifest]);
 
-  // Generate new mock data whenever refreshKey or template changes
-  const mockData = useMemo(() => generateStudioMockData(), [refreshKey]);
+  // Generate new mock data whenever refreshKey changes
+  const mockData = useMemo(() => {
+    // We use refreshKey as a dependency to force re-generation
+    return generateStudioMockData();
+  }, [refreshKey]);
 
   const handleRefresh = () => setRefreshKey(prev => prev + 1);
 
   // Inspector Logic
   useEffect(() => {
-    if (!isInspectMode) {
-      setHoveredRect(null);
-      return;
-    }
+    if (!isInspectMode) return;
 
     const handleMouseMove = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
@@ -124,6 +105,7 @@ export const StudioView = ({
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('click', handleClick, true);
+      setHoveredRect(null); // Clean up outline when mode exits or component unmounts
     };
   }, [isInspectMode, onInspectChange]);
 

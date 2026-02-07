@@ -2,10 +2,58 @@ import { Box, VStack, Text, Link, HStack } from "@chakra-ui/react";
 import { useMemo, useEffect, useState, useRef } from "react";
 import { LuLayers, LuDatabase } from "react-icons/lu";
 import type { FileCategory } from "../../utils/token-grouping";
+import type { IconType } from "react-icons";
 
 interface ToCOutlineProps {
   categories: FileCategory[];
 }
+
+const GroupItem = ({ 
+  title, 
+  icon: Icon, 
+  items, 
+  type, 
+  activeSection, 
+  onScrollTo 
+}: { 
+  title: string, 
+  icon: IconType, 
+  items: FileCategory[], 
+  type: 'semantic' | 'foundation',
+  activeSection: 'semantic' | 'foundation' | null,
+  onScrollTo: (type: 'semantic' | 'foundation', fileId?: string) => void
+}) => (
+  <VStack align="stretch" gap={2} mb={4}>
+    <HStack 
+      gap={2} 
+      cursor="pointer" 
+      onClick={() => onScrollTo(type)}
+      color={activeSection === type ? "blue.600" : "gray.500"}
+      transition="color 0.2s"
+    >
+      <Icon size={14} />
+      <Text fontSize="xs" fontWeight="extrabold" textTransform="uppercase" letterSpacing="wider">
+        {title}
+      </Text>
+    </HStack>
+    <VStack align="stretch" gap={1} pl={4} borderLeft="1px solid" borderColor="gray.100">
+      {items.map(cat => (
+        <Link 
+          key={cat.id}
+          fontSize="11px"
+          color="gray.600"
+          _hover={{ color: "blue.500", textDecoration: "none" }}
+          onClick={() => onScrollTo(type, cat.id)}
+          cursor="pointer"
+          fontWeight={cat.totalCount > 0 ? "medium" : "normal"}
+          opacity={cat.totalCount > 0 ? 1 : 0.4}
+        >
+          {cat.title}
+        </Link>
+      ))}
+    </VStack>
+  </VStack>
+);
 
 export const ToCOutline = ({ categories }: ToCOutlineProps) => {
   const [activeSection, setActiveSection] = useState<'semantic' | 'foundation' | null>(null);
@@ -81,39 +129,6 @@ export const ToCOutline = ({ categories }: ToCOutlineProps) => {
     }
   };
 
-  const GroupItem = ({ title, icon: Icon, items, type }: { title: string, icon: any, items: FileCategory[], type: 'semantic' | 'foundation' }) => (
-    <VStack align="stretch" gap={2} mb={4}>
-      <HStack 
-        gap={2} 
-        cursor="pointer" 
-        onClick={() => scrollTo(type)}
-        color={activeSection === type ? "blue.600" : "gray.500"}
-        transition="color 0.2s"
-      >
-        <Icon size={14} />
-        <Text fontSize="xs" fontWeight="extrabold" textTransform="uppercase" letterSpacing="wider">
-          {title}
-        </Text>
-      </HStack>
-      <VStack align="stretch" gap={1} pl={4} borderLeft="1px solid" borderColor="gray.100">
-        {items.map(cat => (
-          <Link 
-            key={cat.id}
-            fontSize="11px"
-            color="gray.600"
-            _hover={{ color: "blue.500", textDecoration: "none" }}
-            onClick={() => scrollTo(type, cat.id)}
-            cursor="pointer"
-            fontWeight={cat.totalCount > 0 ? "medium" : "normal"}
-            opacity={cat.totalCount > 0 ? 1 : 0.4}
-          >
-            {cat.title}
-          </Link>
-        ))}
-      </VStack>
-    </VStack>
-  );
-
   return (
     <Box 
       position="sticky" 
@@ -132,8 +147,8 @@ export const ToCOutline = ({ categories }: ToCOutlineProps) => {
         Navigation
       </Text>
       
-      <GroupItem title="Semantic" icon={LuLayers} items={semantic} type="semantic" />
-      <GroupItem title="Foundation" icon={LuDatabase} items={foundation} type="foundation" />
+      <GroupItem title="Semantic" icon={LuLayers} items={semantic} type="semantic" activeSection={activeSection} onScrollTo={scrollTo} />
+      <GroupItem title="Foundation" icon={LuDatabase} items={foundation} type="foundation" activeSection={activeSection} onScrollTo={scrollTo} />
     </Box>
   );
 };

@@ -45,7 +45,6 @@ export const FloatingLab = ({
   manifest,
   recentProjects = [],
   onProjectSelect = () => {},
-  clientId = 'default', 
   projectId = '', 
   overrides = {}, 
   updateOverride = () => {}, 
@@ -58,12 +57,15 @@ export const FloatingLab = ({
   onClearFilter
 }: FloatingLabProps) => {
   
-  // ... existing logic ...
+  // Extract values to simple expressions for lint compliance
+  const primaryOverride = overrides['--brandPrimary'] as string;
+  const canvasOverride = overrides['--bgCanvas'] as string;
+
   const mainContrast = useMemo(() => {
-    const fg = (overrides['--brandPrimary'] as string) || '#a0544f';
-    const bg = (overrides['--bgCanvas'] as string) || '#ffffff';
+    const fg = primaryOverride || '#a0544f';
+    const bg = canvasOverride || '#ffffff';
     return getContrastMetrics(fg, bg);
-  }, [overrides['--brandPrimary'], overrides['--bgCanvas']]);
+  }, [primaryOverride, canvasOverride]);
 
   const handleApply = async () => {
     // RAM-only persistence per user request

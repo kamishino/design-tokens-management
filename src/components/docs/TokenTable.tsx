@@ -185,6 +185,19 @@ const TokenRow = memo(({
   );
 });
 
+const SortIcon = ({ 
+  columnKey, 
+  currentKey, 
+  direction 
+}: { 
+  columnKey: SortKey, 
+  currentKey: SortKey, 
+  direction: SortDirection 
+}) => {
+  if (currentKey !== columnKey || !direction) return <LuArrowUpDown size={12} />;
+  return direction === 'asc' ? <LuArrowUp size={12} /> : <LuArrowDown size={12} />;
+};
+
 export const TokenTable = ({ 
   tokens, 
   onHover,
@@ -229,11 +242,6 @@ export const TokenTable = ({
     });
   }, [tokens, sortConfig]);
 
-  const SortIcon = ({ columnKey }: { columnKey: SortKey }) => {
-    if (sortConfig.key !== columnKey || !sortConfig.direction) return <LuArrowUpDown size={12} />;
-    return sortConfig.direction === 'asc' ? <LuArrowUp size={12} /> : <LuArrowDown size={12} />;
-  };
-
   return (
     <Box
       borderWidth="1px"
@@ -248,13 +256,13 @@ export const TokenTable = ({
             <Table.ColumnHeader w="30%" cursor="pointer" onClick={() => handleSort('name')}>
               <HStack gap={2}>
                 <Text>Identity</Text>
-                <SortIcon columnKey="name" />
+                <SortIcon columnKey="name" currentKey={sortConfig.key} direction={sortConfig.direction} />
               </HStack>
             </Table.ColumnHeader>
             <Table.ColumnHeader w="25%" cursor="pointer" onClick={() => handleSort('value')}>
               <HStack gap={2}>
                 <Text>Value & Ref</Text>
-                <SortIcon columnKey="value" />
+                <SortIcon columnKey="value" currentKey={sortConfig.key} direction={sortConfig.direction} />
               </HStack>
             </Table.ColumnHeader>
             <Table.ColumnHeader w="20%">Lineage</Table.ColumnHeader>
@@ -262,7 +270,7 @@ export const TokenTable = ({
               <Table.ColumnHeader w="10%" cursor="pointer" onClick={() => handleSort('sourceFile')}>
                 <HStack gap={2}>
                   <Text>Source</Text>
-                  <SortIcon columnKey="sourceFile" />
+                  <SortIcon columnKey="sourceFile" currentKey={sortConfig.key} direction={sortConfig.direction} />
                 </HStack>
               </Table.ColumnHeader>
             )}
