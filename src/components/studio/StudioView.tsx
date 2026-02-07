@@ -17,7 +17,29 @@ import { generateStudioMockData } from './templates/shared/mock-data';
 import { LuScanEye, LuX } from "react-icons/lu";
 import { FloatingLab } from "../playground/FloatingLab";
 
+import { 
+  Box, HStack, Button, Text, Heading, 
+  createListCollection, IconButton 
+} from "@chakra-ui/react";
+import { useState, useMemo, useEffect } from 'react';
+import { LandingPage } from './templates/LandingPage';
+import { Dashboard } from './templates/Dashboard';
+import { ProductDetail } from './templates/ProductDetail';
+import { AppSelectRoot } from "../ui/AppSelect";
+import {
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValueText,
+} from "../ui/select";
+import { generateStudioMockData } from './templates/shared/mock-data';
+import { LuScanEye, LuX, LuInfo } from "react-icons/lu";
+import type { Manifest } from "../../schemas/manifest";
+
 interface StudioViewProps {
+  manifest: Manifest | null;
+  selectedProject: string;
+  onProjectChange: (val: string) => void;
   onExit: () => void;
   onOpenDocs: () => void;
   onInspectChange: (tokens: string[] | undefined) => void;
@@ -31,11 +53,24 @@ const templates = createListCollection({
   ],
 })
 
-export const StudioView = ({ onExit, onOpenDocs, onInspectChange }: StudioViewProps) => {
+export const StudioView = ({ 
+  manifest, selectedProject, onProjectChange, onExit, onOpenDocs, onInspectChange 
+}: StudioViewProps) => {
   const [template, setTemplate] = useState('landing');
   const [refreshKey, setRefreshKey] = useState(0);
   const [isInspectMode, setIsInspectMode] = useState(false);
   const [hoveredRect, setHoveredRect] = useState<{top: number, left: number, width: number, height: number} | null>(null);
+
+  // Project Collection
+  const projectCollection = useMemo(() => {
+    if (!manifest) return createListCollection({ items: [] });
+    return createListCollection({
+      items: Object.entries(manifest.projects).map(([key, p]) => ({
+        label: `${p.client} - ${p.project}`,
+        value: key
+      }))
+    });
+  }, [manifest]);
 
   // Generate new mock data whenever refreshKey or template changes
   const mockData = useMemo(() => generateStudioMockData(), [refreshKey]);
@@ -70,7 +105,6 @@ export const StudioView = ({ onExit, onOpenDocs, onInspectChange }: StudioViewPr
       if (!isInspectMode) return;
       const target = e.target as HTMLElement;
       
-      // We no longer need to check for .floating-lab here because it's not a child anymore
       if (target.closest('.studio-toolbar')) return;
 
       const inspectable = target.closest('[data-tokens]');
@@ -123,9 +157,35 @@ export const StudioView = ({ onExit, onOpenDocs, onInspectChange }: StudioViewPr
         <HStack gap={4}>
           <Heading size="sm">Design Studio</Heading>
           <Box w="1px" h="20px" bg="gray.300" />
+          
+          <HStack gap={2}>
+            <Text fontSize="xs" fontWeight="bold" color="gray.500">Project:</Text>
+            <Box w="220px">
+              <AppSelectRoot 
+                collection={projectCollection} 
+                size="sm"
+                value={[selectedProject]}
+                onValueChange={(e) => onProjectChange(e.value[0])}
+              >
+                <SelectTrigger>
+                  <SelectValueText placeholder="Select Project" />
+                </SelectTrigger>
+                <SelectContent zIndex={2001}>
+                  {projectCollection.items.map((item) => (
+                    <SelectItem item={item} key={item.value}>
+                      {item.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </AppSelectRoot>
+            </Box>
+          </HStack>
+
+          <Box w="1px" h="20px" bg="gray.300" />
+
           <HStack gap={2}>
             <Text fontSize="xs" fontWeight="bold" color="gray.500">Template:</Text>
-            <Box w="200px">
+            <Box w="180px">
               <AppSelectRoot 
                 collection={templates} 
                 size="sm"
@@ -172,6 +232,20 @@ export const StudioView = ({ onExit, onOpenDocs, onInspectChange }: StudioViewPr
           </Button>
         </HStack>
       </Box>
+
+      {/* Inspect Mode Instructions */}
+      {isInspectMode && (
+        <HStack 
+          bg="blue.600" color="white" px={8} py={2} gap={3}
+          position="sticky" top="60px" zIndex={1999}
+          boxShadow="lg"
+        >
+          <LuInfo size={16} />
+          <Text fontSize="sm" fontWeight="bold">
+            Inspector Active: Click any outlined element to edit its design tokens in the Floating Bar.
+          </Text>
+        </HStack>
+      )}
 
       {/* Template Preview Area */}
       <Box pointerEvents={isInspectMode ? 'none' : 'auto'} sx={{ '& [data-tokens]': { pointerEvents: 'auto' } }}>

@@ -9,6 +9,7 @@
 
 _This section highlights the business value extracted from completed tasks._
 
+- ✅ **2026-02-07 Task 091:** studio-onboarding-home - Transformed the Studio entry into a guided experience with a "Studio Home" dashboard, recent projects history, and instructional banners for Inspect Mode.
 - ✅ **2026-02-07 Task 090:** unify-studio-lab - Unified Floating Lab instances into a single global instance in App.tsx, resolving the "Hollow Lab" bug and restricting tool visibility to Studio mode for a cleaner UX.
 - ✅ **2026-02-07 Task 089:** portal-floating-lab - Restored the Floating Lab's functionality by moving it into a React Portal, ensuring it remains fixed to the viewport regardless of parent container styles.
 - ✅ **2026-02-07 Task 088:** studio-inspector-mode - Transformed the Design Studio into an interactive "Playground V2" with point-and-click inspection, enabling designers to tweak tokens directly from high-fidelity templates.

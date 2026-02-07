@@ -17,6 +17,12 @@ function App() {
   const [selectedProject, setSelectedProject] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [inspectedTokens, setInspectedTokens] = useState<string[] | undefined>(undefined);
+  const [recentProjects, setRecentProjects] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return [];
+    const saved = localStorage.getItem('kami_recent_projects');
+    return saved ? JSON.parse(saved) : [];
+  });
+
   const [showLab, setShowLab] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
     return localStorage.getItem('kami_explorer_lab_visible') === 'true';
@@ -27,6 +33,17 @@ function App() {
   } = usePersistentPlayground();
 
   const { globalTokens } = useGlobalTokens();
+
+  // Track Recent Projects
+  useEffect(() => {
+    if (selectedProject) {
+      setRecentProjects(prev => {
+        const next = [selectedProject, ...prev.filter(p => p !== selectedProject)].slice(0, 3);
+        localStorage.setItem('kami_recent_projects', JSON.stringify(next));
+        return next;
+      });
+    }
+  }, [selectedProject]);
 
   useEffect(() => {
     localStorage.setItem('kami_explorer_lab_visible', String(showLab));
@@ -84,6 +101,9 @@ function App() {
 
       {viewMode === 'studio' && (
         <StudioView 
+          manifest={manifest}
+          selectedProject={selectedProject}
+          onProjectChange={setSelectedProject}
           onExit={() => {
             setViewMode('explorer');
             setInspectedTokens(undefined);
@@ -98,8 +118,11 @@ function App() {
       )}
 
       {/* Global Floating Lab - Unified instance */}
-      {selectedProject && isLabActuallyVisible && (
+      {isLabActuallyVisible && (
         <FloatingLab 
+          manifest={manifest}
+          recentProjects={recentProjects}
+          onProjectSelect={setSelectedProject}
           clientId={manifest?.projects[selectedProject]?.client || ''} 
           projectId={manifest?.projects[selectedProject]?.project || ''} 
           overrides={overrides}

@@ -10,11 +10,15 @@ import { FontExplorer } from './panels/FontExplorer';
 import { TypeScaleSelector } from './panels/TypeScaleSelector';
 import type { TokenOverrides } from "../../schemas/manifest";
 import type { TokenDoc } from "../../utils/token-parser";
-import { LuScanEye, LuX } from "react-icons/lu";
+import { LuScanEye, LuX, LuLayoutGrid } from "react-icons/lu";
+import type { Manifest } from "../../schemas/manifest";
 
 import { toaster } from "../ui/toaster";
 
 interface FloatingLabProps {
+  manifest?: Manifest | null;
+  recentProjects?: string[];
+  onProjectSelect?: (key: string) => void;
   clientId?: string;
   projectId?: string;
   overrides?: TokenOverrides;
@@ -24,8 +28,8 @@ interface FloatingLabProps {
   canUndo?: boolean;
   canRedo?: boolean;
   globalTokens?: TokenDoc[];
-  filteredIds?: string[]; // New: Filter prop
-  onClearFilter?: () => void; // New: Clear handler
+  filteredIds?: string[]; 
+  onClearFilter?: () => void;
 }
 
 // ... existing SEMANTIC_CHANNELS ...
@@ -38,8 +42,11 @@ const SEMANTIC_CHANNELS = [
 ];
 
 export const FloatingLab = ({ 
+  manifest,
+  recentProjects = [],
+  onProjectSelect = () => {},
   clientId = 'default', 
-  projectId = 'default', 
+  projectId = '', 
   overrides = {}, 
   updateOverride = () => {}, 
   undo = () => {}, 
@@ -71,6 +78,63 @@ export const FloatingLab = ({
     const newStack = prependFont(family, currentStack);
     updateOverride({ '--fontFamilyBase': newStack }, 'Changed Font');
   };
+
+  // 🏠 Home Screen (Empty State)
+  if (!projectId) {
+    return (
+      <Portal>
+        <Box 
+          position="fixed" bottom="8" left="50%" transform="translateX(-50%)"
+          zIndex={3000} bg="rgba(255, 255, 255, 0.9)" backdropFilter="blur(15px)"
+          p={4} px={8} borderRadius="2xl" boxShadow="2xl" border="1px solid" borderColor="blue.200"
+          w="fit-content" minW="400px"
+        >
+          <VStack gap={4}>
+            <HStack gap={3} w="full">
+              <Box p={2} bg="blue.50" borderRadius="lg">
+                <LuLayoutGrid size={20} color="var(--chakra-colors-blue-600)" />
+              </Box>
+              <VStack align="start" gap={0}>
+                <Text fontSize="sm" fontWeight="bold">Studio Home</Text>
+                <Text fontSize="xs" color="gray.500">Select a project to start tuning tokens</Text>
+              </VStack>
+            </HStack>
+
+            {recentProjects.length > 0 && (
+              <VStack w="full" align="start" gap={2}>
+                <Text fontSize="10px" fontWeight="bold" color="gray.400" textTransform="uppercase" letterSpacing="wider">
+                  Recent Projects
+                </Text>
+                <HStack gap={2} w="full">
+                  {recentProjects.map(key => {
+                    const p = manifest?.projects[key];
+                    if (!p) return null;
+                    return (
+                      <Button 
+                        key={key} size="xs" variant="outline" borderColor="blue.100" 
+                        _hover={{ bg: "blue.50", borderColor: "blue.300" }}
+                        onClick={() => onProjectSelect(key)}
+                      >
+                        {p.client} / {p.project}
+                      </Button>
+                    );
+                  })}
+                </HStack>
+              </VStack>
+            )}
+
+            {recentProjects.length === 0 && (
+              <Box p={4} bg="gray.50" borderRadius="md" w="full" textAlign="center">
+                <Text fontSize="xs" color="gray.400" fontStyle="italic">
+                  No recent projects. Use the selector in the toolbar above.
+                </Text>
+              </Box>
+            )}
+          </VStack>
+        </Box>
+      </Portal>
+    );
+  }
 
   return (
     <Portal>
