@@ -30,6 +30,8 @@ interface FloatingLabProps {
   globalTokens?: TokenDoc[];
   filteredIds?: string[]; 
   onClearFilter?: () => void;
+  onReset?: () => void; // New
+  hasOverrides?: boolean; // New
 }
 
 // ... existing SEMANTIC_CHANNELS ...
@@ -54,7 +56,9 @@ export const FloatingLab = ({
   canRedo = false, 
   globalTokens = [],
   filteredIds,
-  onClearFilter
+  onClearFilter,
+  onReset = () => {},
+  hasOverrides = false
 }: FloatingLabProps) => {
   
   // Extract values to simple expressions for lint compliance
@@ -276,13 +280,26 @@ export const FloatingLab = ({
           <Box flex={1} minW={4} />
 
           {/* GROUP 5: ACTIONS */}
-          <Button 
-            colorScheme="blue" size="sm" borderRadius="full" px={6}
-            onClick={handleApply}
-            boxShadow="0 4px 14px 0 rgba(0,118,255,0.39)"
-          >
-            Apply
-          </Button>
+          <HStack gap={3}>
+            <Button
+              variant="ghost"
+              colorPalette="red"
+              size="sm"
+              onClick={onReset}
+              disabled={!hasOverrides}
+              fontSize="xs"
+              borderRadius="full"
+            >
+              Reset
+            </Button>
+            <Button 
+              colorScheme="blue" size="sm" borderRadius="full" px={6}
+              onClick={handleApply}
+              boxShadow="0 4px 14px 0 rgba(0,118,255,0.39)"
+            >
+              Apply
+            </Button>
+          </HStack>
         </HStack>
       </Box>
     </VStack>
