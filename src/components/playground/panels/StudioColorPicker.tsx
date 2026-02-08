@@ -1,9 +1,10 @@
 import { HexColorPicker } from "react-colorful";
 import { 
   Box, VStack, HStack, Text,
-  Heading, Badge, SimpleGrid, Tabs, Input
+  Heading, Badge, SimpleGrid, Tabs, Input,
+  IconButton, Popover, Portal, Circle
 } from "@chakra-ui/react";
-import { useState, useMemo, memo, useEffect } from 'react';
+import { useState, useMemo, memo, useEffect, useCallback } from 'react';
 import { 
   isOutofGamut,
   getContrastMetrics 
@@ -13,6 +14,7 @@ import { PrecisionSlider } from "../../ui/precision-slider";
 import { useColorSync } from "../../../hooks/useColorSync";
 import { useRecentColors } from "../../../hooks/useRecentColors";
 import { hslToHex, oklchToHex } from "../../../utils/colors";
+import { LuDice5, LuRotateCcw } from "react-icons/lu";
 
 interface StudioColorPickerProps {
   color: string;
@@ -20,16 +22,69 @@ interface StudioColorPickerProps {
   label: string;
 }
 
+const HARMONY_METHODS = [
+  { id: 'complementary', label: 'Complementary' },
+  { id: 'analogous', label: 'Analogous' },
+  { id: 'triadic', label: 'Triadic' },
+  { id: 'tetradic', label: 'Tetradic' },
+  { id: 'split', label: 'Split Comp.' },
+  { id: 'square', label: 'Square' },
+  { id: 'double-split', label: 'Double Split' },
+  { id: 'clash', label: 'Clash' },
+  { id: 'monochromatic', label: 'Monochrome' },
+  { id: 'random', label: 'Random Mix' }
+];
+
 export const StudioColorPicker = memo(({ color, onChange, label }: StudioColorPickerProps) => {
   const { coords, updateFromHex, updateFromHSL, updateFromOklch } = useColorSync(color);
   const { recentColors, addColor } = useRecentColors(20);
   const [search, setSearch] = useState('');
   const [hexInput, setHexInput] = useState(color.toUpperCase());
+  const [isVibrant, setIsVibrant] = useState(false);
+  const [harmonySwatches, setHarmonySwatches] = useState<string[]>([]);
   
   // Sync internal input with external prop
   useEffect(() => {
     setHexInput(color.toUpperCase());
   }, [color]);
+
+  const generateHarmony = useCallback((method: string) => {
+    const { l, c, h } = coords.oklch;
+    const offsets: Record<string, number[]> = {
+      'complementary': [180],
+      'analogous': [-30, 30],
+      'triadic': [120, 240],
+      'tetradic': [60, 180, 240],
+      'split': [150, 210],
+      'square': [90, 180, 270],
+      'double-split': [30, 150, 210, 330],
+      'clash': [90],
+      'monochromatic': [0, 0, 0], // Handled specially
+      'random': Array.from({ length: 3 }, () => Math.random() * 360)
+    };
+
+    let resultHues = offsets[method] || [];
+    
+    const colors = resultHues.map(offset => {
+      let nextH = (h + offset + 360) % 360;
+      let nextL = l;
+      let nextC = c;
+
+      if (method === 'monochromatic') {
+        nextL = Math.max(0.1, Math.min(0.9, l + (Math.random() - 0.5) * 0.4));
+        nextC = Math.max(0, Math.min(0.3, c + (Math.random() - 0.5) * 0.2));
+      }
+
+      if (isVibrant) {
+        nextL = Math.max(0, Math.min(1, nextL + (Math.random() - 0.5) * 0.1));
+        nextC = Math.max(0, Math.min(0.3, nextC + (Math.random() - 0.5) * 0.05));
+      }
+
+      return oklchToHex(nextL, nextC, nextH);
+    });
+
+    setHarmonySwatches(colors);
+  }, [coords.oklch, isVibrant]);
 
   const contrast = getContrastMetrics(color, '#ffffff');
   const outOfGamut = coords?.oklch ? isOutofGamut('oklch', coords.oklch) : false;
@@ -114,7 +169,78 @@ export const StudioColorPicker = memo(({ color, onChange, label }: StudioColorPi
               bg="gray.50"
               borderColor={/^#[0-9A-Fa-f]{6}$/.test(hexInput.startsWith('#') ? hexInput : `#${hexInput}`) ? "gray.200" : "red.300"}
             />
-            <Box w="full" h="8px" bg={color} borderRadius="sm" border="1px solid rgba(0,0,0,0.1)" mt={1} />
+            <Box position="relative" w="full" h="32px" bg={color} borderRadius="md" border="1px solid rgba(0,0,0,0.1)" mt={1}>
+              <Popover.Root positioning={{ placement: 'right-start', gutter: 12 }}>
+                <Popover.Trigger asChild>
+                  <IconButton 
+                    aria-label="Color Harmonies"
+                    icon={<LuDice5 />} 
+                    size="xs" 
+                    variant="solid" 
+                    bg="white" 
+                    color="gray.600"
+                    position="absolute"
+                    top="50%"
+                    right="2"
+                    transform="translateY(-50%)"
+                    borderRadius="full"
+                    boxShadow="sm"
+                    _hover={{ transform: "translateY(-50%) scale(1.1)", bg: "blue.50", color: "blue.600" }}
+                  />
+                </Popover.Trigger>
+                <Portal>
+                  <Popover.Positioner zIndex={2500}>
+                    <Popover.Content w="240px" p={4} borderRadius="xl" boxShadow="2xl" border="none">
+                      <VStack align="stretch" gap={4}>
+                        <HStack justify="space-between">
+                          <Heading size="xs">Harmony Lab</Heading>
+                          <HStack gap={2}>
+                            <Text fontSize="9px" fontWeight="bold" color="gray.400">VIBRANT</Text>
+                            <Switch 
+                              size="xs" colorPalette="blue"
+                              checked={isVibrant} 
+                              onChange={(e) => setIsVibrant(e.currentTarget.checked)} 
+                            />
+                          </HStack>
+                        </HStack>
+
+                        <SimpleGrid columns={2} gap={2}>
+                          {HARMONY_METHODS.map(m => (
+                            <Button 
+                              key={m.id} size="xs" variant="outline" fontSize="9px" 
+                              onClick={() => generateHarmony(m.id)}
+                              _hover={{ bg: "blue.50", borderColor: "blue.200" }}
+                            >
+                              {m.label}
+                            </Button>
+                          ))}
+                        </SimpleGrid>
+
+                        {harmonySwatches.length > 0 && (
+                          <VStack align="stretch" gap={2} pt={2} borderTop="1px solid" borderColor="gray.100">
+                            <Text fontSize="9px" fontWeight="bold" color="gray.400">GENERATED SWATCHES</Text>
+                            <HStack gap={2} flexWrap="wrap">
+                              {harmonySwatches.map((c, i) => (
+                                <Circle 
+                                  key={`${c}-${i}`} size="32px" bg={c} cursor="pointer" 
+                                  border="2px solid white" boxShadow="sm"
+                                  _hover={{ transform: "scale(1.1)", boxShadow: "md" }}
+                                  onClick={() => handleColorChange(c)}
+                                />
+                              ))}
+                              <IconButton 
+                                aria-label="Clear" icon={<LuRotateCcw />} size="xs" variant="ghost" 
+                                onClick={() => setHarmonySwatches([])} 
+                              />
+                            </HStack>
+                          </VStack>
+                        )}
+                      </VStack>
+                    </Popover.Content>
+                  </Popover.Positioner>
+                </Portal>
+              </Popover.Root>
+            </Box>
           </VStack>
           <Box w="1px" h="40px" bg="gray.100" />
           <VStack align="start" flex={1}>
