@@ -6,6 +6,7 @@ import {
 import { 
   LuZap, LuShield, LuMail
 } from "react-icons/lu";
+import { Field } from "../ui/field";
 import type { StudioMockData } from "./shared/mock-data";
 
 /**
@@ -174,10 +175,9 @@ export const StyleAtlas = ({ data }: { data: StudioMockData }) => {
                   </VStack>
                 </VStack>
                 <VStack align="stretch" gap={6} p={8} bg="white" borderRadius="var(--radius3)" border="1px solid" borderColor="gray.100">
-                  <VStack align="start" gap={1}>
-                    <Text fontSize="xs" fontWeight="bold" color="red.500">Error State</Text>
-                    <Input invalid placeholder="Invalid value" borderRadius="var(--radius2)" borderColor="red.500" />
-                  </VStack>
+                  <Field label="Error State" invalid errorText="This value is invalid." colorPalette="red">
+                    <Input placeholder="Invalid value" borderRadius="var(--radius2)" />
+                  </Field>
                   <VStack align="start" gap={1}>
                     <Text fontSize="xs" fontWeight="bold" color="var(--brandPrimary)">Focus Style (Simulated)</Text>
                     <Input placeholder="Focused input" borderRadius="var(--radius2)" border="2px solid" borderColor="var(--brandPrimary)" boxShadow="0 0 0 4px var(--brandSecondary)" />
