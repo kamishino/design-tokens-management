@@ -6,7 +6,7 @@ import {
 import { 
   LuZap, LuShield, LuMail
 } from "react-icons/lu";
-import { Field } from "../ui/field";
+import { Field } from "../../ui/field";
 import type { StudioMockData } from "./shared/mock-data";
 
 /**
