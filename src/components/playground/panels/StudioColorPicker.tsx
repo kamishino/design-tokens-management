@@ -9,7 +9,7 @@ import {
   getContrastMetrics 
 } from '../../../utils/colors';
 import baseColors from '../../../../tokens/global/base/colors.json';
-import { Slider } from "../../ui/slider";
+import { PrecisionSlider } from "../../ui/precision-slider";
 import { useColorSync } from "../../../hooks/useColorSync";
 import { useRecentColors } from "../../../hooks/useRecentColors";
 
@@ -119,19 +119,19 @@ export const StudioColorPicker = memo(({ color, onChange, label }: StudioColorPi
               <HexColorPicker color={color} onChange={handleColorChange} style={{ width: '100%' }} />
               
               <VStack gap={3} align="stretch" pt={2}>
-                <SliderControl 
-                  label="Hue" value={Math.round(coords.hsl.h)} unit="°" min={0} max={360} 
-                  bg="linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)"
-                  onValueChange={(v) => onChange(updateFromHSL(v, coords.hsl.s, coords.hsl.l))}
+                <PrecisionSlider 
+                  label="Hue" value={[Math.round(coords.hsl.h)]} unit="°" min={0} max={360} 
+                  trackBg="linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)"
+                  onValueChange={(v) => onChange(updateFromHSL(v.value[0], coords.hsl.s, coords.hsl.l))}
                 />
-                <SliderControl 
-                  label="Saturation" value={Math.round(coords.hsl.s)} unit="%" min={0} max={100}
-                  onValueChange={(v) => onChange(updateFromHSL(coords.hsl.h, v, coords.hsl.l))}
+                <PrecisionSlider 
+                  label="Saturation" value={[Math.round(coords.hsl.s)]} unit="%" min={0} max={100}
+                  onValueChange={(v) => onChange(updateFromHSL(coords.hsl.h, v.value[0], coords.hsl.l))}
                 />
-                <SliderControl 
-                  label="Lightness" value={Math.round(coords.hsl.l)} unit="%" min={0} max={100}
-                  bg="linear-gradient(to right, #000, #fff)"
-                  onValueChange={(v) => onChange(updateFromHSL(coords.hsl.h, coords.hsl.s, v))}
+                <PrecisionSlider 
+                  label="Lightness" value={[Math.round(coords.hsl.l)]} unit="%" min={0} max={100}
+                  trackBg="linear-gradient(to right, #000, #fff)"
+                  onValueChange={(v) => onChange(updateFromHSL(coords.hsl.h, coords.hsl.s, v.value[0]))}
                 />
               </VStack>
             </VStack>
@@ -141,19 +141,19 @@ export const StudioColorPicker = memo(({ color, onChange, label }: StudioColorPi
             <VStack gap={4} align="stretch">
               <HexColorPicker color={color} onChange={handleColorChange} style={{ width: '100%' }} />
               <VStack gap={3} align="stretch" pt={2}>
-                <SliderControl 
-                  label="Lightness" value={Math.round(coords.oklch.l * 100)} unit="%" min={0} max={1} step={0.01}
-                  bg="linear-gradient(to right, #000, #fff)"
-                  onValueChange={(v) => onChange(updateFromOklch(v, coords.oklch.c, coords.oklch.h))}
+                <PrecisionSlider 
+                  label="Lightness" value={[coords.oklch.l]} unit="" min={0} max={1} step={0.01}
+                  trackBg="linear-gradient(to right, #000, #fff)"
+                  onValueChange={(v) => onChange(updateFromOklch(v.value[0], coords.oklch.c, coords.oklch.h))}
                 />
-                <SliderControl 
-                  label="Chroma" value={Number(coords.oklch.c.toFixed(3))} min={0} max={0.3} step={0.001}
-                  onValueChange={(v) => onChange(updateFromOklch(coords.oklch.l, v, coords.oklch.h))}
+                <PrecisionSlider 
+                  label="Chroma" value={[coords.oklch.c]} min={0} max={0.3} step={0.001}
+                  onValueChange={(v) => onChange(updateFromOklch(coords.oklch.l, v.value[0], coords.oklch.h))}
                 />
-                <SliderControl 
-                  label="Hue" value={Math.round(coords.oklch.h)} unit="°" min={0} max={360}
-                  bg="linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)"
-                  onValueChange={(v) => onChange(updateFromOklch(coords.oklch.l, coords.oklch.c, v))}
+                <PrecisionSlider 
+                  label="Hue" value={[Math.round(coords.oklch.h)]} unit="°" min={0} max={360}
+                  trackBg="linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)"
+                  onValueChange={(v) => onChange(updateFromOklch(coords.oklch.l, coords.oklch.c, v.value[0]))}
                 />
               </VStack>
             </VStack>
@@ -203,29 +203,3 @@ export const StudioColorPicker = memo(({ color, onChange, label }: StudioColorPi
     </VStack>
   );
 });
-
-interface SliderControlProps {
-  label: string;
-  value: number;
-  unit?: string;
-  min: number;
-  max: number;
-  step?: number;
-  bg?: string;
-  onValueChange: (val: number) => void;
-}
-
-const SliderControl = ({ label, value, unit = '', min, max, step, bg, onValueChange }: SliderControlProps) => (
-  <VStack align="stretch" gap={1}>
-    <HStack justify="space-between">
-      <Text fontSize="10px" fontWeight="bold" color="gray.500" textTransform="uppercase">{label}</Text>
-      <Text fontSize="10px" fontWeight="bold" fontFamily="monospace" color="blue.600">{value}{unit}</Text>
-    </HStack>
-    <Slider 
-      min={min} max={max} step={step} 
-      value={[value]} 
-      onValueChange={(v) => onValueChange(v.value[0])}
-      css={bg ? { '& .chakra-slider__track': { background: bg } } : undefined}
-    />
-  </VStack>
-);
