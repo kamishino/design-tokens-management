@@ -109,6 +109,7 @@ function App() {
           manifest={manifest}
           recentProjects={recentProjects}
           onProjectSelect={handleProjectChange}
+          projectPath={currentPath} // New: for prioritized lookup
           clientId={manifest?.projects[selectedProject]?.client || ''} 
           projectId={manifest?.projects[selectedProject]?.project || ''} 
           overrides={overrides}

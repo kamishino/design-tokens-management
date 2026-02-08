@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { getContrastMetrics } from '../../utils/colors';
 import { prependFont } from '../../utils/fonts';
 import { findReference } from '../../utils/token-parser';
+import { getPrioritizedTokenMap } from '../../utils/token-graph';
 import { StudioColorPicker } from './panels/StudioColorPicker';
 import { FontExplorer } from './panels/FontExplorer';
 import { TypeScaleSelector } from './panels/TypeScaleSelector';
@@ -21,6 +22,7 @@ interface FloatingLabProps {
   onProjectSelect?: (key: string) => void;
   clientId?: string;
   projectId?: string;
+  projectPath?: string; // New: For prioritized lookup
   overrides?: TokenOverrides;
   updateOverride?: (newValues: Record<string, string | number>, label?: string) => void;
   undo?: () => void;
