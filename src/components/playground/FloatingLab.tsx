@@ -50,6 +50,7 @@ export const FloatingLab = ({
   recentProjects = [],
   onProjectSelect = () => {},
   projectId = '', 
+  projectPath = '',
   overrides = {}, 
   updateOverride = () => {}, 
   undo = () => {}, 
@@ -63,6 +64,19 @@ export const FloatingLab = ({
   hasOverrides = false
 }: FloatingLabProps) => {
   
+  // 1. Build prioritized lookup map for the current project
+  const prioritizedMap = useMemo(() => {
+    if (!projectPath || !globalTokens.length) return new Map();
+    return getPrioritizedTokenMap(globalTokens, projectPath);
+  }, [projectPath, globalTokens]);
+
+  // 2. Helper to get the "Current Reality" value (Override > Graph > Fallback)
+  const getEffectiveValue = useCallback((cssVar: string, tokenKey: string, fallback: string | number) => {
+    if (overrides[cssVar] !== undefined) return overrides[cssVar] as string;
+    const graphValue = prioritizedMap.get(tokenKey)?.resolvedValue;
+    return (graphValue !== undefined && graphValue !== null) ? String(graphValue) : String(fallback);
+  }, [overrides, prioritizedMap]);
+
   const handleFontSelect = (family: string, role: string) => {
     const varMap: Record<string, string> = {
       heading: '--fontFamilyHeading',
@@ -70,7 +84,15 @@ export const FloatingLab = ({
       code: '--fontFamilyCode'
     };
     const targetVar = varMap[role] || '--fontFamilyBody';
-    const currentStack = (overrides[targetVar] as string) || 'Inter, sans-serif';
+    
+    // Use effective value as the base for prepending
+    const tokenKeyMap: Record<string, string> = {
+      '--fontFamilyHeading': 'font.family.base',
+      '--fontFamilyBody': 'font.family.base',
+      '--fontFamilyCode': 'font.family.mono'
+    };
+    const currentStack = getEffectiveValue(targetVar, tokenKeyMap[targetVar], 'Inter, sans-serif');
+    
     const newStack = prependFont(family, currentStack);
     updateOverride({ [targetVar]: newStack }, `Changed ${role} Font`);
   };
@@ -85,13 +107,11 @@ export const FloatingLab = ({
     });
   };
 
-  const primaryColor = overrides['--brandPrimary'] as string;
-  const canvasColor = overrides['--bgCanvas'] as string;
+  const primaryColor = getEffectiveValue('--brandPrimary', 'brand.primary', '#a0544f');
+  const canvasColor = getEffectiveValue('--bgCanvas', 'bg.canvas', '#ffffff');
 
   const mainContrast = useMemo(() => {
-    const fg = primaryColor || '#a0544f';
-    const bg = canvasColor || '#ffffff';
-    return getContrastMetrics(fg, bg);
+    return getContrastMetrics(primaryColor, canvasColor);
   }, [primaryColor, canvasColor]);
 
   // 🏠 Home Screen (Empty State)
@@ -151,6 +171,12 @@ export const FloatingLab = ({
     );
   }
 
+  const hFont = getEffectiveValue('--fontFamilyHeading', 'font.family.base', 'Inter, sans-serif');
+  const bFont = getEffectiveValue('--fontFamilyBody', 'font.family.base', 'Inter, sans-serif');
+  const cFont = getEffectiveValue('--fontFamilyCode', 'font.family.mono', 'IBM Plex Mono, monospace');
+  const scaleRatio = Number(getEffectiveValue('--typographyConfigScaleRatio', 'typography.config.scale-ratio', 1.250));
+  const baseSize = Number(getEffectiveValue('--fontSizeRoot', 'font.size.root', 16));
+
   return (
     <Portal>
       <VStack 
@@ -199,114 +225,129 @@ export const FloatingLab = ({
 
           {/* GROUP 2: COLORS */}
           <HStack gap={4}>
-            {SEMANTIC_CHANNELS.map(channel => (
-              <Popover.Root key={channel.id} positioning={{ placement: 'top', gutter: 12 }} lazyMount unmountOnExit>
-                <Popover.Trigger asChild>
-                  <HStack 
-                    gap={2} cursor="pointer" p={1} pl={2} borderRadius="full" 
-                    _hover={{ bg: "gray.100" }}
-                    // Highlight if part of inspection
-                    bg={filteredIds && filteredIds.some(id => id.includes(channel.id)) ? "blue.50" : "transparent"}
-                    border={filteredIds && filteredIds.some(id => id.includes(channel.id)) ? "1px solid" : "none"}
-                    borderColor="blue.200"
-                  >
-                    <Box 
-                      w="24px" h="24px" 
-                      bg={`var(${channel.variable})`} 
-                      borderRadius="full" border="2px solid white" boxShadow="xs" 
-                    />
-                    <VStack align="start" gap={0}>
-                      <Text fontSize="8px" fontWeight="bold" color="gray.400" textTransform="uppercase">{channel.label}</Text>
-                      <HStack gap={1}>
-                        <Text fontSize="10px" fontWeight="bold" fontFamily="monospace">
-                          {((overrides[channel.variable] as string) || '').toUpperCase() || '...'}
-                        </Text>
-                        {findReference(overrides[channel.variable] as string, globalTokens) && (
-                          <Badge variant="subtle" colorScheme="gray" fontSize="8px" borderRadius="xs">
-                            {findReference(overrides[channel.variable] as string, globalTokens)?.id.split('.').pop()}
-                          </Badge>
-                        )}
-                      </HStack>
-                    </VStack>
-                  </HStack>
-                </Popover.Trigger>
-                <Portal>
-                  <Popover.Positioner>
-                    <Popover.Content w="auto" borderRadius="2xl" boxShadow="2xl" overflow="hidden" border="none">
-                      <StudioColorPicker 
-                        label={channel.label} 
-                        color={(overrides[channel.variable] as string) || '#000000'} 
-                        onChange={(c) => updateOverride({ [channel.variable]: c }, `Changed ${channel.label}`)} 
+            {SEMANTIC_CHANNELS.map(channel => {
+              const tokenKeyMap: Record<string, string> = {
+                'primary': 'brand.primary',
+                'secondary': 'brand.secondary',
+                'accent': 'brand.accent',
+                'text': 'text.primary',
+                'bg': 'bg.canvas'
+              };
+              const activeColor = getEffectiveValue(channel.variable, tokenKeyMap[channel.id], '#000000');
+
+              return (
+                <Popover.Root key={channel.id} positioning={{ placement: 'top', gutter: 12 }} lazyMount unmountOnExit>
+                  <Popover.Trigger asChild>
+                    <HStack 
+                      gap={2} cursor="pointer" p={1} pl={2} borderRadius="full" 
+                      _hover={{ bg: "gray.100" }}
+                      // Highlight if part of inspection
+                      bg={filteredIds && filteredIds.some(id => id.includes(channel.id)) ? "blue.50" : "transparent"}
+                      border={filteredIds && filteredIds.some(id => id.includes(channel.id)) ? "1px solid" : "none"}
+                      borderColor="blue.200"
+                    >
+                      <Box 
+                        w="24px" h="24px" 
+                        bg={activeColor} 
+                        borderRadius="full" border="2px solid white" boxShadow="xs" 
                       />
-                    </Popover.Content>
-                  </Popover.Positioner>
-                </Portal>
-              </Popover.Root>
-            ))}
+                      <VStack align="start" gap={0}>
+                        <Text fontSize="8px" fontWeight="bold" color="gray.400" textTransform="uppercase">{channel.label}</Text>
+                        <HStack gap={1}>
+                          <Text fontSize="10px" fontWeight="bold" fontFamily="monospace">
+                            {activeColor.toUpperCase()}
+                          </Text>
+                          {findReference(activeColor, globalTokens) && (
+                            <Badge variant="subtle" colorScheme="gray" fontSize="8px" borderRadius="xs">
+                              {findReference(activeColor, globalTokens)?.id.split('.').pop()}
+                            </Badge>
+                          )}
+                        </HStack>
+                      </VStack>
+                    </HStack>
+                  </Popover.Trigger>
+                  <Portal>
+                    <Popover.Positioner>
+                      <Popover.Content w="auto" borderRadius="2xl" boxShadow="2xl" overflow="hidden" border="none">
+                        <StudioColorPicker 
+                          label={channel.label} 
+                          color={activeColor} 
+                          onChange={(c) => updateOverride({ [channel.variable]: c }, `Changed ${channel.label}`)} 
+                        />
+                      </Popover.Content>
+                    </Popover.Positioner>
+                  </Portal>
+                </Popover.Root>
+              );
+            })}
           </HStack>
 
-                    <Box w="1px" h="24px" bg="gray.200" />
-          
-                              {/* GROUP 3: TYPOGRAPHY (Scale + Font) */}
-                              <HStack gap={4}>
-                                <Popover.Root positioning={{ placement: 'top', gutter: 12 }} lazyMount unmountOnExit>
-                                  <Popover.Trigger asChild>
-                                    <Button size="xs" variant="outline" borderRadius="full" px={4} minW="80px">
-                                      <VStack gap={0} align="start">
-                                        <Text fontSize="8px" fontWeight="bold" color="gray.400" textTransform="uppercase">Ratio</Text>
-                                        <Text fontSize="10px" fontWeight="bold" color="purple.600">
-                                          {(Number(overrides['--typographyConfigScaleRatio']) || 1.250).toFixed(3)}
-                                        </Text>
-                                      </VStack>
-                                    </Button>
-                                  </Popover.Trigger>
-                                  <Portal>
-                                    <Popover.Positioner>
-                                      <Popover.Content w="auto" borderRadius="xl" boxShadow="2xl" overflow="hidden" border="none">
-                                        <TypeScaleSelector 
-                                          activeRatio={Number(overrides['--typographyConfigScaleRatio']) || 1.25}
-                                          onSelect={(val) => updateOverride({ '--typographyConfigScaleRatio': val }, 'Changed Type Scale')}
+          <Box w="1px" h="24px" bg="gray.200" />
+
+          {/* GROUP 3: TYPOGRAPHY (Scale + Font) */}
+          <HStack gap={4}>
+            <Popover.Root positioning={{ placement: 'top', gutter: 12 }} lazyMount unmountOnExit>
+              <Popover.Trigger asChild>
+                <Button size="xs" variant="outline" borderRadius="full" px={4} minW="80px" h="32px">
+                  <VStack gap={0} align="start">
+                    <Text fontSize="8px" fontWeight="bold" color="gray.400" textTransform="uppercase">Ratio</Text>
+                    <Text fontSize="10px" fontWeight="bold" color="purple.600">
+                      {scaleRatio.toFixed(3)}
+                    </Text>
+                  </VStack>
+                </Button>
+              </Popover.Trigger>
+              <Portal>
+                <Popover.Positioner>
+                  <Popover.Content w="auto" borderRadius="xl" boxShadow="2xl" overflow="hidden" border="none">
+                    <TypeScaleSelector 
+                      activeRatio={scaleRatio}
+                      baseSize={baseSize}
+                      onSelect={(val) => updateOverride({ '--typographyConfigScaleRatio': val }, 'Changed Type Scale')}
+                      onBaseSizeChange={(val) => updateOverride({ '--fontSizeRoot': `${val}px` }, 'Changed Base Font Size')}
+                    />
+                  </Popover.Content>
+                </Popover.Positioner>
+              </Portal>
+            </Popover.Root>
+            
+            <Popover.Root positioning={{ placement: 'top', gutter: 12 }} lazyMount unmountOnExit>
+              <Popover.Trigger asChild>
+                <Button size="xs" variant="outline" borderRadius="full" px={4} minW="120px" h="32px">
+                  <VStack gap={0} align="start">
+                    <HStack gap={1}>
+                      <Text fontSize="9px" fontWeight="bold" color="blue.600">
+                        {getShortName(hFont)}
+                      </Text>
+                      <Text fontSize="8px" color="gray.400">/</Text>
+                      <Text fontSize="9px" fontWeight="bold" color="blue.600">
+                        {getShortName(bFont)}
+                      </Text>
+                    </HStack>
+                    <Text fontSize="8px" color="gray.400" fontWeight="medium">
+                      Code: {getShortName(cFont)}
+                    </Text>
+                  </VStack>
+                </Button>
+              </Popover.Trigger>
+              <Portal>
+                <Popover.Positioner>
+                  <Popover.Content w="auto" borderRadius="xl" boxShadow="2xl" overflow="hidden" border="none">
+                                        <FontExplorer
+                                          headingFamily={hFont}
+                                          bodyFamily={bFont}
+                                          codeFamily={cFont}
+                                          onSelect={handleFontSelect}
                                         />
                                       </Popover.Content>
                                     </Popover.Positioner>
                                   </Portal>
                                 </Popover.Root>
-                                
-                                <Popover.Root positioning={{ placement: 'top', gutter: 12 }} lazyMount unmountOnExit>                        <Popover.Trigger asChild>
-                          <Button size="xs" variant="outline" borderRadius="full" px={4} minW="120px" h="32px">
-                            <VStack gap={0} align="start">
-                              <HStack gap={1}>
-                                <Text fontSize="9px" fontWeight="bold" color="blue.600">
-                                  {getShortName((overrides['--fontFamilyHeading'] as string) || 'Inter')}
-                                </Text>
-                                <Text fontSize="8px" color="gray.400">/</Text>
-                                <Text fontSize="9px" fontWeight="bold" color="blue.600">
-                                  {getShortName((overrides['--fontFamilyBody'] as string) || 'Inter')}
-                                </Text>
                               </HStack>
-                              <Text fontSize="8px" color="gray.400" fontWeight="medium">
-                                Code: {getShortName((overrides['--fontFamilyCode'] as string) || 'IBM Plex Mono')}
-                              </Text>
-                            </VStack>
-                          </Button>
-                        </Popover.Trigger>
-                        <Portal>
-                          <Popover.Positioner>
-                            <Popover.Content w="auto" borderRadius="xl" boxShadow="2xl" overflow="hidden" border="none">
-                              <FontExplorer 
-                                headingFamily={(overrides['--fontFamilyHeading'] as string) || 'Inter, sans-serif'}
-                                bodyFamily={(overrides['--fontFamilyBody'] as string) || 'Inter, sans-serif'}
-                                codeFamily={(overrides['--fontFamilyCode'] as string) || 'IBM Plex Mono, monospace'}
-                                onSelect={handleFontSelect} 
-                              />
-                            </Popover.Content>
-                          </Popover.Positioner>
-                        </Portal>
-                      </Popover.Root>
-                    </HStack>          <Box w="1px" h="24px" bg="gray.200" />
-
-          {/* GROUP 4: VALIDATION */}
-          <VStack align="start" gap={0}>
+                    
+                              <Box w="1px" h="24px" bg="gray.200" />
+                    
+                              {/* GROUP 4: VALIDATION */}          <VStack align="start" gap={0}>
             <Text fontSize="8px" fontWeight="bold" color="gray.400" textTransform="uppercase">Main Contrast</Text>
             <HStack gap={1}>
               <Badge colorScheme={mainContrast.isAccessible ? "green" : "red"} size="sm" borderRadius="sm">

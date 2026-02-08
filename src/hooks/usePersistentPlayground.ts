@@ -142,11 +142,33 @@ export const usePersistentPlayground = () => {
       document.head.appendChild(styleTag);
     }
 
-    const cssRules = Object.entries(state.overrides)
+    const baseSize = Number(state.overrides['--fontSizeRoot']) || 16;
+    const ratio = Number(state.overrides['--typographyConfigScaleRatio']) || 1.250;
+
+    // Generate Derived Typography Scale (Step -2 to 8)
+    const scaleRules: string[] = [];
+    const steps = [
+      { id: -2, name: 'Minus2' }, { id: -1, name: 'Minus1' }, { id: 0, name: '0' },
+      { id: 1, name: '1' }, { id: 2, name: '2' }, { id: 3, name: '3' },
+      { id: 4, name: '4' }, { id: 5, name: '5' }, { id: 6, name: '6' },
+      { id: 7, name: '7' }, { id: 8, name: '8' }
+    ];
+
+    steps.forEach(step => {
+      const exactPx = baseSize * Math.pow(ratio, step.id);
+      const roundedPx = Math.round(exactPx);
+      const preciseRem = exactPx / 16;
+      
+      scaleRules.push(`  --fontSizeScale${step.name}: ${roundedPx}px !important;`);
+      // Optional: Add REM variant if needed by certain templates
+      // scaleRules.push(`  --fontSizeScale${step.name}Rem: ${preciseRem.toFixed(4)}rem !important;`);
+    });
+
+    const overrideRules = Object.entries(state.overrides)
       .map(([name, value]) => `  ${name}: ${value} !important;`)
       .join('\n');
 
-    styleTag.innerHTML = `:root {\n${cssRules}\n}`;
+    styleTag.innerHTML = `:root {\n${scaleRules.join('\n')}\n${overrideRules}\n}`;
   }, [state.overrides]);
 
   // 4. Stable Callbacks
