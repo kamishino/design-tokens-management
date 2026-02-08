@@ -245,15 +245,32 @@ export const FloatingLab = ({
 
                     <Box w="1px" h="24px" bg="gray.200" />
           
-                    {/* GROUP 3: TYPOGRAPHY (Scale + Font) */}
-                    <HStack gap={4}>
-                      <TypeScaleSelector 
-                        activeRatio={Number(overrides['--typographyConfigScaleRatio']) || 1.25}
-                        onSelect={(val) => updateOverride({ '--typographyConfigScaleRatio': val }, 'Changed Type Scale')}
-                      />
-                      
-                      <Popover.Root positioning={{ placement: 'top', gutter: 12 }} lazyMount unmountOnExit>
-                        <Popover.Trigger asChild>
+                              {/* GROUP 3: TYPOGRAPHY (Scale + Font) */}
+                              <HStack gap={4}>
+                                <Popover.Root positioning={{ placement: 'top', gutter: 12 }} lazyMount unmountOnExit>
+                                  <Popover.Trigger asChild>
+                                    <Button size="xs" variant="outline" borderRadius="full" px={4} minW="80px">
+                                      <VStack gap={0} align="start">
+                                        <Text fontSize="8px" fontWeight="bold" color="gray.400" textTransform="uppercase">Ratio</Text>
+                                        <Text fontSize="10px" fontWeight="bold" color="purple.600">
+                                          {(Number(overrides['--typographyConfigScaleRatio']) || 1.250).toFixed(3)}
+                                        </Text>
+                                      </VStack>
+                                    </Button>
+                                  </Popover.Trigger>
+                                  <Portal>
+                                    <Popover.Positioner>
+                                      <Popover.Content w="auto" borderRadius="xl" boxShadow="2xl" overflow="hidden" border="none">
+                                        <TypeScaleSelector 
+                                          activeRatio={Number(overrides['--typographyConfigScaleRatio']) || 1.25}
+                                          onSelect={(val) => updateOverride({ '--typographyConfigScaleRatio': val }, 'Changed Type Scale')}
+                                        />
+                                      </Popover.Content>
+                                    </Popover.Positioner>
+                                  </Portal>
+                                </Popover.Root>
+                                
+                                <Popover.Root positioning={{ placement: 'top', gutter: 12 }} lazyMount unmountOnExit>                        <Popover.Trigger asChild>
                           <Button size="xs" variant="outline" borderRadius="full" px={4} minW="120px" h="32px">
                             <VStack gap={0} align="start">
                               <HStack gap={1}>
