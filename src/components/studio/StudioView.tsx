@@ -6,6 +6,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { LandingPage } from './templates/LandingPage';
 import { Dashboard } from './templates/Dashboard';
 import { ProductDetail } from './templates/ProductDetail';
+import { StyleAtlas } from './templates/StyleAtlas';
 import { AppSelectRoot } from "../ui/AppSelect";
 import {
   SelectContent,
@@ -28,6 +29,7 @@ interface StudioViewProps {
 
 const templates = createListCollection({
   items: [
+    { label: "Design System Atlas", value: "atlas" },
     { label: "SaaS Landing Page", value: "landing" },
     { label: "Admin Dashboard", value: "dashboard" },
     { label: "E-commerce Product", value: "ecommerce" },
@@ -37,7 +39,7 @@ const templates = createListCollection({
 export const StudioView = ({ 
   manifest, selectedProject, onProjectChange, onExit, onInspectChange 
 }: Omit<StudioViewProps, 'onOpenDocs'>) => {
-  const [template, setTemplate] = useState('landing');
+  const [template, setTemplate] = useState('atlas');
   const [refreshKey, setRefreshKey] = useState(0);
   const [isInspectMode, setIsInspectMode] = useState(false);
   const [hoveredRect, setHoveredRect] = useState<{top: number, left: number, width: number, height: number} | null>(null);
@@ -227,6 +229,7 @@ export const StudioView = ({
 
       {/* Template Preview Area */}
       <Box pointerEvents={isInspectMode ? 'none' : 'auto'} sx={{ '& [data-tokens]': { pointerEvents: 'auto' } }}>
+        {template === 'atlas' && <StyleAtlas data={mockData} />}
         {template === 'landing' && <LandingPage data={mockData} />}
         {template === 'dashboard' && <Dashboard data={mockData} />}
         {template === 'ecommerce' && <ProductDetail data={mockData} />}
