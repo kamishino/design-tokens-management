@@ -2,7 +2,7 @@ import { HexColorPicker } from "react-colorful";
 import { 
   Box, VStack, HStack, Text,
   Heading, Badge, SimpleGrid, Tabs, Input,
-  IconButton, Popover, Portal, Circle
+  IconButton, Popover, Portal, Circle, Button
 } from "@chakra-ui/react";
 import { useState, useMemo, memo, useEffect, useCallback } from 'react';
 import { 
