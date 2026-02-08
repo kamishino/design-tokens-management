@@ -11,6 +11,7 @@ import {
 } from '../../../utils/colors';
 import baseColors from '../../../../tokens/global/base/colors.json';
 import { PrecisionSlider } from "../../ui/precision-slider";
+import { Switch } from "../../ui/switch";
 import { useColorSync } from "../../../hooks/useColorSync";
 import { useRecentColors } from "../../../hooks/useRecentColors";
 import { hslToHex, oklchToHex } from "../../../utils/colors";
@@ -63,10 +64,10 @@ export const StudioColorPicker = memo(({ color, onChange, label }: StudioColorPi
       'random': Array.from({ length: 3 }, () => Math.random() * 360)
     };
 
-    let resultHues = offsets[method] || [];
+    const resultHues = offsets[method] || [];
     
     const colors = resultHues.map(offset => {
-      let nextH = (h + offset + 360) % 360;
+      const nextH = (h + offset + 360) % 360;
       let nextL = l;
       let nextC = c;
 
@@ -114,11 +115,17 @@ export const StudioColorPicker = memo(({ color, onChange, label }: StudioColorPi
 
   const swatches = useMemo(() => {
     const flat: { id: string; hex: string; group: string; name: string }[] = [];
-    Object.entries(baseColors.color).forEach(([groupName, group]: [string, any]) => {
-      if (typeof group === 'object' && !group.$value) {
-        Object.entries(group).forEach(([name, data]: [string, any]) => {
-          if (data.$value) {
-            flat.push({ id: `${groupName}.${name}`, hex: data.$value as string, group: groupName, name });
+    interface ColorToken { $value?: string; value?: string; [key: string]: unknown }
+    interface ColorGroup { [key: string]: ColorToken | ColorGroup | unknown }
+
+    Object.entries(baseColors.color).forEach(([groupName, group]) => {
+      const typedGroup = group as ColorGroup;
+      if (typeof typedGroup === 'object' && typedGroup !== null && !('$value' in typedGroup)) {
+        Object.entries(typedGroup).forEach(([name, data]) => {
+          const typedData = data as ColorToken;
+          const hex = typedData.$value || typedData.value;
+          if (hex && typeof hex === 'string') {
+            flat.push({ id: `${groupName}.${name}`, hex, group: groupName, name });
           }
         });
       }
@@ -199,7 +206,7 @@ export const StudioColorPicker = memo(({ color, onChange, label }: StudioColorPi
                             <Switch 
                               size="xs" colorPalette="blue"
                               checked={isVibrant} 
-                              onChange={(e) => setIsVibrant(e.currentTarget.checked)} 
+                              onCheckedChange={(e) => setIsVibrant(e.checked)} 
                             />
                           </HStack>
                         </HStack>
