@@ -4,6 +4,7 @@ import * as React from "react"
 export interface PrecisionSliderProps extends ChakraSlider.RootProps {
   label?: string
   value: number[]
+  displayValue?: string | number
   unit?: string
   trackBg?: string
   onValueChange: (details: ChakraSlider.ValueChangeDetails) => void
@@ -17,7 +18,7 @@ export interface PrecisionSliderProps extends ChakraSlider.RootProps {
  */
 export const PrecisionSlider = React.forwardRef<HTMLDivElement, PrecisionSliderProps>(
   function PrecisionSlider(props, ref) {
-    const { label, value, unit = "", trackBg, onValueChange, ...rest } = props
+    const { label, value, displayValue, unit = "", trackBg, onValueChange, ...rest } = props
 
     return (
       <ChakraSlider.Root 
@@ -29,7 +30,9 @@ export const PrecisionSlider = React.forwardRef<HTMLDivElement, PrecisionSliderP
       >
         <HStack justify="space-between" mb={1}>
           <Text fontSize="10px" fontWeight="bold" color="gray.500" textTransform="uppercase">{label}</Text>
-          <Text fontSize="10px" fontWeight="bold" fontFamily="monospace" color="blue.600">{value[0]}{unit}</Text>
+          <Text fontSize="10px" fontWeight="bold" fontFamily="monospace" color="blue.600">
+            {displayValue !== undefined ? displayValue : value[0]}{unit}
+          </Text>
         </HStack>
 
         <ChakraSlider.Control h="20px">

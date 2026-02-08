@@ -12,6 +12,7 @@ import baseColors from '../../../../tokens/global/base/colors.json';
 import { PrecisionSlider } from "../../ui/precision-slider";
 import { useColorSync } from "../../../hooks/useColorSync";
 import { useRecentColors } from "../../../hooks/useRecentColors";
+import { hslToHex, oklchToHex } from "../../../utils/colors";
 
 interface StudioColorPickerProps {
   color: string;
@@ -32,6 +33,29 @@ export const StudioColorPicker = memo(({ color, onChange, label }: StudioColorPi
 
   const contrast = getContrastMetrics(color, '#ffffff');
   const outOfGamut = coords?.oklch ? isOutofGamut('oklch', coords.oklch) : false;
+
+  // Gradient Generation Helpers
+  const hslHueGradient = useMemo(() => {
+    const stops = [0, 60, 120, 180, 240, 300, 360].map(h => hslToHex(h, coords.hsl.s, coords.hsl.l));
+    return `linear-gradient(to right, ${stops.join(', ')})`;
+  }, [coords.hsl.s, coords.hsl.l]);
+
+  const hslSatGradient = useMemo(() => {
+    const start = hslToHex(coords.hsl.h, 0, coords.hsl.l);
+    const end = hslToHex(coords.hsl.h, 100, coords.hsl.l);
+    return `linear-gradient(to right, ${start}, ${end})`;
+  }, [coords.hsl.h, coords.hsl.l]);
+
+  const oklchHueGradient = useMemo(() => {
+    const stops = [0, 60, 120, 180, 240, 300, 360].map(h => oklchToHex(coords.oklch.l, coords.oklch.c, h));
+    return `linear-gradient(to right, ${stops.join(', ')})`;
+  }, [coords.oklch.l, coords.oklch.c]);
+
+  const oklchChromaGradient = useMemo(() => {
+    const start = oklchToHex(coords.oklch.l, 0, coords.oklch.h);
+    const end = oklchToHex(coords.oklch.l, 0.5, coords.oklch.h); // Visualize up to 0.5
+    return `linear-gradient(to right, ${start}, ${end})`;
+  }, [coords.oklch.l, coords.oklch.h]);
 
   const swatches = useMemo(() => {
     const flat: { id: string; hex: string; group: string; name: string }[] = [];
@@ -121,11 +145,12 @@ export const StudioColorPicker = memo(({ color, onChange, label }: StudioColorPi
               <VStack gap={3} align="stretch" pt={2}>
                 <PrecisionSlider 
                   label="Hue" value={[Math.round(coords.hsl.h)]} unit="°" min={0} max={360} 
-                  trackBg="linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)"
+                  trackBg={hslHueGradient}
                   onValueChange={(v) => onChange(updateFromHSL(v.value[0], coords.hsl.s, coords.hsl.l))}
                 />
                 <PrecisionSlider 
                   label="Saturation" value={[Math.round(coords.hsl.s)]} unit="%" min={0} max={100}
+                  trackBg={hslSatGradient}
                   onValueChange={(v) => onChange(updateFromHSL(coords.hsl.h, v.value[0], coords.hsl.l))}
                 />
                 <PrecisionSlider 
@@ -142,17 +167,21 @@ export const StudioColorPicker = memo(({ color, onChange, label }: StudioColorPi
               <HexColorPicker color={color} onChange={handleColorChange} style={{ width: '100%' }} />
               <VStack gap={3} align="stretch" pt={2}>
                 <PrecisionSlider 
-                  label="Lightness" value={[coords.oklch.l]} unit="" min={0} max={1} step={0.01}
+                  label="Lightness" value={[coords.oklch.l]} min={0} max={1} step={0.01}
+                  displayValue={Math.round(coords.oklch.l * 100)} unit="%"
                   trackBg="linear-gradient(to right, #000, #fff)"
                   onValueChange={(v) => onChange(updateFromOklch(v.value[0], coords.oklch.c, coords.oklch.h))}
                 />
                 <PrecisionSlider 
                   label="Chroma" value={[coords.oklch.c]} min={0} max={0.3} step={0.001}
+                  displayValue={coords.oklch.c.toFixed(3)}
+                  trackBg={oklchChromaGradient}
                   onValueChange={(v) => onChange(updateFromOklch(coords.oklch.l, v.value[0], coords.oklch.h))}
                 />
                 <PrecisionSlider 
-                  label="Hue" value={[Math.round(coords.oklch.h)]} unit="°" min={0} max={360}
-                  trackBg="linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)"
+                  label="Hue" value={[Math.round(coords.oklch.h)]} min={0} max={360}
+                  displayValue={coords.oklch.h.toFixed(1)} unit="°"
+                  trackBg={oklchHueGradient}
                   onValueChange={(v) => onChange(updateFromOklch(coords.oklch.l, coords.oklch.c, v.value[0]))}
                 />
               </VStack>
