@@ -157,11 +157,8 @@ export const usePersistentPlayground = () => {
     steps.forEach(step => {
       const exactPx = baseSize * Math.pow(ratio, step.id);
       const roundedPx = Math.round(exactPx);
-      const preciseRem = exactPx / 16;
       
       scaleRules.push(`  --fontSizeScale${step.name}: ${roundedPx}px !important;`);
-      // Optional: Add REM variant if needed by certain templates
-      // scaleRules.push(`  --fontSizeScale${step.name}Rem: ${preciseRem.toFixed(4)}rem !important;`);
     });
 
     const overrideRules = Object.entries(state.overrides)

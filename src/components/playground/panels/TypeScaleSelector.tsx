@@ -1,4 +1,4 @@
-import { Text, VStack, createListCollection, Box, Table, HStack, Heading, Badge } from "@chakra-ui/react";
+import { Text, VStack, createListCollection, Box, Table, HStack, Heading } from "@chakra-ui/react";
 import scaleData from '../../../../tokens/global/base/scale.json';
 import { useMemo } from 'react';
 import { AppSelectRoot } from "../../ui/AppSelect";
