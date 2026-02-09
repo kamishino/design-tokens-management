@@ -130,6 +130,7 @@ _Strategic suggestions from Gemini based on local archive patterns and market tr
 - [x] **Context Anchoring:** Defined SSOT architecture and Tech Stack.
 - [x] **Tasks 001-109:** Foundation, UI Studio, Color Engine, and Token Management System. (See Achievements for full log).
 
+- ✅ **2026-02-09 Task 112:** fix-nan-type-scale - Fixed NaNpx display error in Type Scale Inspector by hardening baseSize parsing logic.
 - ✅ **2026-02-09 Task 110:** typography-live-engine - Implemented dynamic typography engine with 11-step scale calculation and live precision slider.
 
 ### 🚧 In Progress

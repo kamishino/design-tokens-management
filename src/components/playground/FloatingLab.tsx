@@ -175,7 +175,7 @@ export const FloatingLab = ({
   const bFont = getEffectiveValue('--fontFamilyBody', 'font.family.base', 'Inter, sans-serif');
   const cFont = getEffectiveValue('--fontFamilyCode', 'font.family.mono', 'IBM Plex Mono, monospace');
   const scaleRatio = Number(getEffectiveValue('--typographyConfigScaleRatio', 'typography.config.scale-ratio', 1.250));
-  const baseSize = Number(getEffectiveValue('--fontSizeRoot', 'font.size.root', 16));
+  const baseSize = parseFloat(getEffectiveValue('--fontSizeRoot', 'font.size.root', 16));
 
   return (
     <Portal>
