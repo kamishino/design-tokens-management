@@ -11,5 +11,16 @@
   },
   "maxBackups": 5,
   "gatedAutomation": true,
-  "executionMode": "Implementer"
+  "executionMode": "Implementer",
+  "sync": {
+    "enabled": true,
+    "backend": "https://kamiflow.chinmotdesign.com/health",
+    "mode": "manual",
+    "projectId": "1db4569961ea906c16ae05d4e3106a8b",
+    "categories": [
+      "archive",
+      "ideas",
+      "tasks"
+    ]
+  }
 }
