@@ -50,7 +50,13 @@ export const StudioView = ({
 
   // Project Collection
   const projectCollection = useMemo(() => {
-// ... existing memo ...
+    if (!manifest) return createListCollection({ items: [] });
+    return createListCollection({
+      items: Object.entries(manifest.projects).map(([key, p]) => ({
+        label: `${p.client} - ${p.project}`,
+        value: key
+      }))
+    });
   }, [manifest]);
 
   // Generate new mock data whenever refreshKey changes
