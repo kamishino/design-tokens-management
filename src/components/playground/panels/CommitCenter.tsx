@@ -3,7 +3,7 @@ import {
   Table, Icon
 } from "@chakra-ui/react";
 import { useMemo, useState } from "react";
-import { LuSave, LuRefreshCw, LuArrowRight, LuAlertTriangle } from "react-icons/lu";
+import { LuSave, LuRefreshCw, LuArrowRight, LuTriangleAlert } from "react-icons/lu";
 import type { TokenDoc } from "../../../utils/token-parser";
 import { toaster } from "../../ui/toaster";
 
@@ -146,7 +146,7 @@ Action: To read more of the file, you can use the 'offset' and 'limit' parameter
       </Box>
 
       <HStack bg="orange.50" p={3} borderRadius="md" gap={3} border="1px solid" borderColor="orange.100">
-        <LuAlertTriangle size={16} color="var(--chakra-colors-orange-600)" />
+        <LuTriangleAlert size={16} color="var(--chakra-colors-orange-600)" />
         <Text fontSize="xs" color="orange.800">
           Clicking "Commit" will permanently overwrite your local JSON files.
         </Text>

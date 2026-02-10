@@ -9,6 +9,8 @@
 
 _This section highlights the business value extracted from completed tasks._
 
+- ? 2026-02-10 Task 115: fix-lualerttriangle-export - Resolved runtime crash by correcting non-existent 'LuAlertTriangle' export to 'LuTriangleAlert' in Commit Center.
+
 - ✅ **2026-02-10 Task 114:** bridge-builder-commit-center - Implemented Commit Center for browser-to-disk token persistence and enhanced Studio with Lineage Inspector and Component Catalog.
 - ✅ **2026-02-10 Task 113:** figma-tokens-studio-export - Implemented professional Figma Tokens Studio export with inheritance resolution, premium side-by-side JSON preview (Syntax Highlighting), and custom scrollbars.
 - ✅ **2026-02-08 Task 109:** token-aware-init - Resolved 'Morning Black' flash and ensured atomic token initialization before app render.
