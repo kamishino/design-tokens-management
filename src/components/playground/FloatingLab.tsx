@@ -18,9 +18,10 @@ import { getPrioritizedTokenMap } from "../../utils/token-graph";
 import { StudioColorPicker } from "./panels/StudioColorPicker";
 import { FontExplorer } from "./panels/FontExplorer";
 import { TypeScaleSelector } from "./panels/TypeScaleSelector";
+import { CommitCenter } from "./panels/CommitCenter";
 import type { TokenOverrides } from "../../schemas/manifest";
 import type { TokenDoc } from "../../utils/token-parser";
-import { LuScanEye, LuX, LuLayoutGrid } from "react-icons/lu";
+import { LuScanEye, LuX, LuLayoutGrid, LuHistory } from "react-icons/lu";
 import type { Manifest } from "../../schemas/manifest";
 
 import { toaster } from "../ui/toaster";
@@ -605,13 +606,54 @@ export const FloatingLab = ({
               >
                 Reset
               </Button>
+              
+              <Popover.Root
+                positioning={{ placement: "top", gutter: 12 }}
+                lazyMount
+                unmountOnExit
+              >
+                <Popover.Trigger asChild>
+                  <Button
+                    colorPalette="blue"
+                    size={{ base: "xs", md: "sm" }}
+                    borderRadius="full"
+                    px={{ base: 3, md: 6 }}
+                    boxShadow="0 4px 14px 0 rgba(0,118,255,0.39)"
+                    disabled={!hasOverrides}
+                  >
+                    <LuHistory size={14} style={{ marginRight: 8 }} />
+                    Commit
+                  </Button>
+                </Popover.Trigger>
+                <Portal>
+                  <Popover.Positioner>
+                    <Popover.Content
+                      w="320px"
+                      borderRadius="xl"
+                      boxShadow="2xl"
+                      overflow="hidden"
+                      border="none"
+                    >
+                      <CommitCenter 
+                        overrides={overrides}
+                        globalTokens={globalTokens}
+                        onCommitSuccess={() => {
+                          // Clear staging area? For now, we just toast and keep overrides
+                          // until a formal "Sync/Refresh" happens.
+                          toaster.success({ title: "Disk Synced" });
+                        }}
+                      />
+                    </Popover.Content>
+                  </Popover.Positioner>
+                </Portal>
+              </Popover.Root>
+
               <Button
-                colorScheme="blue"
+                variant="outline"
                 size={{ base: "xs", md: "sm" }}
                 borderRadius="full"
                 px={{ base: 3, md: 6 }}
                 onClick={handleApply}
-                boxShadow="0 4px 14px 0 rgba(0,118,255,0.39)"
               >
                 Apply
               </Button>

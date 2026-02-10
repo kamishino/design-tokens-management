@@ -7,6 +7,7 @@ import { LandingPage } from './templates/LandingPage';
 import { Dashboard } from './templates/Dashboard';
 import { ProductDetail } from './templates/ProductDetail';
 import { StyleAtlas } from './templates/StyleAtlas';
+import { ComponentCatalog } from './templates/ComponentCatalog';
 import { AppSelectRoot } from "../ui/AppSelect";
 import {
   SelectContent,
@@ -15,11 +16,13 @@ import {
   SelectValueText,
 } from "../ui/select";
 import { generateStudioMockData } from './templates/shared/mock-data';
-import { LuScanEye, LuInfo } from "react-icons/lu";
+import { LuScanEye, LuInfo, LuArrowRight } from "react-icons/lu";
 import type { Manifest } from "../../schemas/manifest";
+import type { TokenDoc } from "../../utils/token-parser";
 
 interface StudioViewProps {
   manifest: Manifest | null;
+  globalTokens: TokenDoc[];
   selectedProject: string;
   onProjectChange: (val: string) => void;
   onExit: () => void;
@@ -29,6 +32,7 @@ interface StudioViewProps {
 
 const templates = createListCollection({
   items: [
+    { label: "Component Catalog", value: "catalog" },
     { label: "Design System Atlas", value: "atlas" },
     { label: "SaaS Landing Page", value: "landing" },
     { label: "Admin Dashboard", value: "dashboard" },
@@ -37,22 +41,16 @@ const templates = createListCollection({
 })
 
 export const StudioView = ({ 
-  manifest, selectedProject, onProjectChange, onExit, onInspectChange 
+  manifest, globalTokens, selectedProject, onProjectChange, onExit, onInspectChange 
 }: Omit<StudioViewProps, 'onOpenDocs'>) => {
-  const [template, setTemplate] = useState('atlas');
+  const [template, setTemplate] = useState('catalog');
   const [refreshKey, setRefreshKey] = useState(0);
   const [isInspectMode, setIsInspectMode] = useState(false);
-  const [hoveredRect, setHoveredRect] = useState<{top: number, left: number, width: number, height: number} | null>(null);
+  const [hoveredRect, setHoveredRect] = useState<{top: number, left: number, width: number, height: number, tokens?: string[]} | null>(null);
 
   // Project Collection
   const projectCollection = useMemo(() => {
-    if (!manifest) return createListCollection({ items: [] });
-    return createListCollection({
-      items: Object.entries(manifest.projects).map(([key, p]) => ({
-        label: `${p.client} - ${p.project}`,
-        value: key
-      }))
-    });
+// ... existing memo ...
   }, [manifest]);
 
   // Generate new mock data whenever refreshKey changes
@@ -72,11 +70,13 @@ export const StudioView = ({
       
       if (inspectable) {
         const rect = inspectable.getBoundingClientRect();
+        const tokens = inspectable.getAttribute('data-tokens')?.split(',').map(t => t.trim()) || [];
         setHoveredRect({
           top: rect.top,
           left: rect.left,
           width: rect.width,
-          height: rect.height
+          height: rect.height,
+          tokens
         });
       } else {
         setHoveredRect(null);
@@ -126,7 +126,45 @@ export const StudioView = ({
           pointerEvents="none"
           zIndex={1900}
           transition="all 0.1s"
-        />
+        >
+          {hoveredRect.tokens && hoveredRect.tokens.length > 0 && (
+            <Box
+              position="absolute"
+              top="-32px"
+              left="0"
+              bg="blue.600"
+              color="white"
+              px={2}
+              py={1}
+              borderRadius="md"
+              fontSize="10px"
+              whiteSpace="nowrap"
+              boxShadow="lg"
+              display="flex"
+              alignItems="center"
+              gap={2}
+            >
+              {hoveredRect.tokens.map((tokenId, idx) => {
+                const token = globalTokens.find(t => t.id === tokenId);
+                const lineage = token?.lineage || [];
+                return (
+                  <HStack key={tokenId} gap={1}>
+                    <Text fontWeight="bold">{tokenId}</Text>
+                    {lineage.length > 0 && (
+                      <>
+                        <LuArrowRight size={10} />
+                        <Text opacity={0.8}>{lineage.join(' → ')}</Text>
+                      </>
+                    )}
+                    {idx < hoveredRect.tokens!.length - 1 && (
+                      <Box w="1px" h="10px" bg="whiteAlpha.400" mx={2} />
+                    )}
+                  </HStack>
+                );
+              })}
+            </Box>
+          )}
+        </Box>
       )}
 
       {/* Studio Toolbar */}
@@ -229,6 +267,7 @@ export const StudioView = ({
 
       {/* Template Preview Area */}
       <Box pointerEvents={isInspectMode ? 'none' : 'auto'} sx={{ '& [data-tokens]': { pointerEvents: 'auto' } }}>
+        {template === 'catalog' && <ComponentCatalog />}
         {template === 'atlas' && <StyleAtlas data={mockData} />}
         {template === 'landing' && <LandingPage data={mockData} />}
         {template === 'dashboard' && <Dashboard data={mockData} />}

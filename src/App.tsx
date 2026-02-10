@@ -88,6 +88,7 @@ function App() {
       {viewMode === 'studio' && (
         <StudioView 
           manifest={manifest}
+          globalTokens={globalTokens}
           selectedProject={selectedProject}
           onProjectChange={handleProjectChange}
           onExit={() => {
