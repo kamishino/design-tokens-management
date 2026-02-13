@@ -1,14 +1,9 @@
 import { Box, type BoxProps } from "@chakra-ui/react"
 import * as React from "react"
 
-console.log("[Debug] Loading src/components/ui/card.tsx");
-
-// Define components individually first
-const CardRoot = React.forwardRef<HTMLDivElement, BoxProps>(function CardRoot(props, ref) {
-  // console.log("[Debug] Rendering CardRoot");
+const CardRoot = (props: BoxProps) => {
   return (
     <Box 
-      ref={ref} 
       borderRadius="md" 
       borderWidth="1px" 
       borderColor="border" 
@@ -19,29 +14,28 @@ const CardRoot = React.forwardRef<HTMLDivElement, BoxProps>(function CardRoot(pr
       {...props} 
     />
   )
-})
+}
 
-const CardHeader = React.forwardRef<HTMLDivElement, BoxProps>(function CardHeader(props, ref) {
-  return <Box ref={ref} p="6" {...props} />
-})
+const CardHeader = (props: BoxProps) => {
+  return <Box p="6" {...props} />
+}
 
-const CardBody = React.forwardRef<HTMLDivElement, BoxProps>(function CardBody(props, ref) {
-  return <Box ref={ref} p="6" {...props} />
-})
+const CardBody = (props: BoxProps) => {
+  return <Box p="6" {...props} />
+}
 
-const CardFooter = React.forwardRef<HTMLDivElement, BoxProps>(function CardFooter(props, ref) {
-  return <Box ref={ref} p="6" pt="0" {...props} />
-})
+const CardFooter = (props: BoxProps) => {
+  return <Box p="6" pt="0" {...props} />
+}
 
-const CardTitle = React.forwardRef<HTMLDivElement, BoxProps>(function CardTitle(props, ref) {
-  return <Box ref={ref} textStyle="lg" fontWeight="semibold" {...props} />
-})
+const CardTitle = (props: BoxProps) => {
+  return <Box textStyle="lg" fontWeight="semibold" {...props} />
+}
 
-const CardDescription = React.forwardRef<HTMLDivElement, BoxProps>(function CardDescription(props, ref) {
-  return <Box ref={ref} textStyle="sm" color="fg.muted" {...props} />
-})
+const CardDescription = (props: BoxProps) => {
+  return <Box textStyle="sm" color="fg.muted" {...props} />
+}
 
-// Export explicitly
 export const Card = {
   Root: CardRoot,
   Header: CardHeader,
@@ -50,5 +44,3 @@ export const Card = {
   Title: CardTitle,
   Description: CardDescription,
 }
-
-console.log("[Debug] Card object exported:", Card);
