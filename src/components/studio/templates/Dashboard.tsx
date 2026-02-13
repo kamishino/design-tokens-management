@@ -45,15 +45,15 @@ export const Dashboard = ({ data }: { data: StudioMockData }) => {
   return (
     <Box bg="var(--bgCanvas)" minH="100vh" fontFamily="var(--fontFamilyBody)" color="var(--textPrimary)">
       {/* 1. Dashboard Header */}
-      <Box bg="var(--bgCanvas)" borderBottom="1px solid" borderColor="var(--brandSecondary)" py={4} px={8} position="sticky" top={0} zIndex={10}>
+      <Box bg="var(--bgCanvas)" borderBottom="1px solid" borderColor="var(--brandSecondary)" py={4} px={8} position="sticky" top={0} zIndex={10} data-tokens="bg.canvas, brand.secondary">
         <Container maxW="container.xl">
           <HStack justify="space-between">
             <HStack gap={8}>
               <VStack align="start" gap={0}>
-                <Heading size="md" letterSpacing="tight" fontWeight="var(--fontWeightExtrabold)" color="var(--textPrimary)" fontFamily="var(--fontFamilyHeading)">Dashboard</Heading>
-                <Text fontSize="xs" color="gray.500" fontFamily="var(--fontFamilyBody)">{data.brand.name} Analytics</Text>
+                <Heading size="md" letterSpacing="tight" fontWeight="var(--fontWeightExtrabold)" color="var(--textPrimary)" fontFamily="var(--fontFamilyHeading)" data-tokens="text.primary, font.family.heading, font.weight.extrabold">Dashboard</Heading>
+                <Text fontSize="xs" color="gray.500" fontFamily="var(--fontFamilyBody)" data-tokens="font.family.base">{data.brand.name} Analytics</Text>
               </VStack>
-              <HStack gap={4} bg="gray.50" px={4} py={2} borderRadius="var(--radius2)" border="1px solid" borderColor="var(--brandSecondary)">
+              <HStack gap={4} bg="gray.50" px={4} py={2} borderRadius="var(--radius2)" border="1px solid" borderColor="var(--brandSecondary)" data-tokens="brand.secondary, border.radius.2">
                 <LuSearch size={14} color="gray" />
                 <Input 
                   placeholder="Quick search..." 
@@ -64,15 +64,16 @@ export const Dashboard = ({ data }: { data: StudioMockData }) => {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   color="var(--textPrimary)"
+                  data-tokens="text.primary"
                 />
               </HStack>
             </HStack>
             <HStack gap={4}>
-              <IconButton icon={<LuBell size={18} />} variant="ghost" color="var(--textPrimary)" />
+              <IconButton icon={<LuBell size={18} />} variant="ghost" color="var(--textPrimary)" data-tokens="text.primary" />
               <HStack gap={3}>
-                <Circle size="32px" bg="var(--brandPrimary)" color="white" fontWeight="bold" fontSize="xs">TH</Circle>
+                <Circle size="32px" bg="var(--brandPrimary)" color="white" fontWeight="bold" fontSize="xs" data-tokens="brand.primary">TH</Circle>
                 <VStack align="start" gap={0} display={{ base: 'none', md: 'flex' }}>
-                  <Text fontSize="xs" fontWeight="bold" color="var(--textPrimary)">Admin User</Text>
+                  <Text fontSize="xs" fontWeight="bold" color="var(--textPrimary)" data-tokens="text.primary">Admin User</Text>
                   <Text fontSize="10px" color="gray.400">System Architect</Text>
                 </VStack>
               </HStack>

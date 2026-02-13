@@ -2,7 +2,7 @@ import {
   Box, HStack, Button, Text, Heading, 
   createListCollection, Portal, IconButton, Tabs, Badge
 } from "@chakra-ui/react";
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { LandingPage } from './templates/LandingPage';
 import { Dashboard } from './templates/Dashboard';
 import { ProductDetail } from './templates/ProductDetail';
@@ -19,7 +19,7 @@ import {
   MenuRoot, MenuTrigger, MenuContent, MenuItem
 } from "../ui/menu";
 import { generateStudioMockData } from './templates/shared/mock-data';
-import { LuScanEye, LuInfo, LuArrowRight, LuSettings, LuX, LuPalette, LuDatabase, LuChevronDown } from "react-icons/lu";
+import { LuScanEye, LuArrowRight, LuSettings, LuX, LuPalette, LuDatabase, LuChevronDown } from "react-icons/lu";
 import type { Manifest, TokenOverrides } from "../../schemas/manifest";
 import type { TokenDoc } from "../../utils/token-parser";
 import { TokenViewer } from "../TokenViewer";
@@ -34,6 +34,7 @@ interface StudioViewProps {
   onExit: () => void;
   onOpenDocs: () => void;
   onInspectChange: (tokens: string[] | undefined) => void;
+  inspectedTokens?: string[];
   overrides: TokenOverrides;
   updateOverride: (newValues: Record<string, string | number>, label?: string) => void;
   onReset: () => void;
@@ -42,6 +43,7 @@ interface StudioViewProps {
   canUndo: boolean;
   canRedo: boolean;
 }
+
 
 const templates = createListCollection({
   items: [
@@ -54,7 +56,7 @@ const templates = createListCollection({
 })
 
 export const StudioView = ({ 
-  manifest, globalTokens, selectedProject, onProjectChange, onExit, onInspectChange, overrides, updateOverride,
+  manifest, globalTokens, selectedProject, onProjectChange, onExit, onInspectChange, inspectedTokens, overrides, updateOverride,
   onReset, undo, redo, canUndo, canRedo
 }: StudioViewProps) => {
   const [template, setTemplate] = useState('catalog');
@@ -62,10 +64,11 @@ export const StudioView = ({
   const [isInspectMode, setIsInspectMode] = useState(false);
   const [activeTool, setActiveTool] = useState<'manager' | 'lab' | null>(null);
   const [hoveredRect, setHoveredRect] = useState<{top: number, left: number, width: number, height: number, tokens?: string[]} | null>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
 
   // Project Collection
   const projectCollection = useMemo(() => {
-    if (!manifest) return createListCollection({ items: [] });
+    if (!manifest) return createListCollection<{ label: string; value: string }>({ items: [] });
     return createListCollection({
       items: Object.entries(manifest.projects).map(([key, p]) => ({
         label: `${p.client} - ${p.project}`,
@@ -116,6 +119,7 @@ export const StudioView = ({
         e.stopPropagation();
         const tokens = inspectable.getAttribute('data-tokens')?.split(',').map(t => t.trim()) || [];
         onInspectChange(tokens.length > 0 ? tokens : undefined);
+        if (tokens.length > 0) setActiveTool('lab');
       } else {
         onInspectChange(undefined);
       }
@@ -303,13 +307,15 @@ export const StudioView = ({
       {activeTool === 'lab' && (
         <Portal>
           <Box position="fixed" inset={0} zIndex={3000} bg="blackAlpha.500" onClick={() => setActiveTool(null)}>
+            {/* Popover Container - Placed here to avoid modal clipping */}
+            <div ref={popoverRef} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 4000 }} />
+            
             <Box 
               position="absolute" top="50%" left="50%" transform="translate(-50%, -50%)" 
               onClick={e => e.stopPropagation()}
               bg="white" borderRadius="xl" boxShadow="2xl" overflow="hidden"
               w="900px" maxW="90vw" h="80vh" display="flex" flexDirection="column"
             >
-              <div ref={popoverRef} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 4000 }} />
               
               <HStack justify="space-between" p={4} borderBottom="1px solid" borderColor="gray.100" bg="gray.50">
                 <Heading size="sm">Visual Lab</Heading>
@@ -346,6 +352,8 @@ export const StudioView = ({
                       canUndo={canUndo}
                       canRedo={canRedo}
                       globalTokens={globalTokens}
+                      filteredIds={inspectedTokens}
+                      onClearFilter={() => onInspectChange(undefined)}
                       onProjectSelect={onProjectChange}
                       recentProjects={[]}
                       popoverContainer={popoverRef}
@@ -355,7 +363,7 @@ export const StudioView = ({
 
                 <Tabs.Content value="commit" flex={1} overflowY="auto" p={6}>
                   <CommitCenter 
-                    overrides={overrides}
+                    overrides={overrides as Record<string, string | number>}
                     globalTokens={globalTokens}
                     onCommitSuccess={onReset}
                   />
@@ -392,7 +400,7 @@ export const StudioView = ({
       </Box>
 
       {/* Template Preview Area */}
-      <Box pointerEvents={isInspectMode ? 'none' : 'auto'} sx={{ '& [data-tokens]': { pointerEvents: 'auto' } }}>
+      <Box className={isInspectMode ? 'studio-inspect-mode' : ''}>
         {template === 'catalog' && <ComponentCatalog />}
         {template === 'atlas' && <StyleAtlas data={mockData} />}
         {template === 'landing' && <LandingPage data={mockData} />}

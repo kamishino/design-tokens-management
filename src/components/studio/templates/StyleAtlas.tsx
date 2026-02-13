@@ -103,13 +103,13 @@ export const StyleAtlas = ({ data }: { data: StudioMockData }) => {
 
               <SimpleGrid columns={{ base: 1, md: 3, xl: 5 }} gap={4}>
                 {[
-                  { id: 'primary', var: '--brandPrimary', label: 'Primary' },
-                  { id: 'secondary', var: '--brandSecondary', label: 'Secondary' },
-                  { id: 'accent', var: '--brandAccent', label: 'Accent' },
-                  { id: 'text', var: '--textPrimary', label: 'Text' },
-                  { id: 'bg', var: '--bgCanvas', label: 'Background' }
+                  { id: 'primary', var: '--brandPrimary', token: 'brand.primary', label: 'Primary' },
+                  { id: 'secondary', var: '--brandSecondary', token: 'brand.secondary', label: 'Secondary' },
+                  { id: 'accent', var: '--brandAccent', token: 'brand.accent', label: 'Accent' },
+                  { id: 'text', var: '--textPrimary', token: 'text.primary', label: 'Text' },
+                  { id: 'bg', var: '--bgCanvas', token: 'bg.canvas', label: 'Background' }
                 ].map(c => (
-                  <VStack key={c.id} p={4} bg="white" borderRadius="var(--radius2)" border="1px solid" borderColor="gray.100" align="start">
+                  <VStack key={c.id} p={4} bg="white" borderRadius="var(--radius2)" border="1px solid" borderColor="gray.100" align="start" data-tokens={c.token}>
                     <Box w="full" h="80px" bg={`var(${c.var})`} borderRadius="var(--radius1)" border="1px solid rgba(0,0,0,0.05)" />
                     <VStack align="start" gap={0} mt={2}>
                       <Text fontSize="xs" fontWeight="bold">{c.label}</Text>

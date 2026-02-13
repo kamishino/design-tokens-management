@@ -22,27 +22,28 @@ export const LandingPage = ({ data }: { data: StudioMockData }) => {
         position="sticky" top={0} zIndex={100} 
         bg="rgba(255, 255, 255, 0.8)" backdropFilter="blur(12px)"
         borderBottom="1px solid" borderColor="var(--brandSecondary)"
+        data-tokens="brand.secondary"
       >
         <Container maxW="container.xl" py={4}>
           <HStack justify="space-between">
             <HStack gap={8}>
               <HStack gap={2}>
-                <Box w={8} h={8} bg="var(--brandPrimary)" borderRadius="var(--radius2)" />
-                <Text fontWeight="var(--fontWeightExtrabold)" fontSize="lg" letterSpacing="tight" color="var(--textPrimary)" fontFamily="var(--fontFamilyHeading)">
+                <Box w={8} h={8} bg="var(--brandPrimary)" borderRadius="var(--radius2)" data-tokens="brand.primary, border.radius.2" />
+                <Text fontWeight="var(--fontWeightExtrabold)" fontSize="lg" letterSpacing="tight" color="var(--textPrimary)" fontFamily="var(--fontFamilyHeading)" data-tokens="text.primary, font.family.heading, font.weight.extrabold">
                   {data.brand.name}
                 </Text>
               </HStack>
               <HStack gap={6} display={{ base: 'none', md: 'flex' }}>
                 {['Features', 'Pricing', 'Testimonials', 'Docs'].map(item => (
-                  <Text key={item} fontSize="sm" fontWeight="medium" color="var(--textPrimary)" opacity={0.7} cursor="pointer" _hover={{ color: "var(--brandPrimary)", opacity: 1 }}>
+                  <Text key={item} fontSize="sm" fontWeight="medium" color="var(--textPrimary)" opacity={0.7} cursor="pointer" _hover={{ color: "var(--brandPrimary)", opacity: 1 }} data-tokens="text.primary, brand.primary">
                     {item}
                   </Text>
                 ))}
               </HStack>
             </HStack>
             <HStack gap={4}>
-              <Button variant="ghost" size="sm" color="var(--textPrimary)">Log in</Button>
-              <Button bg="var(--brandPrimary)" color="white" size="sm" borderRadius="var(--radius2)" px={6}>
+              <Button variant="ghost" size="sm" color="var(--textPrimary)" data-tokens="text.primary">Log in</Button>
+              <Button bg="var(--brandPrimary)" color="white" size="sm" borderRadius="var(--radius2)" px={6} data-tokens="brand.primary, border.radius.2">
                 Get Started
               </Button>
             </HStack>

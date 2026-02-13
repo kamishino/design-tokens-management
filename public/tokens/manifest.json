@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2026-02-02T12:14:17.943Z",
+  "lastUpdated": "2026-02-13T13:15:03.709Z",
   "projects": {
     "brand-a/app-1": {
       "name": "brand-a/app-1",
@@ -10,7 +10,7 @@
       "files": [
         "variables.css"
       ],
-      "lastBuild": "2026-02-02T12:13:35.882Z"
+      "lastBuild": "2026-02-13T13:15:03.709Z"
     },
     "brand-b/demo": {
       "name": "brand-b/demo",

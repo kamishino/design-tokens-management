@@ -1,6 +1,6 @@
 import { Text, VStack, createListCollection, Box, Table, HStack, Heading } from "@chakra-ui/react";
 import scaleData from '../../../../tokens/global/base/scale.json';
-import { useMemo } from 'react';
+import { useMemo, type RefObject } from 'react';
 import { AppSelectRoot } from "../../ui/AppSelect";
 import {
   SelectContent,
@@ -15,6 +15,7 @@ interface TypeScaleSelectorProps {
   baseSize: number;
   onSelect: (val: number) => void;
   onBaseSizeChange: (val: number) => void;
+  containerRef?: RefObject<HTMLElement | null>;
 }
 
 const STEPS = [
@@ -37,7 +38,7 @@ const toTitleCase = (str: string) => {
 };
 
 export const TypeScaleSelector = ({ 
-  activeRatio, baseSize, onSelect, onBaseSizeChange 
+  activeRatio, baseSize, onSelect, onBaseSizeChange, containerRef
 }: TypeScaleSelectorProps) => {
   const scales = useMemo(() => {
     const raw = Object.entries(scaleData.scale).map(([key, data]) => ({
@@ -83,7 +84,7 @@ export const TypeScaleSelector = ({
               <SelectTrigger>
                 <SelectValueText placeholder="Select Scale" />
               </SelectTrigger>
-              <SelectContent zIndex={2100}>
+              <SelectContent zIndex={2100} portalRef={containerRef}>
                 {collection.items.map((item) => (
                   <SelectItem item={item} key={item.value}>
                     {item.label}

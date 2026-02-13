@@ -23,11 +23,11 @@ export const ComponentCatalog = () => {
             Buttons
           </Heading>
           <HStack gap={4} wrap="wrap">
-            <Button variant="solid" bg="var(--brandPrimary)" color="var(--bgCanvas)">Primary Button</Button>
-            <Button variant="outline" borderColor="var(--brandPrimary)" color="var(--brandPrimary)">Outline Button</Button>
-            <Button variant="solid" bg="var(--brandSecondary)" color="var(--bgCanvas)">Secondary</Button>
-            <Button variant="solid" bg="var(--brandAccent)" color="var(--bgCanvas)">Accent Action</Button>
-            <Button variant="ghost" color="var(--textPrimary)">Ghost</Button>
+            <Button variant="solid" bg="var(--brandPrimary)" color="var(--bgCanvas)" data-tokens="brand.primary, bg.canvas">Primary Button</Button>
+            <Button variant="outline" borderColor="var(--brandPrimary)" color="var(--brandPrimary)" data-tokens="brand.primary">Outline Button</Button>
+            <Button variant="solid" bg="var(--brandSecondary)" color="var(--bgCanvas)" data-tokens="brand.secondary, bg.canvas">Secondary</Button>
+            <Button variant="solid" bg="var(--brandAccent)" color="var(--bgCanvas)" data-tokens="brand.accent, bg.canvas">Accent Action</Button>
+            <Button variant="ghost" color="var(--textPrimary)" data-tokens="text.primary">Ghost</Button>
             <Button disabled>Disabled</Button>
           </HStack>
         </VStack>
@@ -108,12 +108,12 @@ export const ComponentCatalog = () => {
             Typography Scale
           </Heading>
           <Stack gap={4}>
-            <Text fontSize="var(--fontSizeScale8)" fontWeight="bold">Heading 8 (Scale)</Text>
-            <Text fontSize="var(--fontSizeScale5)" fontWeight="bold">Heading 5 (Scale)</Text>
-            <Text fontSize="var(--fontSizeScale2)" fontWeight="bold">Heading 2 (Scale)</Text>
-            <Text fontSize="var(--fontSizeScale0)">Body text (Scale 0)</Text>
-            <Text fontSize="var(--fontSizeScaleMinus1)" color="gray.500">Small text (Scale -1)</Text>
-            <Text fontSize="var(--fontSizeScaleMinus2)" color="gray.400" fontFamily="var(--fontFamilyCode)">Code snippet (Scale -2)</Text>
+            <Text fontSize="var(--fontSizeScale8)" fontWeight="bold" data-tokens="typography.scale.8">Heading 8 (Scale)</Text>
+            <Text fontSize="var(--fontSizeScale5)" fontWeight="bold" data-tokens="typography.scale.5">Heading 5 (Scale)</Text>
+            <Text fontSize="var(--fontSizeScale2)" fontWeight="bold" data-tokens="typography.scale.2">Heading 2 (Scale)</Text>
+            <Text fontSize="var(--fontSizeScale0)" data-tokens="typography.scale.0">Body text (Scale 0)</Text>
+            <Text fontSize="var(--fontSizeScaleMinus1)" color="gray.500" data-tokens="typography.scale.-1">Small text (Scale -1)</Text>
+            <Text fontSize="var(--fontSizeScaleMinus2)" color="gray.400" fontFamily="var(--fontFamilyCode)" data-tokens="typography.scale.-2, font.family.mono">Code snippet (Scale -2)</Text>
           </Stack>
         </VStack>
       </VStack>

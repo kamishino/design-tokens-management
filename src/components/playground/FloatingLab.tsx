@@ -13,7 +13,8 @@ import {
   SimpleGrid,
   Heading
 } from "@chakra-ui/react";
-import { useMemo, useCallback, useState } from "react";
+import { useMemo, useCallback } from "react";
+
 
 import { prependFont } from "../../utils/fonts";
 import { findReference } from "../../utils/token-parser";
@@ -21,8 +22,8 @@ import { getPrioritizedTokenMap } from "../../utils/token-graph";
 import { StudioColorPicker } from "./panels/StudioColorPicker";
 import { FontExplorer } from "./panels/FontExplorer";
 import { TypeScaleSelector } from "./panels/TypeScaleSelector";
-import { CommitCenter } from "./panels/CommitCenter";
 import type { TokenOverrides } from "../../schemas/manifest";
+
 import type { TokenDoc } from "../../utils/token-parser";
 import { LuScanEye, LuX, LuLayoutGrid, LuHistory, LuPalette, LuType } from "react-icons/lu";
 import type { Manifest } from "../../schemas/manifest";
@@ -223,7 +224,12 @@ export const FloatingLab = (props: FloatingLabProps) => {
 // --- SUB-COMPONENTS ---
 
 const LabDashboard = (props: any) => {
-  const { globalTokens, updateOverride, getEffectiveValue, handleFontSelect, scaleRatio, baseSize, hFont, bFont, cFont, onReset, undo, redo, canUndo, canRedo, handleApply, hasOverrides, popoverContainer } = props;
+  const { 
+    updateOverride, getEffectiveValue, handleFontSelect, 
+    scaleRatio, baseSize, hFont, bFont, cFont, onReset, undo, redo, 
+    canUndo, canRedo, handleApply, hasOverrides, popoverContainer,
+    filteredIds, onClearFilter
+  } = props;
 
   return (
     <Tabs.Root defaultValue="colors" orientation="vertical" h="full" w="full" display="flex" flexDirection="row" overflow="hidden">
@@ -239,7 +245,28 @@ const LabDashboard = (props: any) => {
         </Tabs.Trigger>
       </Tabs.List>
 
-      <Box flex={1} h="full" overflowY="auto" bg="white" p={8}>
+      <Box flex={1} h="full" overflowY="auto" bg="white" p={8} position="relative">
+        {filteredIds && filteredIds.length > 0 && (
+          <HStack 
+            position="sticky" top={-8} left={0} right={0} zIndex={10} 
+            bg="blue.600" color="white" px={4} py={2} mx={-8} mb={6}
+            justify="space-between" shadow="md"
+          >
+            <HStack gap={2}>
+              <LuScanEye size={14} />
+              <Text fontSize="xs" fontWeight="bold">
+                Filtering by inspected tokens: {filteredIds.join(", ")}
+              </Text>
+            </HStack>
+            <IconButton 
+              aria-label="Clear Filter" size="xs" variant="ghost" 
+              colorPalette="whiteAlpha" onClick={onClearFilter}
+            >
+              <LuX />
+            </IconButton>
+          </HStack>
+        )}
+
         <Tabs.Content value="colors" p={0}>
           <Heading size="sm" mb={6}>Semantic Colors</Heading>
           <SimpleGrid columns={{ base: 1, md: 2, xl: 3 }} gap={4}>
@@ -248,16 +275,25 @@ const LabDashboard = (props: any) => {
                 primary: "brand.primary", secondary: "brand.secondary", accent: "brand.accent", text: "text.primary", bg: "bg.canvas",
               };
               const activeColor = getEffectiveValue(channel.variable, tokenKeyMap[channel.id], "#000000");
+              const isInspected = filteredIds?.some((id: string) => tokenKeyMap[channel.id] === id || channel.variable === id);
               
               return (
-                <StudioColorPicker 
+                <Box 
                   key={channel.id} 
-                  variant="button" 
-                  label={channel.label} 
-                  color={activeColor} 
-                  onChange={(c) => updateOverride({ [channel.variable]: c }, `Changed ${channel.label}`)} 
-                  containerRef={popoverContainer}
-                />
+                  p={1} borderRadius="xl" 
+                  border="2px solid" 
+                  borderColor={isInspected ? "blue.400" : "transparent"}
+                  bg={isInspected ? "blue.50/50" : "transparent"}
+                  transition="all 0.2s"
+                >
+                  <StudioColorPicker 
+                    variant="button" 
+                    label={channel.label} 
+                    color={activeColor} 
+                    onChange={(c) => updateOverride({ [channel.variable]: c }, `Changed ${channel.label}`)} 
+                    containerRef={popoverContainer}
+                  />
+                </Box>
               );
             })}
           </SimpleGrid>
@@ -265,15 +301,25 @@ const LabDashboard = (props: any) => {
 
         <Tabs.Content value="typography" p={0}>
           <VStack align="stretch" gap={8}>
-            <Box>
+            <Box 
+              p={1} borderRadius="xl" 
+              border="2px solid" 
+              borderColor={filteredIds?.some((id: string) => id.includes('typography.scale') || id.includes('font.size')) ? "blue.400" : "transparent"}
+              bg={filteredIds?.some((id: string) => id.includes('typography.scale') || id.includes('font.size')) ? "blue.50/50" : "transparent"}
+            >
               <Heading size="sm" mb={4}>Type Scale</Heading>
-              <Box p={4} border="1px solid" borderColor="gray.100" borderRadius="lg">
-                <TypeScaleSelector activeRatio={scaleRatio} baseSize={baseSize} onSelect={(val) => updateOverride({ "--typographyConfigScaleRatio": val }, "Changed Type Scale")} onBaseSizeChange={(val) => updateOverride({ "--fontSizeRoot": `${val}px` }, "Changed Base Font Size")} />
+              <Box p={4} border="1px solid" borderColor="gray.100" borderRadius="lg" bg="white">
+                <TypeScaleSelector activeRatio={scaleRatio} baseSize={baseSize} onSelect={(val) => updateOverride({ "--typographyConfigScaleRatio": val }, "Changed Type Scale")} onBaseSizeChange={(val) => updateOverride({ "--fontSizeRoot": `${val}px` }, "Changed Base Font Size")} containerRef={popoverContainer} />
               </Box>
             </Box>
-            <Box>
+            <Box 
+              p={1} borderRadius="xl" 
+              border="2px solid" 
+              borderColor={filteredIds?.some((id: string) => id.includes('font.family')) ? "blue.400" : "transparent"}
+              bg={filteredIds?.some((id: string) => id.includes('font.family')) ? "blue.50/50" : "transparent"}
+            >
               <Heading size="sm" mb={4}>Font Families</Heading>
-              <Box p={4} border="1px solid" borderColor="gray.100" borderRadius="lg" h="600px">
+              <Box p={4} border="1px solid" borderColor="gray.100" borderRadius="lg" h="600px" bg="white">
                 <FontExplorer variant="expanded" headingFamily={hFont} bodyFamily={bFont} codeFamily={cFont} onSelect={handleFontSelect} />
               </Box>
             </Box>

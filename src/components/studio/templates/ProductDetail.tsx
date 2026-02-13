@@ -24,12 +24,12 @@ export const ProductDetail = ({ data }: { data: StudioMockData }) => {
       <Container maxW="container.xl">
         
         {/* 1. Breadcrumbs */}
-        <HStack gap={2} mb={12} color="gray.400" fontSize="xs" fontWeight="bold" fontFamily="var(--fontFamilyBody)">
-          <Text cursor="pointer" _hover={{ color: "var(--brandSecondary)" }}>Shop</Text>
+        <HStack gap={2} mb={12} color="gray.400" fontSize="xs" fontWeight="bold" fontFamily="var(--fontFamilyBody)" data-tokens="font.family.base">
+          <Text cursor="pointer" _hover={{ color: "var(--brandSecondary)" }} data-tokens="brand.secondary">Shop</Text>
           <LuChevronRight size={12} />
-          <Text cursor="pointer" _hover={{ color: "var(--brandSecondary)" }}>{data.product.category}</Text>
+          <Text cursor="pointer" _hover={{ color: "var(--brandSecondary)" }} data-tokens="brand.secondary">{data.product.category}</Text>
           <LuChevronRight size={12} />
-          <Text color="var(--textPrimary)">{data.product.name}</Text>
+          <Text color="var(--textPrimary)" data-tokens="text.primary">{data.product.name}</Text>
         </HStack>
 
         <SimpleGrid columns={{ base: 1, md: 2 }} gap={20}>
@@ -43,6 +43,7 @@ export const ProductDetail = ({ data }: { data: StudioMockData }) => {
               borderColor="gray.100"
               position="relative"
               w="full"
+              data-tokens="border.radius.4"
             >
               <Image 
                 src={data.product.image} 
@@ -56,6 +57,7 @@ export const ProductDetail = ({ data }: { data: StudioMockData }) => {
                 borderRadius="full" fontWeight="var(--fontWeightExtrabold)"
                 boxShadow="xl"
                 fontFamily="var(--fontFamilyHeading)"
+                data-tokens="brand.accent, font.family.heading, font.weight.extrabold"
               >
                 SPECIAL EDITION
               </Badge>
@@ -69,6 +71,7 @@ export const ProductDetail = ({ data }: { data: StudioMockData }) => {
                   transition="all 0.2s"
                   _hover={{ borderColor: "var(--brandPrimary)", opacity: 1 }}
                   opacity={i === 1 ? 1 : 0.6}
+                  data-tokens="brand.primary, border.radius.2"
                 >
                   <Image src={data.product.image} />
                 </Box>
@@ -80,7 +83,7 @@ export const ProductDetail = ({ data }: { data: StudioMockData }) => {
           <VStack align="start" gap={10}>
             <VStack align="start" gap={4} w="full">
               <HStack justify="space-between" w="full">
-                <Badge variant="subtle" colorPalette="blue" px={3} py={1} borderRadius="var(--radius1)" fontFamily="var(--fontFamilyHeading)">
+                <Badge variant="subtle" colorPalette="blue" px={3} py={1} borderRadius="var(--radius1)" fontFamily="var(--fontFamilyHeading)" data-tokens="font.family.heading, border.radius.1">
                   {data.product.category}
                 </Badge>
                 <HStack gap={1}>
@@ -92,21 +95,23 @@ export const ProductDetail = ({ data }: { data: StudioMockData }) => {
                 </HStack>
               </HStack>
               
-              <Heading size="3xl" letterSpacing="tight" fontWeight="var(--fontWeightExtrabold)" color="var(--textPrimary)" fontFamily="var(--fontFamilyHeading)">{data.product.name}</Heading>
+              <Heading size="3xl" letterSpacing="tight" fontWeight="var(--fontWeightExtrabold)" color="var(--textPrimary)" fontFamily="var(--fontFamilyHeading)" data-tokens="text.primary, font.family.heading, font.weight.extrabold">
+                {data.product.name}
+              </Heading>
               
               <HStack gap={6} mt={2}>
-                <Text fontSize="3xl" fontWeight="var(--fontWeightExtrabold)" color="var(--brandAccent)" fontFamily="var(--fontFamilyHeading)">
+                <Text fontSize="3xl" fontWeight="var(--fontWeightExtrabold)" color="var(--brandAccent)" fontFamily="var(--fontFamilyHeading)" data-tokens="brand.accent, font.family.heading">
                   {data.product.price}
                 </Text>
                 <VStack align="start" gap={0}>
                   <Text fontSize="lg" color="gray.300" textDecoration="line-through">
                     {data.product.oldPrice}
                   </Text>
-                  <Text fontSize="10px" color="var(--brandAccent)" fontWeight="bold">SAVE 40% TODAY</Text>
+                  <Text fontSize="10px" color="var(--brandAccent)" fontWeight="bold" data-tokens="brand.accent">SAVE 40% TODAY</Text>
                 </VStack>
               </HStack>
 
-              <Text color="var(--textPrimary)" opacity={0.8} fontSize="md" lineHeight="tall" maxW="xl">
+              <Text color="var(--textPrimary)" opacity={0.8} fontSize="md" lineHeight="tall" maxW="xl" data-tokens="text.primary">
                 {data.product.description}
               </Text>
             </VStack>
@@ -125,6 +130,7 @@ export const ProductDetail = ({ data }: { data: StudioMockData }) => {
                       cursor="pointer" boxShadow="md"
                       _hover={{ transform: "scale(1.1)" }}
                       transition="all 0.2s"
+                      data-tokens={i === 0 ? "brand.primary" : ""}
                     />
                   ))}
                 </HStack>
@@ -133,7 +139,7 @@ export const ProductDetail = ({ data }: { data: StudioMockData }) => {
               <VStack align="start" gap={4} w="full">
                 <HStack justify="space-between" w="full">
                   <Text fontWeight="bold" fontSize="xs" textTransform="uppercase" color="gray.400" letterSpacing="widest">Select Size</Text>
-                  <Button size="xs" variant="plain" color="var(--brandSecondary)" fontWeight="bold">Size Guide</Button>
+                  <Button size="xs" variant="plain" color="var(--brandSecondary)" fontWeight="bold" data-tokens="brand.secondary">Size Guide</Button>
                 </HStack>
                 <HStack gap={3}>
                   {data.product.variants.sizes.map((size) => (
@@ -147,6 +153,7 @@ export const ProductDetail = ({ data }: { data: StudioMockData }) => {
                       borderRadius="var(--radius2)"
                       fontWeight="bold"
                       onClick={() => setSelectedSize(size)}
+                      data-tokens={selectedSize === size ? "text.primary, bg.canvas" : "brand.secondary, text.primary"}
                     >
                       {size}
                     </Button>
@@ -164,10 +171,11 @@ export const ProductDetail = ({ data }: { data: StudioMockData }) => {
                   boxShadow="0 20px 40px -10px var(--brandPrimary)"
                   _hover={{ opacity: 0.9, transform: "translateY(-2px)" }}
                   gap={3}
+                  data-tokens="brand.primary, font.weight.extrabold, border.radius.3"
                 >
                   <LuShoppingBag /> Add to Cart
                 </Button>
-                <Button size="xl" flex={1} variant="outline" borderRadius="var(--radius3)" borderColor="var(--brandSecondary)" _hover={{ bg: "red.50", borderColor: "red.100", color: "red.500" }}>
+                <Button size="xl" flex={1} variant="outline" borderRadius="var(--radius3)" borderColor="var(--brandSecondary)" _hover={{ bg: "red.50", borderColor: "red.100", color: "red.500" }} data-tokens="brand.secondary, border.radius.3">
                   <LuHeart />
                 </Button>
               </HStack>
