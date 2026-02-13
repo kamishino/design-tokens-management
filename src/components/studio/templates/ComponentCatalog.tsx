@@ -5,9 +5,6 @@ import {
 } from "@chakra-ui/react";
 import { Card } from "../../ui/card";
 
-console.log("[Debug] ComponentCatalog imported Card:", Card);
-console.log("[Debug] ComponentCatalog Card.Root type:", typeof Card?.Root);
-
 export const ComponentCatalog = () => {
   return (
     <Box p={8} maxW="1200px" mx="auto">
@@ -49,8 +46,21 @@ export const ComponentCatalog = () => {
             <VStack align="start" gap={4}>
               <Text fontSize="sm" fontWeight="bold">Selection</Text>
               <HStack gap={6}>
-                <Checkbox defaultChecked colorPalette="blue">Checkbox</Checkbox>
-                <Switch defaultChecked colorPalette="blue" />
+                <Checkbox.Root defaultChecked colorPalette="blue">
+                  <Checkbox.HiddenInput />
+                  <Checkbox.Control>
+                    <Checkbox.Indicator />
+                  </Checkbox.Control>
+                  <Checkbox.Label>Checkbox</Checkbox.Label>
+                </Checkbox.Root>
+                
+                <Switch.Root defaultChecked colorPalette="blue">
+                  <Switch.HiddenInput />
+                  <Switch.Control>
+                    <Switch.Thumb />
+                  </Switch.Control>
+                  <Switch.Label>Switch</Switch.Label>
+                </Switch.Root>
               </HStack>
             </VStack>
           </SimpleGrid>

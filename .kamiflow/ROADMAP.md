@@ -9,6 +9,7 @@
 
 _This section highlights the business value extracted from completed tasks._
 
+- ✅ 2026-02-13 Task 121: fix-checkbox-switch-usage - Fixed 'Element type is invalid' crash by updating Checkbox and Switch to use Chakra v3 multi-part pattern.
 - ✅ 2026-02-13 Task 120: plain-function-card - Simplified Card component to pure functions to resolve persistent React rendering crash.
 - ✅ 2026-02-13 Task 119: debug-card-component - Instrumented Card component with logs to diagnose 'Element type is invalid' crash.
 - ✅ 2026-02-13 Task 118: robust-card-component - Replaced unstable Chakra Card import with robust primitive implementation to prevent Component Catalog crashes.
