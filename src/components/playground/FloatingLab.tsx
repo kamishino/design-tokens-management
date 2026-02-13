@@ -47,6 +47,7 @@ interface FloatingLabProps {
   onClearFilter?: () => void;
   onReset?: () => void;
   hasOverrides?: boolean;
+  variant?: 'floating' | 'static';
 }
 
 // ... existing SEMANTIC_CHANNELS ...
@@ -75,6 +76,7 @@ export const FloatingLab = ({
   onClearFilter,
   onReset = () => {},
   hasOverrides = false,
+  variant = 'floating',
 }: FloatingLabProps) => {
   // 1. Build prioritized lookup map for the current project
   const prioritizedMap = useMemo(() => {
@@ -137,14 +139,26 @@ export const FloatingLab = ({
 
   // 🏠 Home Screen (Empty State)
   if (!projectId) {
+    const Wrapper = variant === 'floating' ? Portal : Box;
+    const homeStyles = variant === 'floating' ? {
+      position: "fixed",
+      bottom: "8",
+      left: "50%",
+      transform: "translateX(-50%)",
+      zIndex: 3000,
+    } : {
+      position: "relative",
+      width: "100%",
+      height: "100%",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+    };
+
     return (
-      <Portal>
+      <Wrapper>
         <Box
-          position="fixed"
-          bottom="8"
-          left="50%"
-          transform="translateX(-50%)"
-          zIndex={3000}
+          {...homeStyles}
           bg="rgba(255, 255, 255, 0.9)"
           backdropFilter="blur(15px)"
           p={4}
@@ -248,17 +262,30 @@ export const FloatingLab = ({
     getEffectiveValue("--fontSizeRoot", "font.size.root", 16),
   );
 
+  const Wrapper = variant === 'floating' ? Portal : Box;
+  const rootStyles = variant === 'floating' ? {
+    position: "fixed",
+    bottom: "8",
+    left: "50%",
+    transform: "translateX(-50%)",
+    zIndex: 3000,
+    width: "fit-content",
+  } : {
+    position: "relative",
+    width: "100%",
+    height: "100%",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "flex-start", // Top align in modal
+    pt: 10,
+  };
+
   return (
-    <Portal>
+    <Wrapper>
       <VStack
-        position="fixed"
-        bottom="8"
-        left="50%"
-        transform="translateX(-50%)"
-        zIndex={3000}
+        {...rootStyles}
         gap={0}
         alignItems="center"
-        w="fit-content"
       >
         {/* Inspector Banner */}
         {filteredIds && (

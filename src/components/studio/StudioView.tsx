@@ -330,6 +330,7 @@ export const StudioView = ({
                 <Tabs.Content value="lab" flex={1} overflowY="auto" p={0} position="relative">
                   <Box p={6}>
                     <FloatingLab 
+                      variant="static"
                       manifest={manifest}
                       projectPath={manifest?.projects[selectedProject]?.path}
                       clientId={manifest?.projects[selectedProject]?.client || ''} 

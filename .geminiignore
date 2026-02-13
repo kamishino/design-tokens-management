@@ -5,6 +5,7 @@
 !.kamiflow/handoff_logs/
 !.kamiflow/docs/
 !.kamiflow/agents/
-!.temp/
-!.dist/
 !.kamirc.json
+
+!dist/
+!temp/

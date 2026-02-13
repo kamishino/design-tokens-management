@@ -23,6 +23,8 @@
 
 ## 🛑 Anti-Patterns & Recurring Mistakes
 
+- **[Shell]:** Do NOT use Unix syntax (`&&`, `grep`, `rm -rf`) on win32. Use PowerShell equivalents (`;`, `Select-String`, `Remove-Item`).
+- **[Example]:** Do not use `&&` in PowerShell commands.
 - **[React/Chakra]:** Do NOT assume library exports (like `Card`) exist in pre-release versions (e.g., Chakra v3). Use primitives (`Box`) or check documentation for Multi-part patterns (`Card.Root`). (Learned 2026-02-13)
 - **[React 19]:** `forwardRef` returns an object. If "Element type is invalid: got object" occurs, try reverting to a pure function component to rule out compatibility issues. (Learned 2026-02-13)
 - **[Refactoring]:** When adding required props to a component, ALWAYS check and update all parent usages (e.g., `App.tsx`) immediately to prevent runtime crashes. (Learned 2026-02-13)
@@ -90,8 +92,8 @@ KamiFlow v2.0 introduces 5 critical enhancements for accuracy, stability, and re
 
 ### 🌉 The Bridge (IDE Integration)
 
-| Command                   | Goal                                                                                                |
-| :------------------------ | :-------------------------------------------------------------------------------------------------- |
+| Command                 | Goal                                                                                          |
+| :---------------------- | :-------------------------------------------------------------------------------------------- |
 | `/kamiflow:core:bridge` | **[KamiFlow] Generate a 'Context Package' prompt for external AI Editors (Windsurf/Cursor).** |
 
 ### 🚀 Auto-Pilot (Automation)
@@ -109,8 +111,8 @@ KamiFlow v2.0 introduces 5 critical enhancements for accuracy, stability, and re
 
 ### 🧠 Management (Operations)
 
-| Command                        | Goal                                                                                                                                   |
-| :----------------------------- | :------------------------------------------------------------------------------------------------------------------------------------- |
+| Command                      | Goal                                                                                                                             |
+| :--------------------------- | :------------------------------------------------------------------------------------------------------------------------------- |
 | `/kamiflow:ops:wake`         | **[KamiFlow] Wake up and reload project context to eliminate session amnesia.**                                                  |
 | `/kamiflow:ops:help`         | **[KamiFlow] Interactive help system for commands and Sniper Model phases.**                                                     |
 | `/kamiflow:ops:save-context` | **[KamiFlow] Export session intelligence to ./.kamiflow/PROJECT_CONTEXT.md for cross-machine context recovery (v2.0 Enhanced).** |
@@ -119,8 +121,8 @@ KamiFlow v2.0 introduces 5 critical enhancements for accuracy, stability, and re
 
 ### 🧩 Agents (Plugin)
 
-| Command                     | Goal                                                                                  |
-| :-------------------------- | :------------------------------------------------------------------------------------ |
+| Command                   | Goal                                                                            |
+| :------------------------ | :------------------------------------------------------------------------------ |
 | `/kamiflow:p-agents:add`  | **[Agent Hub] Safely audit and add a skill to your project agents.**            |
 | `/kamiflow:p-agents:scan` | **[Agent Hub] Discover which AI agents are currently present in your project.** |
 
@@ -134,8 +136,8 @@ KamiFlow v2.0 introduces 5 critical enhancements for accuracy, stability, and re
 
 ### 🌱 The Seed Hub (Plugin)
 
-| Command                      | Goal                                                                                      |
-| :--------------------------- | :---------------------------------------------------------------------------------------- |
+| Command                    | Goal                                                                                |
+| :------------------------- | :---------------------------------------------------------------------------------- |
 | `/kamiflow:p-seed:draft`   | **[Seed Hub] Seed an idea with an Interactive Terminal Interview.**                 |
 | `/kamiflow:p-seed:analyze` | **[Seed Hub] Deeply analyze an idea with Strategic Breakdown and Prepend History.** |
 | `/kamiflow:p-seed:promote` | **[Seed Hub] Harvest an idea by moving it to the backlog (The Harvesting phase).**  |
@@ -164,11 +166,7 @@ KamiFlow v2.0 introduces 5 critical enhancements for accuracy, stability, and re
 
 ---
 
-# 📥 SYSTEM IMPORTS
-
-# These files inject the detailed "Brain" of the protocols.
-
-# Core Protocols (v1.0)
+# 📥 SYSTEM IMPORTS (Memory Bank)
 
 @./.gemini/rules/main-manifesto-core.md
 @./.gemini/rules/main-tech-stack-core.md
@@ -177,6 +175,7 @@ KamiFlow v2.0 introduces 5 critical enhancements for accuracy, stability, and re
 @./.gemini/rules/flow-execution-core.md
 @./.gemini/rules/flow-bridge-core.md
 @./.gemini/rules/flow-bootstrap-core.md
+@./.gemini/rules/std-blueprint-core.md
 @./.gemini/rules/std-id-core.md
 
 # Enhanced Protocols (v2.0)
@@ -193,4 +192,4 @@ KamiFlow v2.0 introduces 5 critical enhancements for accuracy, stability, and re
 
 # Project State
 
-@./.kamiflow/PROJECT_CONTEXT.md
+./.kamiflow/PROJECT_CONTEXT.md
