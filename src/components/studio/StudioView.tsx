@@ -309,6 +309,8 @@ export const StudioView = ({
               bg="white" borderRadius="xl" boxShadow="2xl" overflow="hidden"
               w="900px" maxW="90vw" h="80vh" display="flex" flexDirection="column"
             >
+              <div ref={popoverRef} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 4000 }} />
+              
               <HStack justify="space-between" p={4} borderBottom="1px solid" borderColor="gray.100" bg="gray.50">
                 <Heading size="sm">Visual Lab</Heading>
                 <IconButton size="xs" variant="ghost" onClick={() => setActiveTool(null)}><LuX /></IconButton>
@@ -330,7 +332,6 @@ export const StudioView = ({
                 <Tabs.Content value="lab" flex={1} overflow="hidden" p={0} position="relative">
                   <Box h="full" w="full">
                     <FloatingLab 
-                      variant="static" 
                       variant="static"
                       manifest={manifest}
                       projectPath={manifest?.projects[selectedProject]?.path}
@@ -347,6 +348,7 @@ export const StudioView = ({
                       globalTokens={globalTokens}
                       onProjectSelect={onProjectChange}
                       recentProjects={[]}
+                      popoverContainer={popoverRef}
                     />
                   </Box>
                 </Tabs.Content>

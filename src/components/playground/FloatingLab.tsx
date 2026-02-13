@@ -51,6 +51,7 @@ interface FloatingLabProps {
   onReset?: () => void;
   hasOverrides?: boolean;
   variant?: 'floating' | 'static';
+  popoverContainer?: React.RefObject<HTMLElement | null>;
 }
 
 const SEMANTIC_CHANNELS = [
@@ -80,6 +81,7 @@ export const FloatingLab = (props: FloatingLabProps) => {
     onReset = () => {},
     hasOverrides = false,
     variant = 'floating',
+    popoverContainer,
   } = props;
 
   // --- DATA LOGIC ---
@@ -189,6 +191,7 @@ export const FloatingLab = (props: FloatingLabProps) => {
     return (
       <LabDashboard 
         {...props}
+        popoverContainer={popoverContainer}
         // Pass derived values
         hFont={hFont} bFont={bFont} cFont={cFont}
         scaleRatio={scaleRatio} baseSize={baseSize}
@@ -220,7 +223,7 @@ export const FloatingLab = (props: FloatingLabProps) => {
 // --- SUB-COMPONENTS ---
 
 const LabDashboard = (props: any) => {
-  const { globalTokens, updateOverride, getEffectiveValue, handleFontSelect, scaleRatio, baseSize, hFont, bFont, cFont, onReset, undo, redo, canUndo, canRedo, handleApply, hasOverrides } = props;
+  const { globalTokens, updateOverride, getEffectiveValue, handleFontSelect, scaleRatio, baseSize, hFont, bFont, cFont, onReset, undo, redo, canUndo, canRedo, handleApply, hasOverrides, popoverContainer } = props;
 
   return (
     <Tabs.Root defaultValue="colors" orientation="vertical" h="full" w="full" display="flex" flexDirection="row" overflow="hidden">
@@ -253,6 +256,7 @@ const LabDashboard = (props: any) => {
                   label={channel.label} 
                   color={activeColor} 
                   onChange={(c) => updateOverride({ [channel.variable]: c }, `Changed ${channel.label}`)} 
+                  containerRef={popoverContainer}
                 />
               );
             })}
