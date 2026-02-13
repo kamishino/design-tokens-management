@@ -9,6 +9,7 @@
 
 _This section highlights the business value extracted from completed tasks._
 
+- 🚀 **2026-02-13 Release v0.4.0:** The "Studio Manager" Release - Integrated Token Management Overlay and stabilized UI components (Checkbox, Switch, Card).
 - ✅ 2026-02-13 Task 122: studio-token-manager-integration - Integrated full Token Manager overlay into Design Studio for seamless editing.
 - ✅ 2026-02-13 Task 121: fix-checkbox-switch-usage - Fixed 'Element type is invalid' crash by updating Checkbox and Switch to use Chakra v3 multi-part pattern.
 - ✅ 2026-02-13 Task 120: plain-function-card - Simplified Card component to pure functions to resolve persistent React rendering crash.
