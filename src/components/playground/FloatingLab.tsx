@@ -239,7 +239,7 @@ const LabDashboard = (props: any) => {
       <Box flex={1} overflowY="auto" bg="white" p={8}>
         <Tabs.Content value="colors" p={0}>
           <Heading size="sm" mb={6}>Semantic Colors</Heading>
-          <SimpleGrid columns={{ base: 1, xl: 2 }} gap={8}>
+          <SimpleGrid columns={{ base: 1, md: 2, xl: 3 }} gap={4}>
             {SEMANTIC_CHANNELS.map((channel) => {
               const tokenKeyMap: Record<string, string> = {
                 primary: "brand.primary", secondary: "brand.secondary", accent: "brand.accent", text: "text.primary", bg: "bg.canvas",
@@ -247,10 +247,13 @@ const LabDashboard = (props: any) => {
               const activeColor = getEffectiveValue(channel.variable, tokenKeyMap[channel.id], "#000000");
               
               return (
-                <VStack key={channel.id} align="start" gap={3} p={4} border="1px solid" borderColor="gray.100" borderRadius="lg">
-                  <Text fontSize="xs" fontWeight="bold" textTransform="uppercase" color="gray.500">{channel.label}</Text>
-                  <StudioColorPicker variant="expanded" label={channel.label} color={activeColor} onChange={(c) => updateOverride({ [channel.variable]: c }, `Changed ${channel.label}`)} />
-                </VStack>
+                <StudioColorPicker 
+                  key={channel.id} 
+                  variant="button" 
+                  label={channel.label} 
+                  color={activeColor} 
+                  onChange={(c) => updateOverride({ [channel.variable]: c }, `Changed ${channel.label}`)} 
+                />
               );
             })}
           </SimpleGrid>

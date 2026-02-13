@@ -21,7 +21,7 @@ interface StudioColorPickerProps {
   color: string;
   onChange: (hex: string) => void;
   label: string;
-  variant?: 'compact' | 'expanded';
+  variant?: 'compact' | 'expanded' | 'button';
 }
 
 const HARMONY_METHODS = [
@@ -155,7 +155,8 @@ export const StudioColorPicker = memo(({ color, onChange, label, variant = 'comp
 
   const isExpanded = variant === 'expanded';
 
-  return (
+  // --- CONTENT ---
+  const Content = (
     <VStack p={0} gap={0} align="stretch" w={isExpanded ? "full" : "320px"} bg="white" borderRadius="md" boxShadow={isExpanded ? "sm" : "none"} border={isExpanded ? "1px solid" : "none"} borderColor="gray.100">
       <Box p={isExpanded ? 6 : 4} borderBottom="1px solid" borderColor="gray.100">
         <HStack justify="space-between" mb={3}>
@@ -177,7 +178,7 @@ export const StudioColorPicker = memo(({ color, onChange, label, variant = 'comp
               bg="gray.50"
               borderColor={/^#[0-9A-Fa-f]{6}$/.test(hexInput.startsWith('#') ? hexInput : `#${hexInput}`) ? "gray.200" : "red.300"}
             />
-            {/* Harmony Button Logic (same as before) */}
+            {/* Harmony Popover (Nested) */}
             <Box position="relative" w="full" h="32px" bg={color} borderRadius="md" border="1px solid rgba(0,0,0,0.1)" mt={1}>
               <Popover.Root positioning={{ placement: 'right-start', gutter: 12 }}>
                 <Popover.Trigger asChild>
@@ -319,4 +320,40 @@ export const StudioColorPicker = memo(({ color, onChange, label, variant = 'comp
       </Tabs.Root>
     </VStack>
   );
+
+  // --- BUTTON WRAPPER ---
+  if (variant === 'button') {
+    return (
+      <Popover.Root positioning={{ placement: 'bottom-start', gutter: 4 }} lazyMount unmountOnExit>
+        <Popover.Trigger asChild>
+          <Box 
+            p={3} 
+            borderWidth="1px" borderColor="gray.200" 
+            borderRadius="lg" cursor="pointer" 
+            bg="white"
+            _hover={{ borderColor: "blue.400", shadow: "md" }}
+            transition="all 0.2s"
+          >
+            <HStack>
+              <Box w="40px" h="40px" bg={color} borderRadius="md" border="1px solid rgba(0,0,0,0.1)" boxShadow="inner" />
+              <VStack align="start" gap={0}>
+                <Text fontWeight="bold" fontSize="xs" textTransform="uppercase" color="gray.500">{label}</Text>
+                <Text fontSize="sm" fontFamily="monospace" fontWeight="bold" color="gray.800">{color.toUpperCase()}</Text>
+              </VStack>
+            </HStack>
+          </Box>
+        </Popover.Trigger>
+        <Portal>
+          <Popover.Positioner zIndex={3500}>
+            <Popover.Content borderRadius="xl" boxShadow="2xl" border="none" w="auto">
+              {/* Force compact mode inside Popover */}
+              <StudioColorPicker color={color} onChange={onChange} label={label} variant="compact" />
+            </Popover.Content>
+          </Popover.Positioner>
+        </Portal>
+      </Popover.Root>
+    );
+  }
+
+  return Content;
 });
