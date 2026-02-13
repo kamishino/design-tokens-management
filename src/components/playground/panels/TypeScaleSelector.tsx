@@ -40,10 +40,20 @@ export const TypeScaleSelector = ({
   activeRatio, baseSize, onSelect, onBaseSizeChange 
 }: TypeScaleSelectorProps) => {
   const scales = useMemo(() => {
-    return Object.entries(scaleData.scale).map(([key, data]) => ({
+    const raw = Object.entries(scaleData.scale).map(([key, data]) => ({
       label: `${toTitleCase(key)} (${data.$value})`,
       value: data.$value.toString()
     }));
+    
+    // Deduplicate by value
+    const unique = new Map();
+    raw.forEach(item => {
+      if (!unique.has(item.value)) {
+        unique.set(item.value, item);
+      }
+    });
+    
+    return Array.from(unique.values()).sort((a, b) => parseFloat(a.value) - parseFloat(b.value));
   }, []);
 
   const collection = useMemo(() => createListCollection({ items: scales }), [scales]);
