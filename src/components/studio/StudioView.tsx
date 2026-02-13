@@ -19,7 +19,7 @@ import { generateStudioMockData } from './templates/shared/mock-data';
 import { LuScanEye, LuInfo, LuArrowRight, LuSettings, LuX } from "react-icons/lu";
 import type { Manifest, TokenOverrides } from "../../schemas/manifest";
 import type { TokenDoc } from "../../utils/token-parser";
-import { TokenViewer } from "../../TokenViewer";
+import { TokenViewer } from "../TokenViewer";
 
 interface StudioViewProps {
   manifest: Manifest | null;
@@ -45,7 +45,7 @@ const templates = createListCollection({
 
 export const StudioView = ({ 
   manifest, globalTokens, selectedProject, onProjectChange, onExit, onInspectChange, overrides, updateOverride 
-}: Omit<StudioViewProps, 'onOpenDocs'>) => {
+}: StudioViewProps) => {
   const [template, setTemplate] = useState('catalog');
   const [refreshKey, setRefreshKey] = useState(0);
   const [isInspectMode, setIsInspectMode] = useState(false);

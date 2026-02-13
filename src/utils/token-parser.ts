@@ -15,6 +15,7 @@ export interface TokenDoc {
   jsPath: string;
   sourceFile: string;     // origin file like "colors.json"
   resolvedValue?: string | number | boolean | object;    // The final resolved value after following reference chains
+  lineage?: string[];     // Array of token IDs involved in resolution
 }
 
 /**
@@ -40,9 +41,10 @@ export const parseTokensToDocs = (obj: Record<string, unknown>, path: string[] =
     const value = obj[key];
 
     if (value && typeof value === 'object') {
-      if (value.$value !== undefined || value.value !== undefined) {
-        const val = value.$value !== undefined ? value.$value : value.value;
-        const type = value.$type || value.type || 'unknown';
+      const v = value as any;
+      if (v.$value !== undefined || v.value !== undefined) {
+        const val = v.$value !== undefined ? v.$value : v.value;
+        const type = v.$type || v.type || 'unknown';
 
         // Extract references
         const refs = extractReferences(val);
@@ -65,13 +67,13 @@ export const parseTokensToDocs = (obj: Record<string, unknown>, path: string[] =
           references: refs,
           dependents: [], // Initialized empty
           type,
-          description: value.$description || value.description,
+          description: v.$description || v.description,
           cssVariable: `--${cssVarName}`,
           jsPath: `tokens.${currentPath.join('.')}`,
           sourceFile
         });
       } else {
-        results = results.concat(parseTokensToDocs(value, currentPath, sourceFile));
+        results = results.concat(parseTokensToDocs(v, currentPath, sourceFile));
       }
     }
   }

@@ -42,6 +42,7 @@ import type {
   Manifest,
   TokenOverrides,
   SidebarPanelId,
+  Project,
 } from "../schemas/manifest";
 import type { TokenDoc } from "../utils/token-parser";
 import {

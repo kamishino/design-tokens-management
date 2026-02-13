@@ -1,5 +1,4 @@
 import { Box, type BoxProps } from "@chakra-ui/react"
-import * as React from "react"
 
 const CardRoot = (props: BoxProps) => {
   return (
