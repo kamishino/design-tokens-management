@@ -327,9 +327,10 @@ export const StudioView = ({
                   </Tabs.Trigger>
                 </Tabs.List>
 
-                <Tabs.Content value="lab" flex={1} overflowY="auto" p={0} position="relative">
-                  <Box p={6}>
+                <Tabs.Content value="lab" flex={1} overflow="hidden" p={0} position="relative">
+                  <Box h="full" w="full">
                     <FloatingLab 
+                      variant="static" 
                       variant="static"
                       manifest={manifest}
                       projectPath={manifest?.projects[selectedProject]?.path}

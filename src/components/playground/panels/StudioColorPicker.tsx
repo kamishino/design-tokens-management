@@ -2,7 +2,8 @@ import { HexColorPicker } from "react-colorful";
 import { 
   Box, VStack, HStack, Text,
   Heading, Badge, SimpleGrid, Tabs, Input,
-  IconButton, Popover, Portal, Circle, Button
+  IconButton, Popover, Portal, Circle, Button,
+  Center, Icon
 } from "@chakra-ui/react";
 import { useState, useMemo, memo, useEffect, useCallback } from 'react';
 import { 
@@ -15,7 +16,7 @@ import { Switch } from "../../ui/switch";
 import { useColorSync } from "../../../hooks/useColorSync";
 import { useRecentColors } from "../../../hooks/useRecentColors";
 import { hslToHex, oklchToHex } from "../../../utils/colors";
-import { LuDice5, LuRotateCcw } from "react-icons/lu";
+import { LuDice5, LuRotateCcw, LuPencil } from "react-icons/lu";
 
 interface StudioColorPickerProps {
   color: string;
@@ -328,9 +329,11 @@ export const StudioColorPicker = memo(({ color, onChange, label, variant = 'comp
         <Popover.Trigger asChild>
           <Box 
             p={3} 
+            className="group"
             borderWidth="1px" borderColor="gray.200" 
             borderRadius="lg" cursor="pointer" 
             bg="white"
+            position="relative"
             _hover={{ borderColor: "blue.400", shadow: "md" }}
             transition="all 0.2s"
           >
@@ -341,10 +344,17 @@ export const StudioColorPicker = memo(({ color, onChange, label, variant = 'comp
                 <Text fontSize="sm" fontFamily="monospace" fontWeight="bold" color="gray.800">{color.toUpperCase()}</Text>
               </VStack>
             </HStack>
+            
+            <Center 
+              position="absolute" inset={0} bg="blackAlpha.600" borderRadius="lg"
+              opacity={0} _groupHover={{ opacity: 1 }} transition="all 0.2s"
+            >
+              <Icon as={LuPencil} color="white" fontSize="xl" />
+            </Center>
           </Box>
         </Popover.Trigger>
         <Portal>
-          <Popover.Positioner zIndex={3500}>
+          <Popover.Positioner zIndex={9999}>
             <Popover.Content borderRadius="xl" boxShadow="2xl" border="none" w="auto">
               {/* Force compact mode inside Popover */}
               <StudioColorPicker color={color} onChange={onChange} label={label} variant="compact" />
