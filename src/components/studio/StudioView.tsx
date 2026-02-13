@@ -1,6 +1,6 @@
 import { 
   Box, HStack, Button, Text, Heading, 
-  createListCollection, Portal, IconButton
+  createListCollection, Portal, IconButton, Tabs, Badge
 } from "@chakra-ui/react";
 import { useState, useMemo, useEffect } from 'react';
 import { LandingPage } from './templates/LandingPage';
@@ -15,11 +15,16 @@ import {
   SelectTrigger,
   SelectValueText,
 } from "../ui/select";
+import {
+  MenuRoot, MenuTrigger, MenuContent, MenuItem
+} from "../ui/menu";
 import { generateStudioMockData } from './templates/shared/mock-data';
-import { LuScanEye, LuInfo, LuArrowRight, LuSettings, LuX } from "react-icons/lu";
+import { LuScanEye, LuInfo, LuArrowRight, LuSettings, LuX, LuPalette, LuDatabase, LuChevronDown } from "react-icons/lu";
 import type { Manifest, TokenOverrides } from "../../schemas/manifest";
 import type { TokenDoc } from "../../utils/token-parser";
 import { TokenViewer } from "../TokenViewer";
+import { FloatingLab } from "../playground/FloatingLab";
+import { CommitCenter } from "../playground/panels/CommitCenter";
 
 interface StudioViewProps {
   manifest: Manifest | null;
@@ -49,13 +54,13 @@ const templates = createListCollection({
 })
 
 export const StudioView = ({ 
-  manifest, globalTokens, selectedProject, onProjectChange, onExit, onInspectChange, overrides, updateOverride, onOpenDocs,
+  manifest, globalTokens, selectedProject, onProjectChange, onExit, onInspectChange, overrides, updateOverride,
   onReset, undo, redo, canUndo, canRedo
 }: StudioViewProps) => {
   const [template, setTemplate] = useState('catalog');
   const [refreshKey, setRefreshKey] = useState(0);
   const [isInspectMode, setIsInspectMode] = useState(false);
-  const [isManagerOpen, setIsManagerOpen] = useState(false);
+  const [activeTool, setActiveTool] = useState<'manager' | 'lab' | null>(null);
   const [hoveredRect, setHoveredRect] = useState<{top: number, left: number, width: number, height: number, tokens?: string[]} | null>(null);
 
   // Project Collection
@@ -267,20 +272,6 @@ export const StudioView = ({
         </HStack>
       </Box>
 
-      {/* Inspect Mode Instructions */}
-      {isInspectMode && (
-        <HStack 
-          bg="blue.600" color="white" px={8} py={2} gap={3}
-          position="sticky" top="60px" zIndex={1999}
-          boxShadow="lg"
-        >
-          <LuInfo size={16} />
-          <Text fontSize="sm" fontWeight="bold">
-            Inspector Active: Click any outlined element to edit its design tokens in the Floating Bar.
-          </Text>
-        </HStack>
-      )}
-
       {/* Overlays */}
       {activeTool === 'manager' && manifest && (
         <Portal>
@@ -316,29 +307,56 @@ export const StudioView = ({
               position="absolute" top="50%" left="50%" transform="translate(-50%, -50%)" 
               onClick={e => e.stopPropagation()}
               bg="white" borderRadius="xl" boxShadow="2xl" overflow="hidden"
-              maxH="90vh" overflowY="auto"
+              w="900px" maxW="90vw" h="80vh" display="flex" flexDirection="column"
             >
               <HStack justify="space-between" p={4} borderBottom="1px solid" borderColor="gray.100" bg="gray.50">
                 <Heading size="sm">Visual Lab</Heading>
                 <IconButton size="xs" variant="ghost" onClick={() => setActiveTool(null)}><LuX /></IconButton>
               </HStack>
-              <FloatingLab 
-                manifest={manifest}
-                projectPath={manifest?.projects[selectedProject]?.path}
-                clientId={manifest?.projects[selectedProject]?.client || ''} 
-                projectId={manifest?.projects[selectedProject]?.project || ''} 
-                overrides={overrides}
-                updateOverride={updateOverride}
-                onReset={onReset}
-                hasOverrides={Object.keys(overrides).length > 0}
-                undo={undo}
-                redo={redo}
-                canUndo={canUndo}
-                canRedo={canRedo}
-                globalTokens={globalTokens}
-                onProjectSelect={onProjectChange}
-                recentProjects={[]}
-              />
+              
+              <Tabs.Root defaultValue="lab" flex={1} display="flex" flexDirection="column" overflow="hidden">
+                <Tabs.List px={4} pt={2} bg="gray.50" borderBottom="1px solid" borderColor="gray.200">
+                  <Tabs.Trigger value="lab">Editor</Tabs.Trigger>
+                  <Tabs.Trigger value="commit">
+                    Commit Changes
+                    {Object.keys(overrides).length > 0 && (
+                      <Badge ml={2} colorPalette="blue" variant="solid" size="xs">
+                        {Object.keys(overrides).length}
+                      </Badge>
+                    )}
+                  </Tabs.Trigger>
+                </Tabs.List>
+
+                <Tabs.Content value="lab" flex={1} overflowY="auto" p={0} position="relative">
+                  <Box p={6}>
+                    <FloatingLab 
+                      manifest={manifest}
+                      projectPath={manifest?.projects[selectedProject]?.path}
+                      clientId={manifest?.projects[selectedProject]?.client || ''} 
+                      projectId={manifest?.projects[selectedProject]?.project || ''} 
+                      overrides={overrides}
+                      updateOverride={updateOverride}
+                      onReset={onReset}
+                      hasOverrides={Object.keys(overrides).length > 0}
+                      undo={undo}
+                      redo={redo}
+                      canUndo={canUndo}
+                      canRedo={canRedo}
+                      globalTokens={globalTokens}
+                      onProjectSelect={onProjectChange}
+                      recentProjects={[]}
+                    />
+                  </Box>
+                </Tabs.Content>
+
+                <Tabs.Content value="commit" flex={1} overflowY="auto" p={6}>
+                  <CommitCenter 
+                    overrides={overrides}
+                    globalTokens={globalTokens}
+                    onCommitSuccess={onReset}
+                  />
+                </Tabs.Content>
+              </Tabs.Root>
             </Box>
           </Box>
         </Portal>
