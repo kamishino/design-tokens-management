@@ -5,6 +5,9 @@ import {
 } from "@chakra-ui/react";
 import { Card } from "../../ui/card";
 
+console.log("[Debug] ComponentCatalog imported Card:", Card);
+console.log("[Debug] ComponentCatalog Card.Root type:", typeof Card?.Root);
+
 export const ComponentCatalog = () => {
   return (
     <Box p={8} maxW="1200px" mx="auto">
