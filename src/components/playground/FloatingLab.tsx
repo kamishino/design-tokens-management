@@ -232,7 +232,7 @@ export const FloatingLab = ({
             )}
           </VStack>
         </Box>
-      </Portal>
+      </Wrapper>
     );
   }
 
@@ -688,6 +688,6 @@ export const FloatingLab = ({
           </HStack>
         </Box>
       </VStack>
-    </Portal>
+    </Wrapper>
   );
 };
