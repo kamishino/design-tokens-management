@@ -31,6 +31,11 @@ interface StudioViewProps {
   onInspectChange: (tokens: string[] | undefined) => void;
   overrides: TokenOverrides;
   updateOverride: (newValues: Record<string, string | number>, label?: string) => void;
+  onReset: () => void;
+  undo: () => void;
+  redo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
 }
 
 const templates = createListCollection({
@@ -44,7 +49,8 @@ const templates = createListCollection({
 })
 
 export const StudioView = ({ 
-  manifest, globalTokens, selectedProject, onProjectChange, onExit, onInspectChange, overrides, updateOverride 
+  manifest, globalTokens, selectedProject, onProjectChange, onExit, onInspectChange, overrides, updateOverride, onOpenDocs,
+  onReset, undo, redo, canUndo, canRedo
 }: StudioViewProps) => {
   const [template, setTemplate] = useState('catalog');
   const [refreshKey, setRefreshKey] = useState(0);
@@ -275,8 +281,8 @@ export const StudioView = ({
         </HStack>
       )}
 
-      {/* Manager Overlay */}
-      {isManagerOpen && manifest && (
+      {/* Overlays */}
+      {activeTool === 'manager' && manifest && (
         <Portal>
           <Box 
             position="fixed" inset={0} zIndex={3000} bg="white"
@@ -285,7 +291,7 @@ export const StudioView = ({
             <Box position="absolute" top={4} right={4} zIndex={3001}>
               <IconButton 
                 size="sm" variant="ghost" 
-                onClick={() => setIsManagerOpen(false)}
+                onClick={() => setActiveTool(null)}
                 title="Close Manager"
               >
                 <LuX />
@@ -295,7 +301,7 @@ export const StudioView = ({
               manifest={manifest}
               selectedProject={selectedProject}
               onProjectChange={onProjectChange}
-              onEnterStudio={() => setIsManagerOpen(false)}
+              onEnterStudio={() => setActiveTool(null)}
               overrides={overrides}
               updateOverride={updateOverride}
             />
@@ -303,18 +309,64 @@ export const StudioView = ({
         </Portal>
       )}
 
-      {/* Floating Manager Trigger (Bottom Left) */}
+      {activeTool === 'lab' && (
+        <Portal>
+          <Box position="fixed" inset={0} zIndex={3000} bg="blackAlpha.500" onClick={() => setActiveTool(null)}>
+            <Box 
+              position="absolute" top="50%" left="50%" transform="translate(-50%, -50%)" 
+              onClick={e => e.stopPropagation()}
+              bg="white" borderRadius="xl" boxShadow="2xl" overflow="hidden"
+              maxH="90vh" overflowY="auto"
+            >
+              <HStack justify="space-between" p={4} borderBottom="1px solid" borderColor="gray.100" bg="gray.50">
+                <Heading size="sm">Visual Lab</Heading>
+                <IconButton size="xs" variant="ghost" onClick={() => setActiveTool(null)}><LuX /></IconButton>
+              </HStack>
+              <FloatingLab 
+                manifest={manifest}
+                projectPath={manifest?.projects[selectedProject]?.path}
+                clientId={manifest?.projects[selectedProject]?.client || ''} 
+                projectId={manifest?.projects[selectedProject]?.project || ''} 
+                overrides={overrides}
+                updateOverride={updateOverride}
+                onReset={onReset}
+                hasOverrides={Object.keys(overrides).length > 0}
+                undo={undo}
+                redo={redo}
+                canUndo={canUndo}
+                canRedo={canRedo}
+                globalTokens={globalTokens}
+                onProjectSelect={onProjectChange}
+                recentProjects={[]}
+              />
+            </Box>
+          </Box>
+        </Portal>
+      )}
+
+      {/* Tools Menu Trigger (Bottom Left) */}
       <Box position="fixed" bottom={6} left={6} zIndex={1800}>
-        <Button 
-          size="md" 
-          colorScheme="gray" 
-          variant="surface"
-          onClick={() => setIsManagerOpen(true)}
-          boxShadow="lg"
-          border="1px solid" borderColor="gray.200"
-        >
-          <LuSettings style={{ marginRight: 8 }} /> Manage Tokens
-        </Button>
+        <MenuRoot>
+          <MenuTrigger asChild>
+            <Button 
+              size="md" 
+              colorScheme="gray" 
+              variant="surface"
+              boxShadow="lg"
+              border="1px solid" borderColor="gray.200"
+            >
+              <LuSettings style={{ marginRight: 8 }} /> Studio Tools <LuChevronDown style={{ marginLeft: 8 }} />
+            </Button>
+          </MenuTrigger>
+          <MenuContent>
+            <MenuItem value="manager" onClick={() => setActiveTool('manager')}>
+              <LuDatabase style={{ marginRight: 8 }} /> Token Manager
+            </MenuItem>
+            <MenuItem value="lab" onClick={() => setActiveTool('lab')}>
+              <LuPalette style={{ marginRight: 8 }} /> Visual Lab
+            </MenuItem>
+          </MenuContent>
+        </MenuRoot>
       </Box>
 
       {/* Template Preview Area */}

@@ -99,34 +99,16 @@ function App() {
           onInspectChange={setInspectedTokens}
           overrides={overrides}
           updateOverride={updateOverride}
+          onReset={resetOverrides}
+          undo={undo}
+          redo={redo}
+          canUndo={canUndo}
+          canRedo={canRedo}
         />
       )}
 
       {viewMode === 'docs' && (
         <DocsPortal manifest={manifest!} onExit={() => setViewMode('studio')} />
-      )}
-
-      {/* Global Floating Lab - Unified instance */}
-      {isLabActuallyVisible && (
-        <FloatingLab 
-          manifest={manifest}
-          recentProjects={recentProjects}
-          onProjectSelect={handleProjectChange}
-          projectPath={currentPath} // New: for prioritized lookup
-          clientId={manifest?.projects[selectedProject]?.client || ''} 
-          projectId={manifest?.projects[selectedProject]?.project || ''} 
-          overrides={overrides}
-          updateOverride={updateOverride}
-          onReset={resetOverrides} // Passed to Lab
-          hasOverrides={Object.keys(overrides).length > 0} // Passed to Lab
-          undo={undo}
-          redo={redo}
-          canUndo={canUndo}
-          canRedo={canRedo}
-          globalTokens={globalTokens}
-          filteredIds={inspectedTokens}
-          onClearFilter={() => setInspectedTokens(undefined)}
-        />
       )}
     </Box>
   )
