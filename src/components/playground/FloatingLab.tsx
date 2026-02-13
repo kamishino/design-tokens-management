@@ -223,8 +223,8 @@ const LabDashboard = (props: any) => {
   const { globalTokens, updateOverride, getEffectiveValue, handleFontSelect, scaleRatio, baseSize, hFont, bFont, cFont, onReset, undo, redo, canUndo, canRedo, handleApply, hasOverrides } = props;
 
   return (
-    <Tabs.Root defaultValue="colors" orientation="vertical" h="full" w="full" display="flex">
-      <Tabs.List w="200px" bg="gray.50" borderRight="1px solid" borderColor="gray.200" p={4} gap={2}>
+    <Tabs.Root defaultValue="colors" orientation="vertical" h="full" w="full" display="flex" flexDirection="row" overflow="hidden">
+      <Tabs.List w="200px" h="full" overflowY="auto" bg="gray.50" borderRight="1px solid" borderColor="gray.200" p={4} gap={2}>
         <Tabs.Trigger value="colors" justifyContent="flex-start" px={4} py={2} borderRadius="md" _selected={{ bg: "white", color: "blue.600", shadow: "sm" }}>
           <LuPalette style={{ marginRight: 8 }} /> Colors
         </Tabs.Trigger>
@@ -236,7 +236,7 @@ const LabDashboard = (props: any) => {
         </Tabs.Trigger>
       </Tabs.List>
 
-      <Box flex={1} overflowY="auto" bg="white" p={8}>
+      <Box flex={1} h="full" overflowY="auto" bg="white" p={8}>
         <Tabs.Content value="colors" p={0}>
           <Heading size="sm" mb={6}>Semantic Colors</Heading>
           <SimpleGrid columns={{ base: 1, md: 2, xl: 3 }} gap={4}>
