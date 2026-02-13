@@ -10,6 +10,7 @@
 _This section highlights the business value extracted from completed tasks._
 
 - 🚀 **2026-02-13 Release v0.4.0:** The "Studio Manager" Release - Integrated Token Management Overlay and stabilized UI components (Checkbox, Switch, Card).
+- ✅ 2026-02-13 Task 127: enhance-visual-lab-ux - Upgraded Visual Lab tools to support 'Expanded' mode with responsive grid layouts.
 - ✅ 2026-02-13 Task 126: refactor-visual-lab-layout - Refactored Visual Lab to use a 'Sidebar + Content' dashboard layout for better usability in the modal.
 - ✅ 2026-02-13 Task 125: fix-visual-lab-layout - Fixed invisible Visual Lab content by implementing 'static' mode for FloatingLab integration.
 - ✅ 2026-02-13 Task 124: visual-lab-commit-workflow - Implemented Tabs in Visual Lab modal to support seamless 'Edit -> Commit' workflow.

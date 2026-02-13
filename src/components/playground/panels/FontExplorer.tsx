@@ -17,6 +17,7 @@ interface FontExplorerProps {
   headingFamily: string;
   bodyFamily: string;
   codeFamily: string;
+  variant?: 'compact' | 'expanded';
 }
 
 type FontRole = 'heading' | 'body' | 'code';
@@ -40,7 +41,8 @@ export const FontExplorer = ({
   onSelect, 
   headingFamily, 
   bodyFamily, 
-  codeFamily 
+  codeFamily,
+  variant = 'compact'
 }: FontExplorerProps) => {
   const [activeRole, setActiveRole] = useState<FontRole>('heading');
   const [search, setSearch] = useState('');
@@ -52,7 +54,6 @@ export const FontExplorer = ({
     return saved ? JSON.parse(saved) : [];
   });
 
-  // Derived Values
   const currentFamily = useMemo(() => {
     if (activeRole === 'heading') return headingFamily;
     if (activeRole === 'body') return bodyFamily;
@@ -94,14 +95,21 @@ export const FontExplorer = ({
     });
   };
 
+  const isExpanded = variant === 'expanded';
+
   return (
-    <VStack p={4} gap={4} align="stretch" w="500px" maxH="650px" bg="white">
+    <VStack 
+      p={4} gap={4} align="stretch" 
+      w={isExpanded ? "full" : "500px"} 
+      maxH={isExpanded ? "none" : "650px"} 
+      bg="white"
+      h="full"
+    >
       <HStack justify="space-between">
         <Heading size="xs" textTransform="uppercase" color="gray.500">Typography Studio</Heading>
         <Badge variant="subtle" colorPalette="blue" size="xs">Google Fonts</Badge>
       </HStack>
 
-      {/* ROLE SWITCHER */}
       <HStack gap={1} bg="gray.100" p={1} borderRadius="lg">
         {ROLES.map(role => (
           <Button
@@ -162,13 +170,12 @@ export const FontExplorer = ({
 
       <Box overflowY="auto" flex={1} px={1}>
         <VStack align="stretch" gap={6}>
-          {/* Recent Fonts Section */}
           {recentFonts.length > 0 && !search && effectiveCategory === 'all' && (
             <VStack align="stretch" gap={3}>
               <Text fontSize="10px" fontWeight="bold" color="gray.400" textTransform="uppercase" letterSpacing="wider">
                 Recently Used
               </Text>
-              <SimpleGrid columns={2} gap={3}>
+              <SimpleGrid columns={isExpanded ? 3 : 2} gap={3}>
                 {recentFonts.map(family => {
                   const font = (fonts as GoogleFont[]).find(f => f.family === family);
                   if (!font) return null;
@@ -191,7 +198,7 @@ export const FontExplorer = ({
 
           <VStack align="stretch" gap={3}>
             {filteredFonts.length > 0 ? (
-              <SimpleGrid columns={2} gap={3}>
+              <SimpleGrid columns={isExpanded ? 3 : 2} gap={3}>
                 {filteredFonts.map((font) => {
                   const isSelected = font.family === primarySelected;
                   return (
@@ -241,7 +248,6 @@ const FontCard = ({ font, previewText, isSelected, onClick, onMouseEnter }: Font
     position="relative"
     overflow="hidden"
   >
-    {/* Selection Overlay */}
     {isSelected && (
       <Box position="absolute" top={2} right={2}>
         <Circle size="20px" bg="blue.500" color="white">

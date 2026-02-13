@@ -21,6 +21,7 @@ interface StudioColorPickerProps {
   color: string;
   onChange: (hex: string) => void;
   label: string;
+  variant?: 'compact' | 'expanded';
 }
 
 const HARMONY_METHODS = [
@@ -36,7 +37,7 @@ const HARMONY_METHODS = [
   { id: 'random', label: 'Random Mix' }
 ];
 
-export const StudioColorPicker = memo(({ color, onChange, label }: StudioColorPickerProps) => {
+export const StudioColorPicker = memo(({ color, onChange, label, variant = 'compact' }: StudioColorPickerProps) => {
   const { coords, updateFromHex, updateFromHSL, updateFromOklch } = useColorSync(color);
   const { recentColors, addColor } = useRecentColors(20);
   const [search, setSearch] = useState('');
@@ -44,7 +45,6 @@ export const StudioColorPicker = memo(({ color, onChange, label }: StudioColorPi
   const [isVibrant, setIsVibrant] = useState(false);
   const [harmonySwatches, setHarmonySwatches] = useState<string[]>([]);
   
-  // Sync internal input with external prop
   useEffect(() => {
     setHexInput(color.toUpperCase());
   }, [color]);
@@ -60,7 +60,7 @@ export const StudioColorPicker = memo(({ color, onChange, label }: StudioColorPi
       'square': [90, 180, 270],
       'double-split': [30, 150, 210, 330],
       'clash': [90],
-      'monochromatic': [0, 0, 0], // Handled specially
+      'monochromatic': [0, 0, 0],
       'random': Array.from({ length: 3 }, () => Math.random() * 360)
     };
 
@@ -90,7 +90,6 @@ export const StudioColorPicker = memo(({ color, onChange, label }: StudioColorPi
   const contrast = getContrastMetrics(color, '#ffffff');
   const outOfGamut = coords?.oklch ? isOutofGamut('oklch', coords.oklch) : false;
 
-  // Gradient Generation Helpers
   const hslHueGradient = useMemo(() => {
     const stops = [0, 60, 120, 180, 240, 300, 360].map(h => hslToHex(h, coords.hsl.s, coords.hsl.l));
     return `linear-gradient(to right, ${stops.join(', ')})`;
@@ -109,7 +108,7 @@ export const StudioColorPicker = memo(({ color, onChange, label }: StudioColorPi
 
   const oklchChromaGradient = useMemo(() => {
     const start = oklchToHex(coords.oklch.l, 0, coords.oklch.h);
-    const end = oklchToHex(coords.oklch.l, 0.5, coords.oklch.h); // Visualize up to 0.5
+    const end = oklchToHex(coords.oklch.l, 0.5, coords.oklch.h);
     return `linear-gradient(to right, ${start}, ${end})`;
   }, [coords.oklch.l, coords.oklch.h]);
 
@@ -154,9 +153,11 @@ export const StudioColorPicker = memo(({ color, onChange, label }: StudioColorPi
     addColor(hex);
   };
 
+  const isExpanded = variant === 'expanded';
+
   return (
-    <VStack p={0} gap={0} align="stretch" w="320px" bg="white">
-      <Box p={4} borderBottom="1px solid" borderColor="gray.100">
+    <VStack p={0} gap={0} align="stretch" w={isExpanded ? "full" : "320px"} bg="white" borderRadius="md" boxShadow={isExpanded ? "sm" : "none"} border={isExpanded ? "1px solid" : "none"} borderColor="gray.100">
+      <Box p={isExpanded ? 6 : 4} borderBottom="1px solid" borderColor="gray.100">
         <HStack justify="space-between" mb={3}>
           <Heading size="xs" textTransform="uppercase" color="gray.500">{label}</Heading>
           {outOfGamut && <Badge colorScheme="orange">Out of Gamut</Badge>}
@@ -176,6 +177,7 @@ export const StudioColorPicker = memo(({ color, onChange, label }: StudioColorPi
               bg="gray.50"
               borderColor={/^#[0-9A-Fa-f]{6}$/.test(hexInput.startsWith('#') ? hexInput : `#${hexInput}`) ? "gray.200" : "red.300"}
             />
+            {/* Harmony Button Logic (same as before) */}
             <Box position="relative" w="full" h="32px" bg={color} borderRadius="md" border="1px solid rgba(0,0,0,0.1)" mt={1}>
               <Popover.Root positioning={{ placement: 'right-start', gutter: 12 }}>
                 <Popover.Trigger asChild>
@@ -203,42 +205,22 @@ export const StudioColorPicker = memo(({ color, onChange, label }: StudioColorPi
                           <Heading size="xs">Harmony Lab</Heading>
                           <HStack gap={2}>
                             <Text fontSize="9px" fontWeight="bold" color="gray.400">VIBRANT</Text>
-                            <Switch 
-                              size="xs" colorPalette="blue"
-                              checked={isVibrant} 
-                              onCheckedChange={(e) => setIsVibrant(e.checked)} 
-                            />
+                            <Switch size="xs" colorPalette="blue" checked={isVibrant} onCheckedChange={(e) => setIsVibrant(e.checked)} />
                           </HStack>
                         </HStack>
-
                         <SimpleGrid columns={2} gap={2}>
                           {HARMONY_METHODS.map(m => (
-                            <Button 
-                              key={m.id} size="xs" variant="outline" fontSize="9px" 
-                              onClick={() => generateHarmony(m.id)}
-                              _hover={{ bg: "blue.50", borderColor: "blue.200" }}
-                            >
-                              {m.label}
-                            </Button>
+                            <Button key={m.id} size="xs" variant="outline" fontSize="9px" onClick={() => generateHarmony(m.id)} _hover={{ bg: "blue.50", borderColor: "blue.200" }}>{m.label}</Button>
                           ))}
                         </SimpleGrid>
-
                         {harmonySwatches.length > 0 && (
                           <VStack align="stretch" gap={2} pt={2} borderTop="1px solid" borderColor="gray.100">
                             <Text fontSize="9px" fontWeight="bold" color="gray.400">GENERATED SWATCHES</Text>
                             <HStack gap={2} flexWrap="wrap">
                               {harmonySwatches.map((c, i) => (
-                                <Circle 
-                                  key={`${c}-${i}`} size="32px" bg={c} cursor="pointer" 
-                                  border="2px solid white" boxShadow="sm"
-                                  _hover={{ transform: "scale(1.1)", boxShadow: "md" }}
-                                  onClick={() => handleColorChange(c)}
-                                />
+                                <Circle key={`${c}-${i}`} size="32px" bg={c} cursor="pointer" border="2px solid white" boxShadow="sm" _hover={{ transform: "scale(1.1)", boxShadow: "md" }} onClick={() => handleColorChange(c)} />
                               ))}
-                              <IconButton 
-                                aria-label="Clear" icon={<LuRotateCcw />} size="xs" variant="ghost" 
-                                onClick={() => setHarmonySwatches([])} 
-                              />
+                              <IconButton aria-label="Clear" icon={<LuRotateCcw />} size="xs" variant="ghost" onClick={() => setHarmonySwatches([])} />
                             </HStack>
                           </VStack>
                         )}
@@ -263,98 +245,71 @@ export const StudioColorPicker = memo(({ color, onChange, label }: StudioColorPi
         </HStack>
       </Box>
 
-      <Tabs.Root defaultValue="hsl" size="sm" variant="subtle">
+      <Tabs.Root defaultValue="oklch" size="sm" variant="subtle">
         <Tabs.List bg="gray.50" p={1} gap={1}>
-          <Tabs.Trigger value="hsl" flex={1} fontWeight="bold">HSL</Tabs.Trigger>
           <Tabs.Trigger value="oklch" flex={1} fontWeight="bold">OKLCH</Tabs.Trigger>
+          <Tabs.Trigger value="hsl" flex={1} fontWeight="bold">HSL</Tabs.Trigger>
           <Tabs.Trigger value="swatches" flex={1} fontWeight="bold">Swatches</Tabs.Trigger>
         </Tabs.List>
 
-        <Box p={4}>
+        <Box p={isExpanded ? 6 : 4}>
           <Tabs.Content value="hsl">
             <VStack gap={4} align="stretch">
-              <HexColorPicker color={color} onChange={handleColorChange} style={{ width: '100%' }} />
-              
-              <VStack gap={3} align="stretch" pt={2}>
-                <PrecisionSlider 
-                  label="Hue" value={[Math.round(coords.hsl.h)]} unit="°" min={0} max={360} 
-                  trackBg={hslHueGradient}
-                  onValueChange={(v) => onChange(updateFromHSL(v.value[0], coords.hsl.s, coords.hsl.l))}
-                />
-                <PrecisionSlider 
-                  label="Saturation" value={[Math.round(coords.hsl.s)]} unit="%" min={0} max={100}
-                  trackBg={hslSatGradient}
-                  onValueChange={(v) => onChange(updateFromHSL(coords.hsl.h, v.value[0], coords.hsl.l))}
-                />
-                <PrecisionSlider 
-                  label="Lightness" value={[Math.round(coords.hsl.l)]} unit="%" min={0} max={100}
-                  trackBg="linear-gradient(to right, #000, #fff)"
-                  onValueChange={(v) => onChange(updateFromHSL(coords.hsl.h, coords.hsl.s, v.value[0]))}
-                />
-              </VStack>
+              {/* Conditional Layout for Expanded */}
+              {isExpanded ? (
+                <HStack align="start" gap={6}>
+                  <Box flex={1}><HexColorPicker color={color} onChange={handleColorChange} style={{ width: '100%', height: '150px' }} /></Box>
+                  <VStack flex={1.5} gap={4}>
+                    <PrecisionSlider label="Hue" value={[Math.round(coords.hsl.h)]} unit="°" min={0} max={360} trackBg={hslHueGradient} onValueChange={(v) => onChange(updateFromHSL(v.value[0], coords.hsl.s, coords.hsl.l))} />
+                    <PrecisionSlider label="Saturation" value={[Math.round(coords.hsl.s)]} unit="%" min={0} max={100} trackBg={hslSatGradient} onValueChange={(v) => onChange(updateFromHSL(coords.hsl.h, v.value[0], coords.hsl.l))} />
+                    <PrecisionSlider label="Lightness" value={[Math.round(coords.hsl.l)]} unit="%" min={0} max={100} trackBg="linear-gradient(to right, #000, #fff)" onValueChange={(v) => onChange(updateFromHSL(coords.hsl.h, coords.hsl.s, v.value[0]))} />
+                  </VStack>
+                </HStack>
+              ) : (
+                <>
+                  <HexColorPicker color={color} onChange={handleColorChange} style={{ width: '100%' }} />
+                  <VStack gap={3} align="stretch" pt={2}>
+                    <PrecisionSlider label="Hue" value={[Math.round(coords.hsl.h)]} unit="°" min={0} max={360} trackBg={hslHueGradient} onValueChange={(v) => onChange(updateFromHSL(v.value[0], coords.hsl.s, coords.hsl.l))} />
+                    <PrecisionSlider label="Saturation" value={[Math.round(coords.hsl.s)]} unit="%" min={0} max={100} trackBg={hslSatGradient} onValueChange={(v) => onChange(updateFromHSL(coords.hsl.h, v.value[0], coords.hsl.l))} />
+                    <PrecisionSlider label="Lightness" value={[Math.round(coords.hsl.l)]} unit="%" min={0} max={100} trackBg="linear-gradient(to right, #000, #fff)" onValueChange={(v) => onChange(updateFromHSL(coords.hsl.h, coords.hsl.s, v.value[0]))} />
+                  </VStack>
+                </>
+              )}
             </VStack>
           </Tabs.Content>
 
           <Tabs.Content value="oklch">
             <VStack gap={4} align="stretch">
-              <HexColorPicker color={color} onChange={handleColorChange} style={{ width: '100%' }} />
-              <VStack gap={3} align="stretch" pt={2}>
-                <PrecisionSlider 
-                  label="Lightness" value={[coords.oklch.l]} min={0} max={1} step={0.01}
-                  displayValue={Math.round(coords.oklch.l * 100)} unit="%"
-                  trackBg="linear-gradient(to right, #000, #fff)"
-                  onValueChange={(v) => onChange(updateFromOklch(v.value[0], coords.oklch.c, coords.oklch.h))}
-                />
-                <PrecisionSlider 
-                  label="Chroma" value={[coords.oklch.c]} min={0} max={0.3} step={0.001}
-                  displayValue={coords.oklch.c.toFixed(3)}
-                  trackBg={oklchChromaGradient}
-                  onValueChange={(v) => onChange(updateFromOklch(coords.oklch.l, v.value[0], coords.oklch.h))}
-                />
-                <PrecisionSlider 
-                  label="Hue" value={[Math.round(coords.oklch.h)]} min={0} max={360}
-                  displayValue={coords.oklch.h.toFixed(1)} unit="°"
-                  trackBg={oklchHueGradient}
-                  onValueChange={(v) => onChange(updateFromOklch(coords.oklch.l, coords.oklch.c, v.value[0]))}
-                />
-              </VStack>
+              {isExpanded ? (
+                <HStack align="start" gap={6}>
+                  <Box flex={1}><HexColorPicker color={color} onChange={handleColorChange} style={{ width: '100%', height: '150px' }} /></Box>
+                  <VStack flex={1.5} gap={4}>
+                    <PrecisionSlider label="Lightness" value={[coords.oklch.l]} min={0} max={1} step={0.01} displayValue={Math.round(coords.oklch.l * 100)} unit="%" trackBg="linear-gradient(to right, #000, #fff)" onValueChange={(v) => onChange(updateFromOklch(v.value[0], coords.oklch.c, coords.oklch.h))} />
+                    <PrecisionSlider label="Chroma" value={[coords.oklch.c]} min={0} max={0.3} step={0.001} displayValue={coords.oklch.c.toFixed(3)} trackBg={oklchChromaGradient} onValueChange={(v) => onChange(updateFromOklch(coords.oklch.l, v.value[0], coords.oklch.h))} />
+                    <PrecisionSlider label="Hue" value={[Math.round(coords.oklch.h)]} min={0} max={360} displayValue={coords.oklch.h.toFixed(1)} unit="°" trackBg={oklchHueGradient} onValueChange={(v) => onChange(updateFromOklch(coords.oklch.l, coords.oklch.c, v.value[0]))} />
+                  </VStack>
+                </HStack>
+              ) : (
+                <>
+                  <HexColorPicker color={color} onChange={handleColorChange} style={{ width: '100%' }} />
+                  <VStack gap={3} align="stretch" pt={2}>
+                    <PrecisionSlider label="Lightness" value={[coords.oklch.l]} min={0} max={1} step={0.01} displayValue={Math.round(coords.oklch.l * 100)} unit="%" trackBg="linear-gradient(to right, #000, #fff)" onValueChange={(v) => onChange(updateFromOklch(v.value[0], coords.oklch.c, coords.oklch.h))} />
+                    <PrecisionSlider label="Chroma" value={[coords.oklch.c]} min={0} max={0.3} step={0.001} displayValue={coords.oklch.c.toFixed(3)} trackBg={oklchChromaGradient} onValueChange={(v) => onChange(updateFromOklch(coords.oklch.l, v.value[0], coords.oklch.h))} />
+                    <PrecisionSlider label="Hue" value={[Math.round(coords.oklch.h)]} min={0} max={360} displayValue={coords.oklch.h.toFixed(1)} unit="°" trackBg={oklchHueGradient} onValueChange={(v) => onChange(updateFromOklch(coords.oklch.l, coords.oklch.c, v.value[0]))} />
+                  </VStack>
+                </>
+              )}
             </VStack>
           </Tabs.Content>
 
           <Tabs.Content value="swatches">
             <VStack gap={3} align="stretch">
-              {recentColors.length > 0 && (
-                <>
-                  <Text fontSize="9px" fontWeight="bold" color="gray.400">RECENT COLORS</Text>
-                  <SimpleGrid columns={5} gap={2}>
-                    {recentColors.map(c => (
-                      <Box 
-                        key={c} w="full" h="30px" bg={c} borderRadius="sm" cursor="pointer"
-                        border={color.toLowerCase() === c.toLowerCase() ? "2px solid black" : "1px solid rgba(0,0,0,0.1)"}
-                        onClick={() => handleColorChange(c)}
-                      />
-                    ))}
-                  </SimpleGrid>
-                  <Box borderTop="1px solid" borderColor="gray.100" my={1} />
-                </>
-              )}
-              
               <Text fontSize="9px" fontWeight="bold" color="gray.400">BASE TOKENS</Text>
-              <Input 
-                placeholder="Search base colors..." 
-                value={search} 
-                onChange={(e) => setSearch(e.target.value)} 
-                size="xs"
-              />
+              <Input placeholder="Search base colors..." value={search} onChange={(e) => setSearch(e.target.value)} size="xs" />
               <Box maxH="150px" overflowY="auto">
-                <SimpleGrid columns={5} gap={2}>
+                <SimpleGrid columns={isExpanded ? 8 : 5} gap={2}>
                   {filteredSwatches.map(s => (
-                    <Box 
-                      key={s.id} title={s.id}
-                      w="full" h="30px" bg={s.hex} borderRadius="sm" cursor="pointer"
-                      border={color.toLowerCase() === s.hex.toLowerCase() ? "2px solid black" : "1px solid rgba(0,0,0,0.1)"}
-                      onClick={() => handleColorChange(s.hex)}
-                    />
+                    <Box key={s.id} title={s.id} w="full" h="30px" bg={s.hex} borderRadius="sm" cursor="pointer" border={color.toLowerCase() === s.hex.toLowerCase() ? "2px solid black" : "1px solid rgba(0,0,0,0.1)"} onClick={() => handleColorChange(s.hex)} />
                   ))}
                 </SimpleGrid>
               </Box>

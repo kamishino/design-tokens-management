@@ -239,7 +239,7 @@ const LabDashboard = (props: any) => {
       <Box flex={1} overflowY="auto" bg="white" p={8}>
         <Tabs.Content value="colors" p={0}>
           <Heading size="sm" mb={6}>Semantic Colors</Heading>
-          <SimpleGrid columns={2} gap={8}>
+          <SimpleGrid columns={{ base: 1, xl: 2 }} gap={8}>
             {SEMANTIC_CHANNELS.map((channel) => {
               const tokenKeyMap: Record<string, string> = {
                 primary: "brand.primary", secondary: "brand.secondary", accent: "brand.accent", text: "text.primary", bg: "bg.canvas",
@@ -249,7 +249,7 @@ const LabDashboard = (props: any) => {
               return (
                 <VStack key={channel.id} align="start" gap={3} p={4} border="1px solid" borderColor="gray.100" borderRadius="lg">
                   <Text fontSize="xs" fontWeight="bold" textTransform="uppercase" color="gray.500">{channel.label}</Text>
-                  <StudioColorPicker label={channel.label} color={activeColor} onChange={(c) => updateOverride({ [channel.variable]: c }, `Changed ${channel.label}`)} />
+                  <StudioColorPicker variant="expanded" label={channel.label} color={activeColor} onChange={(c) => updateOverride({ [channel.variable]: c }, `Changed ${channel.label}`)} />
                 </VStack>
               );
             })}
@@ -266,8 +266,8 @@ const LabDashboard = (props: any) => {
             </Box>
             <Box>
               <Heading size="sm" mb={4}>Font Families</Heading>
-              <Box p={4} border="1px solid" borderColor="gray.100" borderRadius="lg">
-                <FontExplorer headingFamily={hFont} bodyFamily={bFont} codeFamily={cFont} onSelect={handleFontSelect} />
+              <Box p={4} border="1px solid" borderColor="gray.100" borderRadius="lg" h="600px">
+                <FontExplorer variant="expanded" headingFamily={hFont} bodyFamily={bFont} codeFamily={cFont} onSelect={handleFontSelect} />
               </Box>
             </Box>
           </VStack>
