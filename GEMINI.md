@@ -21,6 +21,13 @@
 - **File Structure:** Check `PROJECT_CONTEXT.md` for key directory map.
 - **Style:** Immutability, Zod Validation, Design Tokens.
 
+## 🛑 Anti-Patterns & Recurring Mistakes
+
+- **[React/Chakra]:** Do NOT assume library exports (like `Card`) exist in pre-release versions (e.g., Chakra v3). Use primitives (`Box`) or check documentation for Multi-part patterns (`Card.Root`). (Learned 2026-02-13)
+- **[React 19]:** `forwardRef` returns an object. If "Element type is invalid: got object" occurs, try reverting to a pure function component to rule out compatibility issues. (Learned 2026-02-13)
+- **[Refactoring]:** When adding required props to a component, ALWAYS check and update all parent usages (e.g., `App.tsx`) immediately to prevent runtime crashes. (Learned 2026-02-13)
+- **[Imports]:** Avoid `import { Component }` if `Component` is a Namespace. Use `<Component.Root>` instead of `<Component>` to avoid "got object" errors. (Learned 2026-02-13)
+
 ## 4. Workflow & Commands (The Kami Flow)
 
 _The detailed logic for these commands is imported below._
