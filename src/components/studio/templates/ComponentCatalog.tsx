@@ -1,8 +1,9 @@
 import { 
   Box, VStack, HStack, Text, Button, Heading, 
-  SimpleGrid, Card, Input, Checkbox, Switch, 
+  SimpleGrid, Input, Checkbox, Switch, 
   Badge, Stack
 } from "@chakra-ui/react";
+import { Card } from "../../ui/card";
 
 export const ComponentCatalog = () => {
   return (
@@ -40,7 +41,7 @@ export const ComponentCatalog = () => {
             <VStack align="start" gap={4}>
               <Text fontSize="sm" fontWeight="bold">Text Input</Text>
               <Input placeholder="Placeholder text..." borderColor="var(--brandSecondary)" />
-              <Input value="Focused state value" borderColor="var(--brandPrimary)" borderWeight="2px" />
+              <Input defaultValue="Focused state value" borderColor="var(--brandPrimary)" borderWidth="2px" />
             </VStack>
             <VStack align="start" gap={4}>
               <Text fontSize="sm" fontWeight="bold">Selection</Text>

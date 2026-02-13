@@ -9,6 +9,7 @@
 
 _This section highlights the business value extracted from completed tasks._
 
+- ✅ 2026-02-13 Task 117: fix-component-catalog-crash - Stabilized Design Studio by resolving Component Catalog crash (missing Card snippet) and fixing console warnings across templates.
 - ? 2026-02-10 Task 116: fix-studioview-undefined-items - Resolved critical crash in Design Studio by restoring accidentally deleted project collection logic.
 
 - ? 2026-02-10 Task 115: fix-lualerttriangle-export - Resolved runtime crash by correcting non-existent 'LuAlertTriangle' export to 'LuTriangleAlert' in Commit Center.
