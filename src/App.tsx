@@ -97,6 +97,8 @@ function App() {
           }} 
           onOpenDocs={() => setViewMode('docs')}
           onInspectChange={setInspectedTokens}
+          overrides={overrides}
+          updateOverride={updateOverride}
         />
       )}
 

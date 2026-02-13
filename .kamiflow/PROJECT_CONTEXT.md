@@ -11,9 +11,9 @@
 
 > **INTEGRATOR RULE:** Always update all 4 fields (Phase, Last Action, Focus, Next Step) during `/kamiflow:ops:sync`.
 
-- **Last Completed Action: Task 121 - fix-checkbox-switch-usage
+- **Last Completed Action: Task 122 - studio-token-manager-integration
 - **Current Focus: Design System Automation
-- **Next Step: Task 122 - Distribution Pipeline (NPM Publishing)
+- **Next Step: Task 123 - Distribution Pipeline (NPM Publishing)
 
 ## 3. Knowledge Map (Directory Guide)
 

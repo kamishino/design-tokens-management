@@ -1,6 +1,6 @@
 import { 
   Box, HStack, Button, Text, Heading, 
-  createListCollection 
+  createListCollection, Portal, IconButton
 } from "@chakra-ui/react";
 import { useState, useMemo, useEffect } from 'react';
 import { LandingPage } from './templates/LandingPage';
@@ -16,9 +16,10 @@ import {
   SelectValueText,
 } from "../ui/select";
 import { generateStudioMockData } from './templates/shared/mock-data';
-import { LuScanEye, LuInfo, LuArrowRight } from "react-icons/lu";
-import type { Manifest } from "../../schemas/manifest";
+import { LuScanEye, LuInfo, LuArrowRight, LuSettings, LuX } from "react-icons/lu";
+import type { Manifest, TokenOverrides } from "../../schemas/manifest";
 import type { TokenDoc } from "../../utils/token-parser";
+import { TokenViewer } from "../../TokenViewer";
 
 interface StudioViewProps {
   manifest: Manifest | null;
@@ -28,6 +29,8 @@ interface StudioViewProps {
   onExit: () => void;
   onOpenDocs: () => void;
   onInspectChange: (tokens: string[] | undefined) => void;
+  overrides: TokenOverrides;
+  updateOverride: (newValues: Record<string, string | number>, label?: string) => void;
 }
 
 const templates = createListCollection({
@@ -41,11 +44,12 @@ const templates = createListCollection({
 })
 
 export const StudioView = ({ 
-  manifest, globalTokens, selectedProject, onProjectChange, onExit, onInspectChange 
+  manifest, globalTokens, selectedProject, onProjectChange, onExit, onInspectChange, overrides, updateOverride 
 }: Omit<StudioViewProps, 'onOpenDocs'>) => {
   const [template, setTemplate] = useState('catalog');
   const [refreshKey, setRefreshKey] = useState(0);
   const [isInspectMode, setIsInspectMode] = useState(false);
+  const [isManagerOpen, setIsManagerOpen] = useState(false);
   const [hoveredRect, setHoveredRect] = useState<{top: number, left: number, width: number, height: number, tokens?: string[]} | null>(null);
 
   // Project Collection
@@ -270,6 +274,48 @@ export const StudioView = ({
           </Text>
         </HStack>
       )}
+
+      {/* Manager Overlay */}
+      {isManagerOpen && manifest && (
+        <Portal>
+          <Box 
+            position="fixed" inset={0} zIndex={3000} bg="white"
+            animation="fade-in 0.2s"
+          >
+            <Box position="absolute" top={4} right={4} zIndex={3001}>
+              <IconButton 
+                size="sm" variant="ghost" 
+                onClick={() => setIsManagerOpen(false)}
+                title="Close Manager"
+              >
+                <LuX />
+              </IconButton>
+            </Box>
+            <TokenViewer 
+              manifest={manifest}
+              selectedProject={selectedProject}
+              onProjectChange={onProjectChange}
+              onEnterStudio={() => setIsManagerOpen(false)}
+              overrides={overrides}
+              updateOverride={updateOverride}
+            />
+          </Box>
+        </Portal>
+      )}
+
+      {/* Floating Manager Trigger (Bottom Left) */}
+      <Box position="fixed" bottom={6} left={6} zIndex={1800}>
+        <Button 
+          size="md" 
+          colorScheme="gray" 
+          variant="surface"
+          onClick={() => setIsManagerOpen(true)}
+          boxShadow="lg"
+          border="1px solid" borderColor="gray.200"
+        >
+          <LuSettings style={{ marginRight: 8 }} /> Manage Tokens
+        </Button>
+      </Box>
 
       {/* Template Preview Area */}
       <Box pointerEvents={isInspectMode ? 'none' : 'auto'} sx={{ '& [data-tokens]': { pointerEvents: 'auto' } }}>
