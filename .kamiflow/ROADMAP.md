@@ -10,6 +10,7 @@
 _This section highlights the business value extracted from completed tasks._
 
 - 🚀 **2026-02-13 Release v0.4.0:** The "Studio Manager" Release - Integrated Token Management Overlay and stabilized UI components (Checkbox, Switch, Card).
+- ✅ 2026-02-13 Task 132: force-zindex-studio-picker - Fixed Popover visibility issue by forcing Z-Index with !important to override inline styles.
 - ✅ 2026-02-13 Task 131: fix-type-scale-key - Resolved React key collision in Type Scale Selector by deduplicating ratio presets.
 - ✅ 2026-02-13 Task 130: polish-visual-lab - Fixed Z-Index, Layout, and Interaction issues in Visual Lab dashboard.
 - ✅ 2026-02-13 Task 129: fix-visual-lab-ui - Fixed Z-Index issues, scrolling behavior, and added hover affordances to Visual Lab.

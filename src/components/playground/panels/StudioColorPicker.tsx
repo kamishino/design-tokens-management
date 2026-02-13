@@ -354,7 +354,7 @@ export const StudioColorPicker = memo(({ color, onChange, label, variant = 'comp
           </Box>
         </Popover.Trigger>
         <Portal>
-          <Popover.Positioner zIndex={9999}>
+          <Popover.Positioner style={{ zIndex: '9999 !important' as any }}>
             <Popover.Content borderRadius="xl" boxShadow="2xl" border="none" w="auto">
               {/* Force compact mode inside Popover */}
               <StudioColorPicker color={color} onChange={onChange} label={label} variant="compact" />
