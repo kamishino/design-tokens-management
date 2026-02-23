@@ -12,6 +12,7 @@ import { InspectorOverlay } from "../explorer/InspectorOverlay";
 import { ExportModal } from "../export/ExportModal";
 import { CommandPalette } from "../command/CommandPalette";
 import { StudioView } from "../studio/StudioView";
+import { InspectorPanel } from "./InspectorPanel";
 import type {
   Manifest,
   TokenOverrides,
@@ -67,6 +68,7 @@ export const WorkspaceLayout = ({
 
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingToken, setEditingToken] = useState<TokenDoc | null>(null);
+  const [selectedToken, setSelectedToken] = useState<TokenDoc | null>(null);
   const [inspectedTokens, setInspectedTokens] = useState<string[] | undefined>(
     undefined,
   );
@@ -127,6 +129,7 @@ export const WorkspaceLayout = ({
     (token: TokenDoc | null, pos: { x: number; y: number } | null) => {
       if (editMode) return;
       setHoveredToken({ token, pos });
+      if (token) setSelectedToken(token);
     },
     [editMode],
   );
@@ -260,54 +263,24 @@ export const WorkspaceLayout = ({
           />
         </Box>
 
-        {/* Right: Inspector Panel (placeholder for B3) */}
+        {/* Right: Inspector Panel */}
         {inspectorVisible && (
-          <VStack
+          <Box
             w="300px"
             minW="260px"
             h="full"
-            gap={0}
             bg="white"
             borderLeft="1px solid"
             borderColor="gray.200"
             overflow="hidden"
           >
-            <Box p={3} borderBottom="1px solid" borderColor="gray.100" w="full">
-              <HStack gap={2}>
-                {["Token", "Tuning", "Changes"].map((tab) => (
-                  <Box
-                    key={tab}
-                    px={2}
-                    py={1}
-                    fontSize="11px"
-                    fontWeight="600"
-                    color={tab === "Token" ? "blue.600" : "gray.400"}
-                    bg={tab === "Token" ? "blue.50" : "transparent"}
-                    borderRadius="md"
-                    cursor="pointer"
-                    _hover={{ bg: "gray.50" }}
-                  >
-                    {tab}
-                  </Box>
-                ))}
-              </HStack>
-            </Box>
-            <Box flex={1} p={4} overflowY="auto">
-              {/* Inspector content will be built in B3 */}
-              <VStack gap={2} align="start">
-                <Box
-                  fontSize="11px"
-                  color="gray.400"
-                  fontWeight="500"
-                  textAlign="center"
-                  w="full"
-                  py={8}
-                >
-                  Select a token to inspect
-                </Box>
-              </VStack>
-            </Box>
-          </VStack>
+            <InspectorPanel
+              selectedToken={selectedToken}
+              overrides={overrides}
+              globalTokens={globalTokens}
+              onCommitSuccess={() => window.location.reload()}
+            />
+          </Box>
         )}
       </HStack>
 
