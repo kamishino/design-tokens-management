@@ -41,35 +41,33 @@ export const StagingPanel = ({
   const [staged, setStaged] = useState<Set<string>>(new Set());
   const [isCommitting, setIsCommitting] = useState(false);
 
-  // Calculate diffs
+  // Calculate diffs — show ALL overrides, enrich with token data if found
   const pendingChanges = useMemo(() => {
     const changes: PendingChange[] = [];
 
     Object.entries(overrides).forEach(([cssVar, newValue]) => {
+      // Derive token path from CSS var: --brand-primary → brand.primary
+      const derivedPath = cssVar.replace(/^--/, "").replace(/-/g, ".");
+
+      // Try to find matching token for extra info (original value, source file)
       const token = globalTokens.find((t) => {
         const varName = `--${t.id.replace(/\./g, "-")}`;
-        return (
-          varName === cssVar ||
-          t.id === cssVar.replace(/^--/, "").replace(/-/g, ".")
-        );
+        return varName === cssVar || t.id === derivedPath;
       });
 
-      if (token) {
-        const isColor =
-          token.type === "color" ||
-          (typeof newValue === "string" &&
-            /^#|^rgb|^hsl|^oklch/i.test(newValue));
+      const isColor =
+        typeof newValue === "string" &&
+        /^#|^rgb|^hsl|^oklch/i.test(String(newValue));
 
-        changes.push({
-          id: token.id,
-          cssVar,
-          tokenPath: token.id,
-          sourceFile: token.sourceFile,
-          originalValue: String(token.value),
-          newValue: String(newValue),
-          isColor,
-        });
-      }
+      changes.push({
+        id: derivedPath,
+        cssVar,
+        tokenPath: token?.id || derivedPath,
+        sourceFile: token?.sourceFile || "",
+        originalValue: token ? String(token.value) : "—",
+        newValue: String(newValue),
+        isColor,
+      });
     });
 
     return changes;
@@ -77,15 +75,13 @@ export const StagingPanel = ({
 
   // Auto-stage new changes
   useMemo(() => {
-    const currentIds = new Set(pendingChanges.map((c) => c.cssVar));
+    const currentKeys = new Set(pendingChanges.map((c) => c.cssVar));
     setStaged((prev) => {
       const next = new Set<string>();
-      // Keep only staged items that still have changes
       prev.forEach((id) => {
-        if (currentIds.has(id)) next.add(id);
+        if (currentKeys.has(id)) next.add(id);
       });
-      // Auto-stage new changes
-      currentIds.forEach((id) => {
+      currentKeys.forEach((id) => {
         if (!prev.has(id)) next.add(id);
       });
       return next;
