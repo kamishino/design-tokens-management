@@ -194,7 +194,7 @@ const typographyRules: DesignRule[] = [
           description: `Ratio ${ctx.typography.scaleRatio} creates very large headings. Consider ≤ 1.333 (Perfect Fourth) for more balanced hierarchy.`,
           category: "typography",
           severity: "warning",
-          fix: { variable: "--typography-scale-ratio", value: "1.333" },
+          fix: { variable: "--typography-config-scale-ratio", value: "1.333" },
         });
       }
       if (ctx.typography.scaleRatio < 1.1) {
@@ -204,7 +204,7 @@ const typographyRules: DesignRule[] = [
           description: `Ratio ${ctx.typography.scaleRatio} makes headings barely larger than body. Consider ≥ 1.2 (Minor Third).`,
           category: "typography",
           severity: "info",
-          fix: { variable: "--typography-scale-ratio", value: "1.2" },
+          fix: { variable: "--typography-config-scale-ratio", value: "1.2" },
         });
       }
       return suggestions;
@@ -223,7 +223,7 @@ const typographyRules: DesignRule[] = [
           description: `${ctx.typography.baseSize}px is below recommended minimum of 14px for screen reading.`,
           category: "typography",
           severity: "warning",
-          fix: { variable: "--typography-base-size", value: "16" },
+          fix: { variable: "--font-size-root", value: "16" },
         });
       }
       return suggestions;
@@ -250,7 +250,7 @@ const typographyRules: DesignRule[] = [
           category: "typography",
           severity: "info",
           ...(suggestion
-            ? { fix: { variable: "--font-family-body", value: suggestion } }
+            ? { fix: { variable: "--font-family-base", value: `${suggestion}, sans-serif` } }
             : {}),
         });
       }

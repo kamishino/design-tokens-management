@@ -417,9 +417,9 @@ export const TuningTab = ({
   );
 
   const hasOverrides = Object.keys(overrides).length > 0;
-  const [tuningSubTab, setTuningSubTab] = useState<"colors" | "typography">(
-    "colors",
-  );
+  const [tuningSubTab, setTuningSubTab] = useState<
+    "colors" | "typography" | "tips"
+  >("colors");
 
   const handleFontSelect = (font: (typeof FONT_ROLES)[0], family: string) => {
     const currentStack = getEffectiveValue(
@@ -442,10 +442,11 @@ export const TuningTab = ({
         borderColor="gray.100"
         flexShrink={0}
       >
-        {(["colors", "typography"] as const).map((tab) => {
+        {(["colors", "typography", "tips"] as const).map((tab) => {
           const labels = {
             colors: "🎨 Colors",
             typography: "🔤 Typography",
+            tips: "✨ Tips",
           };
           return (
             <Box
@@ -500,59 +501,6 @@ export const TuningTab = ({
         {/* Color Channels */}
         {tuningSubTab === "colors" && (
           <>
-            {/* Smart Tips (Phase L) */}
-            <SmartTipsPanel
-              context={
-                {
-                  colors: SEMANTIC_CHANNELS.map((c) => ({
-                    variable: c.variable,
-                    label: c.label,
-                    hex: getEffectiveValue(c.variable, c.token, "#000000"),
-                  })),
-                  typography: {
-                    baseSize: Number(overrides["--font-size-root"]) || 16,
-                    scaleRatio:
-                      Number(overrides["--typography-config-scale-ratio"]) ||
-                      1.25,
-                    lineHeight:
-                      Number(overrides["--typography-line-height"]) || 1.5,
-                    headingFont: (
-                      getEffectiveValue(
-                        "--font-family-heading",
-                        "font.family.heading",
-                        "Inter",
-                      ) || "Inter"
-                    )
-                      .split(",")[0]
-                      .replace(/['"]/g, "")
-                      .trim(),
-                    bodyFont: (
-                      getEffectiveValue(
-                        "--font-family-base",
-                        "font.family.base",
-                        "Inter",
-                      ) || "Inter"
-                    )
-                      .split(",")[0]
-                      .replace(/['"]/g, "")
-                      .trim(),
-                    codeFont: (
-                      getEffectiveValue(
-                        "--font-family-mono",
-                        "font.family.mono",
-                        "monospace",
-                      ) || "monospace"
-                    )
-                      .split(",")[0]
-                      .replace(/['"]/g, "")
-                      .trim(),
-                  },
-                } satisfies AnalysisContext
-              }
-              onApplyFix={(variable, value, label) =>
-                updateOverride({ [variable]: value }, label)
-              }
-            />
             <Box p={3} borderBottom="1px solid" borderColor="gray.50">
               <HStack gap={1.5} mb={3}>
                 <LuPalette size={12} color="var(--chakra-colors-gray-400)" />
@@ -1160,6 +1108,62 @@ export const TuningTab = ({
               </VStack>
             </Box>
           </>
+        )}
+
+        {/* Smart Tips Tab */}
+        {tuningSubTab === "tips" && (
+          <SmartTipsPanel
+            context={
+              {
+                colors: SEMANTIC_CHANNELS.map((c) => ({
+                  variable: c.variable,
+                  label: c.label,
+                  hex: getEffectiveValue(c.variable, c.token, "#000000"),
+                })),
+                typography: {
+                  baseSize: Number(overrides["--font-size-root"]) || 16,
+                  scaleRatio:
+                    Number(overrides["--typography-config-scale-ratio"]) ||
+                    1.25,
+                  lineHeight:
+                    Number(overrides["--typography-line-height"]) || 1.5,
+                  headingFont: (
+                    getEffectiveValue(
+                      "--font-family-heading",
+                      "font.family.heading",
+                      "Inter",
+                    ) || "Inter"
+                  )
+                    .split(",")[0]
+                    .replace(/['"]/g, "")
+                    .trim(),
+                  bodyFont: (
+                    getEffectiveValue(
+                      "--font-family-base",
+                      "font.family.base",
+                      "Inter",
+                    ) || "Inter"
+                  )
+                    .split(",")[0]
+                    .replace(/['"]/g, "")
+                    .trim(),
+                  codeFont: (
+                    getEffectiveValue(
+                      "--font-family-mono",
+                      "font.family.mono",
+                      "monospace",
+                    ) || "monospace"
+                  )
+                    .split(",")[0]
+                    .replace(/['"]/g, "")
+                    .trim(),
+                },
+              } satisfies AnalysisContext
+            }
+            onApplyFix={(variable, value, label) =>
+              updateOverride({ [variable]: value }, label)
+            }
+          />
         )}
       </Box>
       {hasOverrides && (
