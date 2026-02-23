@@ -9,8 +9,15 @@ import {
   Badge,
 } from "@chakra-ui/react";
 import { useCallback, useMemo, useState } from "react";
-import { LuPalette, LuType, LuUndo2, LuRedo2, LuCheck } from "react-icons/lu";
-import { Slider } from "../ui/slider";
+import {
+  LuPalette,
+  LuType,
+  LuUndo2,
+  LuRedo2,
+  LuCheck,
+  LuLayoutList,
+  LuNewspaper,
+} from "react-icons/lu";
 import { parse, converter, wcagContrast, formatHex } from "culori";
 // @ts-expect-error apca-w3 has no type declarations
 import { APCAcontrast, sRGBtoY } from "apca-w3";
@@ -420,6 +427,9 @@ export const TuningTab = ({
   const [tuningSubTab, setTuningSubTab] = useState<
     "colors" | "typography" | "tips"
   >("colors");
+  const [previewMode, setPreviewMode] = useState<"ladder" | "article">(
+    "ladder",
+  );
 
   const handleFontSelect = (font: (typeof FONT_ROLES)[0], family: string) => {
     const currentStack = getEffectiveValue(
@@ -833,122 +843,151 @@ export const TuningTab = ({
               </HStack>
 
               <VStack align="stretch" gap={3}>
-                {/* Base Size Slider */}
-                <Box>
-                  <HStack justify="space-between" mb={1}>
-                    <Text fontSize="10px" fontWeight="600" color="gray.500">
-                      Base Size
-                    </Text>
-                    <Text
+                {/* Base Size — number input */}
+                <HStack justify="space-between" align="center">
+                  <Text fontSize="10px" fontWeight="600" color="gray.500">
+                    Base Size
+                  </Text>
+                  <HStack gap={1}>
+                    <Input
+                      type="number"
+                      min={10}
+                      max={32}
+                      step={1}
+                      value={Number(overrides["--font-size-root"]) || 16}
+                      onChange={(e) => {
+                        const v = Number(e.target.value);
+                        if (v >= 10 && v <= 32)
+                          updateOverride(
+                            { "--font-size-root": v },
+                            `Base size: ${v}px`,
+                          );
+                      }}
+                      size="xs"
+                      w="52px"
+                      textAlign="center"
+                      fontFamily="'Space Mono', monospace"
                       fontSize="10px"
                       fontWeight="700"
-                      color="gray.700"
-                      fontFamily="'Space Mono', monospace"
-                    >
-                      {Number(overrides["--font-size-root"]) || 16}px
+                      borderRadius="md"
+                    />
+                    <Text fontSize="9px" color="gray.400">
+                      px
                     </Text>
                   </HStack>
-                  <Slider
-                    min={12}
-                    max={24}
-                    step={1}
-                    value={[Number(overrides["--font-size-root"]) || 16]}
-                    onValueChange={(details) =>
-                      updateOverride(
-                        { "--font-size-root": details.value[0] },
-                        `Base size: ${details.value[0]}px`,
-                      )
-                    }
-                    size="sm"
-                  />
-                </Box>
+                </HStack>
 
-                {/* Scale Ratio */}
-                <Box>
-                  <HStack justify="space-between" mb={1}>
+                {/* Scale Ratio — number input + autocomplete dropdown */}
+                <Box position="relative">
+                  <HStack justify="space-between" align="center" mb={1}>
                     <Text fontSize="10px" fontWeight="600" color="gray.500">
                       Scale Ratio
                     </Text>
-                    <Text
+                    <Input
+                      type="number"
+                      min={1.0}
+                      max={2.0}
+                      step={0.001}
+                      value={
+                        Number(overrides["--typography-config-scale-ratio"]) ||
+                        1.25
+                      }
+                      onChange={(e) => {
+                        const v = Number(e.target.value);
+                        if (v >= 1.0 && v <= 2.0)
+                          updateOverride(
+                            { "--typography-config-scale-ratio": v },
+                            `Scale: ${v}`,
+                          );
+                      }}
+                      size="xs"
+                      w="64px"
+                      textAlign="center"
+                      fontFamily="'Space Mono', monospace"
                       fontSize="10px"
                       fontWeight="700"
-                      color="gray.700"
-                      fontFamily="'Space Mono', monospace"
-                    >
-                      {Number(overrides["--typography-config-scale-ratio"]) ||
-                        1.25}
-                    </Text>
+                      borderRadius="md"
+                    />
                   </HStack>
-                  <VStack align="stretch" gap={0.5}>
+                  {/* Preset chips */}
+                  <HStack gap={0.5} flexWrap="wrap">
                     {[
-                      { label: "Minor Second", value: 1.067 },
-                      { label: "Major Second", value: 1.125 },
-                      { label: "Minor Third", value: 1.2 },
-                      { label: "Major Third", value: 1.25 },
-                      { label: "Perfect Fourth", value: 1.333 },
-                      { label: "Aug. Fourth", value: 1.414 },
-                      { label: "Perfect Fifth", value: 1.5 },
-                      { label: "Golden Ratio", value: 1.618 },
+                      { label: "Minor 2nd", value: 1.067 },
+                      { label: "Major 2nd", value: 1.125 },
+                      { label: "Minor 3rd", value: 1.2 },
+                      { label: "Major 3rd", value: 1.25 },
+                      { label: "P4th", value: 1.333 },
+                      { label: "Aug 4th", value: 1.414 },
+                      { label: "P5th", value: 1.5 },
+                      { label: "Golden", value: 1.618 },
                     ].map((ratio) => {
                       const current =
                         Number(overrides["--typography-config-scale-ratio"]) ||
                         1.25;
                       const isActive = Math.abs(current - ratio.value) < 0.01;
                       return (
-                        <HStack
+                        <Box
                           key={ratio.value}
-                          px={2}
-                          py={1}
-                          borderRadius="sm"
-                          cursor="pointer"
+                          as="button"
+                          px={1.5}
+                          py={0.5}
+                          borderRadius="md"
+                          fontSize="8px"
+                          fontWeight={isActive ? "700" : "500"}
                           bg={isActive ? "blue.50" : "transparent"}
-                          color={isActive ? "blue.600" : "gray.600"}
-                          _hover={{ bg: isActive ? "blue.50" : "gray.50" }}
+                          color={isActive ? "blue.600" : "gray.500"}
+                          border="1px solid"
+                          borderColor={isActive ? "blue.200" : "gray.100"}
+                          cursor="pointer"
+                          _hover={{ borderColor: "blue.200" }}
                           onClick={() =>
                             updateOverride(
                               {
                                 "--typography-config-scale-ratio": ratio.value,
                               },
-                              `Scale: ${ratio.label}`,
+                              `Scale: ${ratio.label} (${ratio.value})`,
                             )
                           }
                           transition="all 0.1s"
+                          title={`${ratio.label} — ${ratio.value}`}
                         >
-                          <Text
-                            fontSize="10px"
-                            fontWeight={isActive ? "700" : "500"}
-                            flex={1}
-                          >
-                            {ratio.label}
-                          </Text>
-                          <Text
-                            fontSize="10px"
-                            fontFamily="'Space Mono', monospace"
-                            fontWeight={isActive ? "700" : "400"}
-                          >
-                            {ratio.value}
-                          </Text>
-                          {isActive && <LuCheck size={10} />}
-                        </HStack>
+                          {ratio.label}
+                        </Box>
                       );
                     })}
-                  </VStack>
+                  </HStack>
                 </Box>
 
-                {/* Line Height (J4) */}
+                {/* Line Height — number input + preset chips */}
                 <Box>
-                  <HStack justify="space-between" mb={1}>
+                  <HStack justify="space-between" align="center" mb={1}>
                     <Text fontSize="10px" fontWeight="600" color="gray.500">
                       Line Height
                     </Text>
-                    <Text
+                    <Input
+                      type="number"
+                      min={1.0}
+                      max={2.5}
+                      step={0.05}
+                      value={
+                        Number(overrides["--typography-line-height"]) || 1.5
+                      }
+                      onChange={(e) => {
+                        const v = Number(e.target.value);
+                        if (v >= 1.0 && v <= 2.5)
+                          updateOverride(
+                            { "--typography-line-height": v },
+                            `Line height: ${v}`,
+                          );
+                      }}
+                      size="xs"
+                      w="52px"
+                      textAlign="center"
+                      fontFamily="'Space Mono', monospace"
                       fontSize="10px"
                       fontWeight="700"
-                      color="gray.700"
-                      fontFamily="'Space Mono', monospace"
-                    >
-                      {Number(overrides["--typography-line-height"]) || 1.5}
-                    </Text>
+                      borderRadius="md"
+                    />
                   </HStack>
                   <HStack gap={0.5}>
                     {[1.0, 1.2, 1.3, 1.4, 1.5, 1.6, 1.75, 2.0].map((lh) => {
@@ -986,124 +1025,177 @@ export const TuningTab = ({
                   </HStack>
                 </Box>
 
-                {/* Visual Type Scale Preview (J5 — typescale.com style) */}
+                {/* Visual Type Scale Preview (M1+M4) */}
                 <Box mt={3}>
-                  <Text
-                    fontSize="9px"
-                    fontWeight="700"
-                    color="gray.400"
-                    textTransform="uppercase"
-                    letterSpacing="wider"
-                    mb={2}
-                  >
-                    Preview
-                  </Text>
-                  <VStack
-                    align="stretch"
-                    gap={0}
-                    border="1px solid"
-                    borderColor="gray.100"
-                    borderRadius="md"
-                    overflow="hidden"
-                  >
-                    {[
-                      { step: 6, label: "h1", role: "heading" },
-                      { step: 5, label: "h2", role: "heading" },
-                      { step: 4, label: "h3", role: "heading" },
-                      { step: 3, label: "h4", role: "heading" },
-                      { step: 2, label: "h5", role: "heading" },
-                      { step: 1, label: "h6", role: "heading" },
-                      { step: 0, label: "body", role: "body" },
-                      { step: -1, label: "small", role: "body" },
-                      { step: -2, label: "xs", role: "body" },
-                    ].map(({ step, label, role }) => {
-                      const base = Number(overrides["--font-size-root"]) || 16;
-                      const ratio =
+                  <HStack justify="space-between" align="center" mb={2}>
+                    <Text
+                      fontSize="9px"
+                      fontWeight="700"
+                      color="gray.400"
+                      textTransform="uppercase"
+                      letterSpacing="wider"
+                    >
+                      Preview
+                    </Text>
+                    <HStack gap={0.5}>
+                      {(["ladder", "article"] as const).map((mode) => (
+                        <Box
+                          key={mode}
+                          as="button"
+                          p={1}
+                          borderRadius="md"
+                          bg={previewMode === mode ? "blue.50" : "transparent"}
+                          color={previewMode === mode ? "blue.600" : "gray.400"}
+                          cursor="pointer"
+                          _hover={{
+                            bg: previewMode === mode ? "blue.50" : "gray.50",
+                          }}
+                          onClick={() => setPreviewMode(mode)}
+                          title={
+                            mode === "ladder"
+                              ? "Scale Ladder"
+                              : "Article Preview"
+                          }
+                          transition="all 0.1s"
+                        >
+                          {mode === "ladder" ? (
+                            <LuLayoutList size={12} />
+                          ) : (
+                            <LuNewspaper size={12} />
+                          )}
+                        </Box>
+                      ))}
+                    </HStack>
+                  </HStack>
+
+                  {previewMode === "ladder" ? (
+                    /* Scale Ladder View */
+                    <VStack
+                      align="stretch"
+                      gap={0}
+                      border="1px solid"
+                      borderColor="gray.100"
+                      borderRadius="md"
+                      overflow="hidden"
+                    >
+                      {[
+                        { step: 6, label: "h1", role: "heading" },
+                        { step: 5, label: "h2", role: "heading" },
+                        { step: 4, label: "h3", role: "heading" },
+                        { step: 3, label: "h4", role: "heading" },
+                        { step: 2, label: "h5", role: "heading" },
+                        { step: 1, label: "h6", role: "heading" },
+                        { step: 0, label: "body", role: "body" },
+                        { step: -1, label: "small", role: "body" },
+                        { step: -2, label: "xs", role: "body" },
+                      ].map(({ step, label, role }) => {
+                        const base =
+                          Number(overrides["--font-size-root"]) || 16;
+                        const ratio =
+                          Number(
+                            overrides["--typography-config-scale-ratio"],
+                          ) || 1.25;
+                        const lh =
+                          Number(overrides["--typography-line-height"]) || 1.5;
+                        const size =
+                          Math.round(base * Math.pow(ratio, step) * 100) / 100;
+                        const rem = Math.round((size / 16) * 1000) / 1000;
+                        const isBase = step === 0;
+                        const headingFont = getEffectiveValue(
+                          "--font-family-heading",
+                          "font.family.heading",
+                          "Inter",
+                        );
+                        const bodyFont = getEffectiveValue(
+                          "--font-family-base",
+                          "font.family.base",
+                          "Inter",
+                        );
+                        const fontFamily =
+                          role === "heading" ? headingFont : bodyFont;
+                        const shortFont = fontFamily
+                          .split(",")[0]
+                          .replace(/['"]/g, "")
+                          .trim();
+
+                        return (
+                          <HStack
+                            key={step}
+                            px={3}
+                            py={1.5}
+                            gap={3}
+                            borderBottom="1px solid"
+                            borderColor="gray.50"
+                            _last={{ borderBottom: "none" }}
+                            bg={isBase ? "blue.50" : "transparent"}
+                            align="baseline"
+                          >
+                            <Text
+                              fontSize="8px"
+                              fontWeight="700"
+                              color={isBase ? "blue.500" : "gray.300"}
+                              textTransform="uppercase"
+                              w="28px"
+                              flexShrink={0}
+                              fontFamily="monospace"
+                            >
+                              {label}
+                            </Text>
+                            <Text
+                              fontSize={`${Math.min(size, 42)}px`}
+                              lineHeight={`${lh}`}
+                              fontFamily={fontFamily}
+                              fontWeight={role === "heading" ? "700" : "400"}
+                              color="gray.800"
+                              flex={1}
+                              truncate
+                            >
+                              {role === "heading" ? "Heading" : "Body text"}
+                            </Text>
+                            <VStack gap={0} align="end" flexShrink={0}>
+                              <Text
+                                fontSize="8px"
+                                fontFamily="'Space Mono', monospace"
+                                color={isBase ? "blue.600" : "gray.500"}
+                                fontWeight="600"
+                              >
+                                {size}px / {rem}rem
+                              </Text>
+                              <Text
+                                fontSize="7px"
+                                fontFamily="monospace"
+                                color="gray.300"
+                              >
+                                {shortFont} · lh {lh}
+                              </Text>
+                            </VStack>
+                          </HStack>
+                        );
+                      })}
+                    </VStack>
+                  ) : (
+                    /* Article Preview View (M1) */
+                    <ArticlePreview
+                      baseSize={Number(overrides["--font-size-root"]) || 16}
+                      scaleRatio={
                         Number(overrides["--typography-config-scale-ratio"]) ||
-                        1.25;
-                      const lh =
-                        Number(overrides["--typography-line-height"]) || 1.5;
-                      const size =
-                        Math.round(base * Math.pow(ratio, step) * 100) / 100;
-                      const rem = Math.round((size / 16) * 1000) / 1000;
-                      const isBase = step === 0;
-                      const headingFont = getEffectiveValue(
+                        1.25
+                      }
+                      lineHeight={
+                        Number(overrides["--typography-line-height"]) || 1.5
+                      }
+                      headingFont={getEffectiveValue(
                         "--font-family-heading",
                         "font.family.heading",
                         "Inter",
-                      );
-                      const bodyFont = getEffectiveValue(
+                      )}
+                      bodyFont={getEffectiveValue(
                         "--font-family-base",
                         "font.family.base",
                         "Inter",
-                      );
-                      const fontFamily =
-                        role === "heading" ? headingFont : bodyFont;
-                      const shortFont = fontFamily
-                        .split(",")[0]
-                        .replace(/['"]/g, "")
-                        .trim();
-
-                      return (
-                        <HStack
-                          key={step}
-                          px={3}
-                          py={1.5}
-                          gap={3}
-                          borderBottom="1px solid"
-                          borderColor="gray.50"
-                          _last={{ borderBottom: "none" }}
-                          bg={isBase ? "blue.50" : "transparent"}
-                          align="baseline"
-                        >
-                          {/* Label */}
-                          <Text
-                            fontSize="8px"
-                            fontWeight="700"
-                            color={isBase ? "blue.500" : "gray.300"}
-                            textTransform="uppercase"
-                            w="28px"
-                            flexShrink={0}
-                            fontFamily="monospace"
-                          >
-                            {label}
-                          </Text>
-
-                          {/* Live text sample */}
-                          <Text
-                            fontSize={`${Math.min(size, 42)}px`}
-                            lineHeight={`${lh}`}
-                            fontFamily={fontFamily}
-                            fontWeight={role === "heading" ? "700" : "400"}
-                            color="gray.800"
-                            flex={1}
-                            truncate
-                          >
-                            {role === "heading" ? "Heading" : "Body text"}
-                          </Text>
-
-                          {/* Metrics */}
-                          <VStack gap={0} align="end" flexShrink={0}>
-                            <Text
-                              fontSize="8px"
-                              fontFamily="'Space Mono', monospace"
-                              color={isBase ? "blue.600" : "gray.500"}
-                              fontWeight="600"
-                            >
-                              {size}px / {rem}rem
-                            </Text>
-                            <Text
-                              fontSize="7px"
-                              fontFamily="monospace"
-                              color="gray.300"
-                            >
-                              {shortFont} · lh {lh}
-                            </Text>
-                          </VStack>
-                        </HStack>
-                      );
-                    })}
-                  </VStack>
+                      )}
+                    />
+                  )}
                 </Box>
               </VStack>
             </Box>
@@ -1319,3 +1411,129 @@ const FontPickerRow = ({ font, currentFont, onSelect }: FontPickerRowProps) => {
     </Popover.Root>
   );
 };
+
+// ─── Article Preview (M1) ────────────────────────────────────
+
+function ArticlePreview({
+  baseSize,
+  scaleRatio,
+  lineHeight,
+  headingFont,
+  bodyFont,
+}: {
+  baseSize: number;
+  scaleRatio: number;
+  lineHeight: number;
+  headingFont: string;
+  bodyFont: string;
+}) {
+  const s = (step: number) =>
+    `${Math.round(baseSize * Math.pow(scaleRatio, step) * 100) / 100}px`;
+
+  const hStyle = (step: number): React.CSSProperties => ({
+    fontFamily: headingFont,
+    fontSize: s(step),
+    lineHeight: `${lineHeight}`,
+    fontWeight: 700,
+    margin: 0,
+    padding: 0,
+    color: "var(--chakra-colors-gray-800)",
+  });
+
+  const pStyle: React.CSSProperties = {
+    fontFamily: bodyFont,
+    fontSize: s(0),
+    lineHeight: `${lineHeight}`,
+    fontWeight: 400,
+    margin: 0,
+    padding: 0,
+    color: "var(--chakra-colors-gray-600)",
+  };
+
+  const smallStyle: React.CSSProperties = {
+    fontFamily: bodyFont,
+    fontSize: s(-1),
+    lineHeight: `${lineHeight}`,
+    color: "var(--chakra-colors-gray-400)",
+  };
+
+  return (
+    <Box
+      border="1px solid"
+      borderColor="gray.100"
+      borderRadius="md"
+      p={4}
+      maxH="500px"
+      overflowY="auto"
+    >
+      <VStack align="stretch" gap={3}>
+        {/* Blog header */}
+        <h2 style={hStyle(4)}>
+          <Box as="span" display="inline-block" mr={1.5}>
+            <svg
+              style={{ height: "1em", width: "auto", verticalAlign: "bottom" }}
+              viewBox="0 0 72 72"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m0,72c39.76,0,72-32.24,72-72H0v72Z"
+                fill="rgba(0,0,0,0.12)"
+              />
+            </svg>
+          </Box>
+          The Blog
+        </h2>
+
+        <h1 style={hStyle(6)}>Exploring the mysteries of Atlantis</h1>
+
+        <p style={smallStyle}>Feb 23rd, 2026 — By Seraphina</p>
+
+        <p style={pStyle}>
+          Atlantis, the Lost City of Myth and Legend, has captivated the human
+          imagination for centuries. In this article, we will delve into the
+          depths of this enigmatic sunken realm and uncover the secrets hidden
+          beneath the waves.
+        </p>
+
+        <h2 style={hStyle(4)}>The origins of Atlantis</h2>
+        <p style={pStyle}>
+          The first mention of Atlantis can be traced back to the works of the
+          ancient Greek philosopher Plato. He described a powerful and advanced
+          civilization that disappeared beneath the ocean's surface, leaving
+          behind only speculation and intrigue. But what if Atlantis was more
+          than just a legend?
+        </p>
+
+        <h3 style={hStyle(3)}>Theories and speculations</h3>
+        <p style={pStyle}>
+          Over the years, numerous theories and speculations have arisen
+          regarding the existence and fate of Atlantis. Some believe it was a
+          highly advanced society with technology far beyond its time, while
+          others argue that it was purely a product of Plato's imagination.
+        </p>
+
+        <h4 style={hStyle(2)}>Advanced technology</h4>
+        <p style={pStyle}>
+          One theory suggests that Atlantis possessed technology that allowed it
+          to harness the Earth's energy, leading to its eventual downfall.
+          Theorists propose that their unchecked power may have contributed to
+          their watery demise.
+        </p>
+
+        <h5 style={hStyle(1)}>Geological evidence</h5>
+        <p style={pStyle}>
+          Geological formations and underwater structures have led some
+          researchers to believe they may have found the remnants of Atlantis.
+          Could these enigmatic formations on the ocean floor be the lost city?
+        </p>
+
+        <h6 style={hStyle(0)}>Conclusion</h6>
+        <p style={pStyle}>
+          The mystery of Atlantis continues to intrigue and baffle historians,
+          archaeologists, and enthusiasts alike. Whether Atlantis was real or a
+          mere figment of Plato's imagination remains an unsolved riddle.
+        </p>
+      </VStack>
+    </Box>
+  );
+}
