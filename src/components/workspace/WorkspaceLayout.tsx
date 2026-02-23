@@ -13,6 +13,7 @@ import { ExportModal } from "../export/ExportModal";
 import { CommandPalette } from "../command/CommandPalette";
 import { StudioView } from "../studio/StudioView";
 import { InspectorPanel } from "./InspectorPanel";
+import { ThemeBar } from "./ThemeBar";
 import type {
   Manifest,
   TokenOverrides,
@@ -50,7 +51,6 @@ export const WorkspaceLayout = ({
 }: WorkspaceLayoutProps) => {
   const { globalTokens } = useGlobalTokens();
   const [searchTerm, setSearchTerm] = useState("");
-  const [editMode, setEditMode] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [inspectorVisible, setInspectorVisible] = useState(true);
 
@@ -127,11 +127,10 @@ export const WorkspaceLayout = ({
   // Callbacks
   const handleHover = useCallback(
     (token: TokenDoc | null, pos: { x: number; y: number } | null) => {
-      if (editMode) return;
       setHoveredToken({ token, pos });
       if (token) setSelectedToken(token);
     },
-    [editMode],
+    [],
   );
 
   const handleEdit = useCallback((token: TokenDoc) => {
@@ -197,6 +196,13 @@ export const WorkspaceLayout = ({
         onToggleInspector={() => setInspectorVisible((v) => !v)}
       />
 
+      {/* Theme Bar */}
+      <ThemeBar
+        manifest={manifest}
+        activePath={selectedProject}
+        onSelect={onProjectChange}
+      />
+
       {/* Main Content */}
       <HStack flex={1} gap={0} overflow="hidden" w="full">
         {/* Activity Bar */}
@@ -234,7 +240,7 @@ export const WorkspaceLayout = ({
               foundationTokens={foundationTokens}
               searchTerm={searchTerm}
               onSearchChange={setSearchTerm}
-              editMode={editMode}
+              editMode={false}
               onEdit={handleEdit}
               onDelete={handleDelete}
               onHover={handleHover}
