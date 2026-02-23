@@ -3,10 +3,11 @@ import { useState, useMemo } from "react";
 import {
   LuArrowRight,
   LuCircleDot,
-  LuLayers,
+  LuPalette,
   LuGitBranch,
 } from "react-icons/lu";
 import { CommitCenter } from "../playground/panels/CommitCenter";
+import { TuningTab } from "./TuningTab";
 import type { TokenDoc } from "../../utils/token-parser";
 import type { TokenOverrides } from "../../schemas/manifest";
 
@@ -17,12 +18,22 @@ interface InspectorPanelProps {
   overrides: TokenOverrides;
   globalTokens: TokenDoc[];
   onCommitSuccess: () => void;
+  updateOverride: (
+    newValues: Record<string, string | number>,
+    label?: string,
+  ) => void;
+  projectPath: string;
+  onReset: () => void;
+  undo: () => void;
+  redo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
 }
 
 const tabConfig: { id: InspectorTab; label: string; icon: React.ReactNode }[] =
   [
     { id: "token", label: "Token", icon: <LuCircleDot size={12} /> },
-    { id: "tuning", label: "Tuning", icon: <LuLayers size={12} /> },
+    { id: "tuning", label: "Tuning", icon: <LuPalette size={12} /> },
     { id: "changes", label: "Changes", icon: <LuGitBranch size={12} /> },
   ];
 
@@ -31,6 +42,13 @@ export const InspectorPanel = ({
   overrides,
   globalTokens,
   onCommitSuccess,
+  updateOverride,
+  projectPath,
+  onReset,
+  undo,
+  redo,
+  canUndo,
+  canRedo,
 }: InspectorPanelProps) => {
   const [activeTab, setActiveTab] = useState<InspectorTab>("token");
   const pendingCount = Object.keys(overrides).length;
@@ -84,7 +102,19 @@ export const InspectorPanel = ({
       {/* Tab Content */}
       <Box flex={1} w="full" overflowY="auto" bg="white">
         {activeTab === "token" && <TokenDetailTab token={selectedToken} />}
-        {activeTab === "tuning" && <TuningTab />}
+        {activeTab === "tuning" && (
+          <TuningTab
+            overrides={overrides}
+            updateOverride={updateOverride}
+            globalTokens={globalTokens}
+            projectPath={projectPath}
+            onReset={onReset}
+            undo={undo}
+            redo={redo}
+            canUndo={canUndo}
+            canRedo={canRedo}
+          />
+        )}
         {activeTab === "changes" && (
           <CommitCenter
             overrides={overrides as Record<string, string | number>}
@@ -216,24 +246,6 @@ const TokenDetailTab = ({ token }: { token: TokenDoc | null }) => {
             </HStack>
           </Box>
         )}
-    </VStack>
-  );
-};
-
-// ---------------------
-// Tuning Tab (Placeholder — full implementation when FloatingLab is absorbed)
-// ---------------------
-
-const TuningTab = () => {
-  return (
-    <VStack py={12} gap={2} textAlign="center">
-      <LuLayers size={20} color="var(--chakra-colors-gray-300)" />
-      <Text fontSize="11px" color="gray.400" fontWeight="500">
-        Interactive tuning coming soon
-      </Text>
-      <Text fontSize="10px" color="gray.300" maxW="180px" mx="auto">
-        Color channels, font pickers, and spacing controls will appear here
-      </Text>
     </VStack>
   );
 };

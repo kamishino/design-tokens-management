@@ -285,6 +285,13 @@ export const WorkspaceLayout = ({
               overrides={overrides}
               globalTokens={globalTokens}
               onCommitSuccess={() => window.location.reload()}
+              updateOverride={updateOverride}
+              projectPath={selectedProject}
+              onReset={onReset}
+              undo={undo}
+              redo={redo}
+              canUndo={canUndo}
+              canRedo={canRedo}
             />
           </Box>
         )}
