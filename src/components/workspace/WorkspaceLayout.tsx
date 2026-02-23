@@ -199,7 +199,6 @@ export const WorkspaceLayout = ({
         inspectorVisible={inspectorVisible}
         onToggleSidebar={() => setSidebarVisible((v) => !v)}
         onToggleInspector={() => setInspectorVisible((v) => !v)}
-        onProjectChange={onProjectChange}
       />
 
       {/* Main Content */}

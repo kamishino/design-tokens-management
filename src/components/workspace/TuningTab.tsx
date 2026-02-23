@@ -5,7 +5,6 @@ import {
   Text,
   Popover,
   Portal,
-  Table,
   Input,
   Badge,
 } from "@chakra-ui/react";
@@ -415,9 +414,9 @@ export const TuningTab = ({
   );
 
   const hasOverrides = Object.keys(overrides).length > 0;
-  const [tuningSubTab, setTuningSubTab] = useState<
-    "colors" | "typography" | "harmony"
-  >("colors");
+  const [tuningSubTab, setTuningSubTab] = useState<"colors" | "typography">(
+    "colors",
+  );
 
   const handleFontSelect = (font: (typeof FONT_ROLES)[0], family: string) => {
     const currentStack = getEffectiveValue(
@@ -440,11 +439,10 @@ export const TuningTab = ({
         borderColor="gray.100"
         flexShrink={0}
       >
-        {(["colors", "typography", "harmony"] as const).map((tab) => {
+        {(["colors", "typography"] as const).map((tab) => {
           const labels = {
             colors: "🎨 Colors",
-            typography: "🔤 Typo",
-            harmony: "🎯 Harmony",
+            typography: "🔤 Typography",
           };
           return (
             <Box
@@ -498,247 +496,250 @@ export const TuningTab = ({
       <Box flex={1} overflowY="auto">
         {/* Color Channels */}
         {tuningSubTab === "colors" && (
-          <Box p={3} borderBottom="1px solid" borderColor="gray.50">
-            <HStack gap={1.5} mb={3}>
-              <LuPalette size={12} color="var(--chakra-colors-gray-400)" />
-              <Text
-                fontSize="9px"
-                fontWeight="700"
-                color="gray.400"
-                textTransform="uppercase"
-                letterSpacing="wider"
-              >
-                Semantic Colors
-              </Text>
-            </HStack>
-
-            <VStack align="stretch" gap={2}>
-              {SEMANTIC_CHANNELS.map((channel) => {
-                const color = getEffectiveValue(
-                  channel.variable,
-                  channel.token,
-                  "#000000",
-                );
-                const info = getColorInfo(color);
-                const bestContrast =
-                  info.contrastW >= info.contrastB
-                    ? info.contrastW
-                    : info.contrastB;
-                const wcag = getWcagBadge(bestContrast);
-                const apca = getApcaBadge(info.apcaLc);
-                return (
-                  <VStack key={channel.id} gap={0.5} align="stretch">
-                    <HStack gap={2}>
-                      <StudioColorPicker
-                        variant="button"
-                        label={channel.label}
-                        color={color}
-                        onChange={(c) =>
-                          updateOverride(
-                            { [channel.variable]: c },
-                            `Changed ${channel.label}`,
-                          )
-                        }
-                      />
-                    </HStack>
-                    <HStack gap={1} pl={1} flexWrap="wrap">
-                      <Text
-                        fontSize="8px"
-                        fontFamily="monospace"
-                        color="gray.400"
-                      >
-                        L:{info.l}%
-                      </Text>
-                      <Text
-                        fontSize="8px"
-                        fontFamily="monospace"
-                        color="gray.400"
-                      >
-                        C:{info.c}
-                      </Text>
-                      <Text
-                        fontSize="8px"
-                        fontFamily="monospace"
-                        color="gray.400"
-                      >
-                        H:{info.h}°
-                      </Text>
-                      <Badge
-                        size="xs"
-                        variant="subtle"
-                        colorPalette={wcag.colorPalette}
-                        fontSize="7px"
-                        px={1}
-                        py={0}
-                      >
-                        {wcag.label} {bestContrast}:1
-                      </Badge>
-                      <Badge
-                        size="xs"
-                        variant="subtle"
-                        colorPalette={apca.colorPalette}
-                        fontSize="7px"
-                        px={1}
-                        py={0}
-                      >
-                        APCA {apca.label}
-                      </Badge>
-                    </HStack>
-                  </VStack>
-                );
-              })}
-            </VStack>
-
-            {/* 60/30/10 Proportion Guide */}
-            <Box mt={3}>
-              <Text
-                fontSize="9px"
-                fontWeight="700"
-                color="gray.400"
-                textTransform="uppercase"
-                letterSpacing="wider"
-                mb={1.5}
-              >
-                60 / 30 / 10 Rule
-              </Text>
-              <HStack
-                gap={0}
-                h="20px"
-                borderRadius="md"
-                overflow="hidden"
-                border="1px solid"
-                borderColor="gray.200"
-              >
-                <Box
-                  w="60%"
-                  h="full"
-                  bg={getEffectiveValue(
-                    "--brand-primary",
-                    "brand.primary",
-                    "#2B4D86",
-                  )}
-                  position="relative"
-                >
-                  <Text
-                    fontSize="7px"
-                    fontWeight="700"
-                    color="white"
-                    position="absolute"
-                    left="50%"
-                    top="50%"
-                    transform="translate(-50%, -50%)"
-                    textShadow="0 1px 2px rgba(0,0,0,0.4)"
-                  >
-                    60%
-                  </Text>
-                </Box>
-                <Box
-                  w="30%"
-                  h="full"
-                  bg={getEffectiveValue(
-                    "--brand-secondary",
-                    "brand.secondary",
-                    "#4A6DA7",
-                  )}
-                  position="relative"
-                >
-                  <Text
-                    fontSize="7px"
-                    fontWeight="700"
-                    color="white"
-                    position="absolute"
-                    left="50%"
-                    top="50%"
-                    transform="translate(-50%, -50%)"
-                    textShadow="0 1px 2px rgba(0,0,0,0.4)"
-                  >
-                    30%
-                  </Text>
-                </Box>
-                <Box
-                  w="10%"
-                  h="full"
-                  bg={getEffectiveValue(
-                    "--brand-accent",
-                    "brand.accent",
-                    "#1F8055",
-                  )}
-                  position="relative"
-                >
-                  <Text
-                    fontSize="7px"
-                    fontWeight="700"
-                    color="white"
-                    position="absolute"
-                    left="50%"
-                    top="50%"
-                    transform="translate(-50%, -50%)"
-                    textShadow="0 1px 2px rgba(0,0,0,0.4)"
-                  >
-                    10%
-                  </Text>
-                </Box>
-              </HStack>
-              <HStack gap={0} mt={1} justifyContent="space-between">
+          <>
+            <Box p={3} borderBottom="1px solid" borderColor="gray.50">
+              <HStack gap={1.5} mb={3}>
+                <LuPalette size={12} color="var(--chakra-colors-gray-400)" />
                 <Text
-                  fontSize="7px"
+                  fontSize="9px"
+                  fontWeight="700"
                   color="gray.400"
-                  w="60%"
-                  textAlign="center"
+                  textTransform="uppercase"
+                  letterSpacing="wider"
                 >
-                  Dominant
-                </Text>
-                <Text
-                  fontSize="7px"
-                  color="gray.400"
-                  w="30%"
-                  textAlign="center"
-                >
-                  Supporting
-                </Text>
-                <Text
-                  fontSize="7px"
-                  color="gray.400"
-                  w="10%"
-                  textAlign="center"
-                >
-                  CTA
+                  Semantic Colors
                 </Text>
               </HStack>
+
+              <VStack align="stretch" gap={2}>
+                {SEMANTIC_CHANNELS.map((channel) => {
+                  const color = getEffectiveValue(
+                    channel.variable,
+                    channel.token,
+                    "#000000",
+                  );
+                  const info = getColorInfo(color);
+                  const bestContrast =
+                    info.contrastW >= info.contrastB
+                      ? info.contrastW
+                      : info.contrastB;
+                  const wcag = getWcagBadge(bestContrast);
+                  const apca = getApcaBadge(info.apcaLc);
+                  return (
+                    <VStack key={channel.id} gap={0.5} align="stretch">
+                      <HStack gap={2}>
+                        <StudioColorPicker
+                          variant="button"
+                          label={channel.label}
+                          color={color}
+                          onChange={(c) =>
+                            updateOverride(
+                              { [channel.variable]: c },
+                              `Changed ${channel.label}`,
+                            )
+                          }
+                        />
+                      </HStack>
+                      <HStack gap={1} pl={1} flexWrap="wrap">
+                        <Text
+                          fontSize="8px"
+                          fontFamily="monospace"
+                          color="gray.400"
+                        >
+                          L:{info.l}%
+                        </Text>
+                        <Text
+                          fontSize="8px"
+                          fontFamily="monospace"
+                          color="gray.400"
+                        >
+                          C:{info.c}
+                        </Text>
+                        <Text
+                          fontSize="8px"
+                          fontFamily="monospace"
+                          color="gray.400"
+                        >
+                          H:{info.h}°
+                        </Text>
+                        <Badge
+                          size="xs"
+                          variant="subtle"
+                          colorPalette={wcag.colorPalette}
+                          fontSize="7px"
+                          px={1}
+                          py={0}
+                        >
+                          {wcag.label} {bestContrast}:1
+                        </Badge>
+                        <Badge
+                          size="xs"
+                          variant="subtle"
+                          colorPalette={apca.colorPalette}
+                          fontSize="7px"
+                          px={1}
+                          py={0}
+                        >
+                          APCA {apca.label}
+                        </Badge>
+                      </HStack>
+                    </VStack>
+                  );
+                })}
+              </VStack>
+
+              {/* 60/30/10 Proportion Guide */}
+              <Box mt={3}>
+                <Text
+                  fontSize="9px"
+                  fontWeight="700"
+                  color="gray.400"
+                  textTransform="uppercase"
+                  letterSpacing="wider"
+                  mb={1.5}
+                >
+                  60 / 30 / 10 Rule
+                </Text>
+                <HStack
+                  gap={0}
+                  h="20px"
+                  borderRadius="md"
+                  overflow="hidden"
+                  border="1px solid"
+                  borderColor="gray.200"
+                >
+                  <Box
+                    w="60%"
+                    h="full"
+                    bg={getEffectiveValue(
+                      "--brand-primary",
+                      "brand.primary",
+                      "#2B4D86",
+                    )}
+                    position="relative"
+                  >
+                    <Text
+                      fontSize="7px"
+                      fontWeight="700"
+                      color="white"
+                      position="absolute"
+                      left="50%"
+                      top="50%"
+                      transform="translate(-50%, -50%)"
+                      textShadow="0 1px 2px rgba(0,0,0,0.4)"
+                    >
+                      60%
+                    </Text>
+                  </Box>
+                  <Box
+                    w="30%"
+                    h="full"
+                    bg={getEffectiveValue(
+                      "--brand-secondary",
+                      "brand.secondary",
+                      "#4A6DA7",
+                    )}
+                    position="relative"
+                  >
+                    <Text
+                      fontSize="7px"
+                      fontWeight="700"
+                      color="white"
+                      position="absolute"
+                      left="50%"
+                      top="50%"
+                      transform="translate(-50%, -50%)"
+                      textShadow="0 1px 2px rgba(0,0,0,0.4)"
+                    >
+                      30%
+                    </Text>
+                  </Box>
+                  <Box
+                    w="10%"
+                    h="full"
+                    bg={getEffectiveValue(
+                      "--brand-accent",
+                      "brand.accent",
+                      "#1F8055",
+                    )}
+                    position="relative"
+                  >
+                    <Text
+                      fontSize="7px"
+                      fontWeight="700"
+                      color="white"
+                      position="absolute"
+                      left="50%"
+                      top="50%"
+                      transform="translate(-50%, -50%)"
+                      textShadow="0 1px 2px rgba(0,0,0,0.4)"
+                    >
+                      10%
+                    </Text>
+                  </Box>
+                </HStack>
+                <HStack gap={0} mt={1} justifyContent="space-between">
+                  <Text
+                    fontSize="7px"
+                    color="gray.400"
+                    w="60%"
+                    textAlign="center"
+                  >
+                    Dominant
+                  </Text>
+                  <Text
+                    fontSize="7px"
+                    color="gray.400"
+                    w="30%"
+                    textAlign="center"
+                  >
+                    Supporting
+                  </Text>
+                  <Text
+                    fontSize="7px"
+                    color="gray.400"
+                    w="10%"
+                    textAlign="center"
+                  >
+                    CTA
+                  </Text>
+                </HStack>
+              </Box>
             </Box>
-          </Box>
-        )}
 
-        {/* Harmony Lab */}
-        {tuningSubTab === "harmony" && (
-          <Box p={3} borderBottom="1px solid" borderColor="gray.50">
-            <HStack gap={1.5} mb={3}>
-              <LuPalette size={12} color="var(--chakra-colors-gray-400)" />
-              <Text
-                fontSize="9px"
-                fontWeight="700"
-                color="gray.400"
-                textTransform="uppercase"
-                letterSpacing="wider"
-              >
-                🎨 Harmony Lab
-              </Text>
-            </HStack>
+            {/* Harmony Lab (inside Colors tab) */}
+            <Box p={3} borderBottom="1px solid" borderColor="gray.50">
+              <HStack gap={1.5} mb={3}>
+                <LuPalette size={12} color="var(--chakra-colors-gray-400)" />
+                <Text
+                  fontSize="9px"
+                  fontWeight="700"
+                  color="gray.400"
+                  textTransform="uppercase"
+                  letterSpacing="wider"
+                >
+                  🎨 Harmony Lab
+                </Text>
+              </HStack>
 
-            <HarmonyLabSection
-              primaryColor={getEffectiveValue(
-                "--brand-primary",
-                "brand.primary",
-                "#4A6DA7",
-              )}
-              onApply={(secondary, accent) =>
-                updateOverride(
-                  { "--brand-secondary": secondary, "--brand-accent": accent },
-                  `Harmony palette applied`,
-                )
-              }
-            />
-          </Box>
+              <HarmonyLabSection
+                primaryColor={getEffectiveValue(
+                  "--brand-primary",
+                  "brand.primary",
+                  "#4A6DA7",
+                )}
+                onApply={(secondary, accent) =>
+                  updateOverride(
+                    {
+                      "--brand-secondary": secondary,
+                      "--brand-accent": accent,
+                    },
+                    `Harmony palette applied`,
+                  )
+                }
+              />
+            </Box>
+          </>
         )}
 
         {/* Font Picker */}
@@ -899,8 +900,59 @@ export const TuningTab = ({
                   </VStack>
                 </Box>
 
-                {/* Computed Sizes Preview Table */}
-                <Box mt={2}>
+                {/* Line Height (J4) */}
+                <Box>
+                  <HStack justify="space-between" mb={1}>
+                    <Text fontSize="10px" fontWeight="600" color="gray.500">
+                      Line Height
+                    </Text>
+                    <Text
+                      fontSize="10px"
+                      fontWeight="700"
+                      color="gray.700"
+                      fontFamily="'Space Mono', monospace"
+                    >
+                      {Number(overrides["--typography-line-height"]) || 1.5}
+                    </Text>
+                  </HStack>
+                  <HStack gap={0.5}>
+                    {[1.0, 1.2, 1.3, 1.4, 1.5, 1.6, 1.75, 2.0].map((lh) => {
+                      const current =
+                        Number(overrides["--typography-line-height"]) || 1.5;
+                      const isActive = Math.abs(current - lh) < 0.01;
+                      return (
+                        <Box
+                          key={lh}
+                          as="button"
+                          px={1.5}
+                          py={0.5}
+                          borderRadius="sm"
+                          fontSize="9px"
+                          fontWeight={isActive ? "700" : "500"}
+                          fontFamily="'Space Mono', monospace"
+                          bg={isActive ? "blue.50" : "transparent"}
+                          color={isActive ? "blue.600" : "gray.500"}
+                          border="1px solid"
+                          borderColor={isActive ? "blue.200" : "gray.100"}
+                          cursor="pointer"
+                          _hover={{ borderColor: "blue.200" }}
+                          onClick={() =>
+                            updateOverride(
+                              { "--typography-line-height": lh },
+                              `Line height: ${lh}`,
+                            )
+                          }
+                          transition="all 0.1s"
+                        >
+                          {lh}
+                        </Box>
+                      );
+                    })}
+                  </HStack>
+                </Box>
+
+                {/* Visual Type Scale Preview (J5 — typescale.com style) */}
+                <Box mt={3}>
                   <Text
                     fontSize="9px"
                     fontWeight="700"
@@ -911,83 +963,112 @@ export const TuningTab = ({
                   >
                     Preview
                   </Text>
-                  <Table.Root size="sm" variant="outline">
-                    <Table.Header>
-                      <Table.Row>
-                        <Table.ColumnHeader
-                          fontSize="9px"
-                          color="gray.400"
-                          py={1}
-                          px={2}
+                  <VStack
+                    align="stretch"
+                    gap={0}
+                    border="1px solid"
+                    borderColor="gray.100"
+                    borderRadius="md"
+                    overflow="hidden"
+                  >
+                    {[
+                      { step: 6, label: "h1", role: "heading" },
+                      { step: 5, label: "h2", role: "heading" },
+                      { step: 4, label: "h3", role: "heading" },
+                      { step: 3, label: "h4", role: "heading" },
+                      { step: 2, label: "h5", role: "heading" },
+                      { step: 1, label: "h6", role: "heading" },
+                      { step: 0, label: "body", role: "body" },
+                      { step: -1, label: "small", role: "body" },
+                      { step: -2, label: "xs", role: "body" },
+                    ].map(({ step, label, role }) => {
+                      const base = Number(overrides["--font-size-root"]) || 16;
+                      const ratio =
+                        Number(overrides["--typography-config-scale-ratio"]) ||
+                        1.25;
+                      const lh =
+                        Number(overrides["--typography-line-height"]) || 1.5;
+                      const size =
+                        Math.round(base * Math.pow(ratio, step) * 100) / 100;
+                      const rem = Math.round((size / 16) * 1000) / 1000;
+                      const isBase = step === 0;
+                      const headingFont = getEffectiveValue(
+                        "--font-family-heading",
+                        "font.family.heading",
+                        "Inter",
+                      );
+                      const bodyFont = getEffectiveValue(
+                        "--font-family-base",
+                        "font.family.base",
+                        "Inter",
+                      );
+                      const fontFamily =
+                        role === "heading" ? headingFont : bodyFont;
+                      const shortFont = fontFamily
+                        .split(",")[0]
+                        .replace(/['"]/g, "")
+                        .trim();
+
+                      return (
+                        <HStack
+                          key={step}
+                          px={3}
+                          py={1.5}
+                          gap={3}
+                          borderBottom="1px solid"
+                          borderColor="gray.50"
+                          _last={{ borderBottom: "none" }}
+                          bg={isBase ? "blue.50" : "transparent"}
+                          align="baseline"
                         >
-                          Step
-                        </Table.ColumnHeader>
-                        <Table.ColumnHeader
-                          fontSize="9px"
-                          color="gray.400"
-                          py={1}
-                          px={2}
-                        >
-                          Size
-                        </Table.ColumnHeader>
-                        <Table.ColumnHeader
-                          fontSize="9px"
-                          color="gray.400"
-                          py={1}
-                          px={2}
-                        >
-                          REM
-                        </Table.ColumnHeader>
-                      </Table.Row>
-                    </Table.Header>
-                    <Table.Body>
-                      {[6, 5, 4, 3, 2, 1, 0, -1, -2].map((step) => {
-                        const base =
-                          Number(overrides["--font-size-root"]) || 16;
-                        const ratio =
-                          Number(
-                            overrides["--typography-config-scale-ratio"],
-                          ) || 1.25;
-                        const size =
-                          Math.round(base * Math.pow(ratio, step) * 100) / 100;
-                        const rem = Math.round((size / 16) * 1000) / 1000;
-                        const isBase = step === 0;
-                        return (
-                          <Table.Row key={step}>
-                            <Table.Cell py={0.5} px={2}>
-                              <Text
-                                fontSize="9px"
-                                fontFamily="monospace"
-                                color={isBase ? "blue.600" : "gray.500"}
-                              >
-                                {step}
-                              </Text>
-                            </Table.Cell>
-                            <Table.Cell py={0.5} px={2}>
-                              <Text
-                                fontSize="9px"
-                                fontFamily="'Space Mono', monospace"
-                                fontWeight="600"
-                                color={isBase ? "blue.600" : "gray.700"}
-                              >
-                                {size}px
-                              </Text>
-                            </Table.Cell>
-                            <Table.Cell py={0.5} px={2}>
-                              <Text
-                                fontSize="9px"
-                                fontFamily="'Space Mono', monospace"
-                                fontWeight="500"
-                                color={isBase ? "blue.600" : "gray.500"}
-                              >
-                                {rem}rem
-                              </Text>
-                            </Table.Cell>
-                          </Table.Row>
-                        );
-                      })}
-                    </Table.Body>
-                  </Table.Root>
+                          {/* Label */}
+                          <Text
+                            fontSize="8px"
+                            fontWeight="700"
+                            color={isBase ? "blue.500" : "gray.300"}
+                            textTransform="uppercase"
+                            w="28px"
+                            flexShrink={0}
+                            fontFamily="monospace"
+                          >
+                            {label}
+                          </Text>
+
+                          {/* Live text sample */}
+                          <Text
+                            fontSize={`${Math.min(size, 42)}px`}
+                            lineHeight={`${lh}`}
+                            fontFamily={fontFamily}
+                            fontWeight={role === "heading" ? "700" : "400"}
+                            color="gray.800"
+                            flex={1}
+                            truncate
+                          >
+                            {role === "heading" ? "Heading" : "Body text"}
+                          </Text>
+
+                          {/* Metrics */}
+                          <VStack gap={0} align="end" flexShrink={0}>
+                            <Text
+                              fontSize="8px"
+                              fontFamily="'Space Mono', monospace"
+                              color={isBase ? "blue.600" : "gray.500"}
+                              fontWeight="600"
+                            >
+                              {size}px / {rem}rem
+                            </Text>
+                            <Text
+                              fontSize="7px"
+                              fontFamily="monospace"
+                              color="gray.300"
+                            >
+                              {shortFont} · lh {lh}
+                            </Text>
+                          </VStack>
+                        </HStack>
+                      );
+                    })}
+                  </VStack>
                 </Box>
               </VStack>
             </Box>
