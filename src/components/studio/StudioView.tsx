@@ -13,6 +13,7 @@ import {
 import { useState, useMemo, useEffect, useRef } from "react";
 import { LandingPage } from "./templates/LandingPage";
 import { Dashboard } from "./templates/Dashboard";
+import { UnifiedStudio } from "./templates/UnifiedStudio";
 import { ProductDetail } from "./templates/ProductDetail";
 import { StyleAtlas } from "./templates/StyleAtlas";
 import { ComponentCatalog } from "./templates/ComponentCatalog";
@@ -55,6 +56,7 @@ interface StudioViewProps {
 
 const templates = createListCollection({
   items: [
+    { label: "Unified Studio", value: "unified" },
     { label: "Component Catalog", value: "catalog" },
     { label: "Design System Atlas", value: "atlas" },
     { label: "SaaS Landing Page", value: "landing" },
@@ -79,7 +81,7 @@ export const StudioView = ({
   canUndo,
   canRedo,
 }: StudioViewProps) => {
-  const [template, setTemplate] = useState("catalog");
+  const [template, setTemplate] = useState("unified");
   const [refreshKey, setRefreshKey] = useState(0);
   const [isInspectMode, setIsInspectMode] = useState(false);
   const [activeTool, setActiveTool] = useState<"manager" | "lab" | null>(null);
@@ -105,6 +107,52 @@ export const StudioView = ({
       })),
     });
   }, [manifest]);
+
+  // Inject token VALUES as CSS variables so templates see real project data
+  useEffect(() => {
+    const styleId = "token-base-vars";
+    let styleTag = document.getElementById(styleId) as HTMLStyleElement;
+    if (!styleTag) {
+      styleTag = document.createElement("style");
+      styleTag.id = styleId;
+      document.head.appendChild(styleTag);
+    }
+
+    if (globalTokens.length === 0) {
+      styleTag.innerHTML = "";
+      return;
+    }
+
+    // Convert camelCase --brandPrimary to dash-case --brand-primary
+    const camelToDash = (str: string) =>
+      str.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+
+    // Only inject semantic tokens that templates actually use (brand, bg, text, font, border, etc.)
+    const semanticPrefixes = [
+      "brand",
+      "bg",
+      "text",
+      "font",
+      "border",
+      "action",
+      "status",
+      "radius",
+    ];
+
+    const rules = globalTokens
+      .filter((t) => {
+        const name = t.name.toLowerCase();
+        return semanticPrefixes.some((p) => name.startsWith(p + "."));
+      })
+      .map((t) => {
+        const dashVar = camelToDash(t.cssVariable);
+        const val = t.resolvedValue ?? t.value;
+        return `  ${dashVar}: ${val};`;
+      })
+      .join("\n");
+
+    styleTag.innerHTML = `:root {\n${rules}\n}`;
+  }, [globalTokens]);
 
   // Generate new mock data whenever refreshKey changes
   const mockData = useMemo(() => {
@@ -502,6 +550,7 @@ export const StudioView = ({
 
       {/* Template Preview Area */}
       <Box className={isInspectMode ? "studio-inspect-mode" : ""}>
+        {template === "unified" && <UnifiedStudio data={mockData} />}
         {template === "catalog" && <ComponentCatalog />}
         {template === "atlas" && <StyleAtlas data={mockData} />}
         {template === "landing" && <LandingPage data={mockData} />}

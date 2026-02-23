@@ -52,7 +52,7 @@ const SEMANTIC_CHANNELS = [
 const FONT_ROLES = [
   {
     id: "heading",
-    variable: "--font-family-base",
+    variable: "--font-family-heading",
     label: "Heading",
     token: "font.family.base",
   },
@@ -223,7 +223,125 @@ export const TuningTab = ({
         </VStack>
       </Box>
 
-      {/* Actions */}
+      {/* Type Scale */}
+      <Box p={3} borderBottom="1px solid" borderColor="gray.50">
+        <HStack gap={1.5} mb={3}>
+          <LuType size={12} color="var(--chakra-colors-gray-400)" />
+          <Text
+            fontSize="9px"
+            fontWeight="700"
+            color="gray.400"
+            textTransform="uppercase"
+            letterSpacing="wider"
+          >
+            Type Scale
+          </Text>
+        </HStack>
+
+        <VStack align="stretch" gap={3}>
+          {/* Base Size */}
+          <Box>
+            <HStack justify="space-between" mb={1}>
+              <Text fontSize="10px" fontWeight="600" color="gray.500">
+                Base Size
+              </Text>
+              <Text
+                fontSize="10px"
+                fontWeight="700"
+                color="gray.700"
+                fontFamily="'Space Mono', monospace"
+              >
+                {Number(overrides["--font-size-root"]) || 16}px
+              </Text>
+            </HStack>
+            <Input
+              type="range"
+              min={12}
+              max={24}
+              step={1}
+              value={Number(overrides["--font-size-root"]) || 16}
+              onChange={(e) =>
+                updateOverride(
+                  { "--font-size-root": Number(e.target.value) },
+                  `Base size: ${e.target.value}px`,
+                )
+              }
+              h="20px"
+              p={0}
+              border="none"
+              cursor="pointer"
+            />
+          </Box>
+
+          {/* Scale Ratio */}
+          <Box>
+            <HStack justify="space-between" mb={1}>
+              <Text fontSize="10px" fontWeight="600" color="gray.500">
+                Scale Ratio
+              </Text>
+              <Text
+                fontSize="10px"
+                fontWeight="700"
+                color="gray.700"
+                fontFamily="'Space Mono', monospace"
+              >
+                {Number(overrides["--typography-config-scale-ratio"]) || 1.25}
+              </Text>
+            </HStack>
+            <VStack align="stretch" gap={0.5}>
+              {[
+                { label: "Minor Second", value: 1.067 },
+                { label: "Major Second", value: 1.125 },
+                { label: "Minor Third", value: 1.2 },
+                { label: "Major Third", value: 1.25 },
+                { label: "Perfect Fourth", value: 1.333 },
+                { label: "Aug. Fourth", value: 1.414 },
+                { label: "Perfect Fifth", value: 1.5 },
+                { label: "Golden Ratio", value: 1.618 },
+              ].map((ratio) => {
+                const current =
+                  Number(overrides["--typography-config-scale-ratio"]) || 1.25;
+                const isActive = Math.abs(current - ratio.value) < 0.01;
+                return (
+                  <HStack
+                    key={ratio.value}
+                    px={2}
+                    py={1}
+                    borderRadius="sm"
+                    cursor="pointer"
+                    bg={isActive ? "blue.50" : "transparent"}
+                    color={isActive ? "blue.600" : "gray.600"}
+                    _hover={{ bg: isActive ? "blue.50" : "gray.50" }}
+                    onClick={() =>
+                      updateOverride(
+                        { "--typography-config-scale-ratio": ratio.value },
+                        `Scale: ${ratio.label}`,
+                      )
+                    }
+                    transition="all 0.1s"
+                  >
+                    <Text
+                      fontSize="10px"
+                      fontWeight={isActive ? "700" : "500"}
+                      flex={1}
+                    >
+                      {ratio.label}
+                    </Text>
+                    <Text
+                      fontSize="10px"
+                      fontFamily="'Space Mono', monospace"
+                      fontWeight={isActive ? "700" : "400"}
+                    >
+                      {ratio.value}
+                    </Text>
+                    {isActive && <LuCheck size={10} />}
+                  </HStack>
+                );
+              })}
+            </VStack>
+          </Box>
+        </VStack>
+      </Box>
       {hasOverrides && (
         <Box p={3}>
           <HStack gap={2} mb={2}>

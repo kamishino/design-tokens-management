@@ -47,10 +47,12 @@ export const useAppSettings = () => {
     setSettings(prev => ({ ...prev, ...newSettings }));
   };
 
-  const getFullIdePath = useCallback((filename: string, ideId?: string) => {
+  const getFullIdePath = useCallback((filePath: string, ideId?: string) => {
     const targetIde = SUPPORTED_IDES.find(i => i.id === (ideId || settings.preferredIde)) || SUPPORTED_IDES[0];
-    const cleanRoot = settings.rootPath.replace(/\/$/, '');
-    const fullPath = `${cleanRoot}/tokens/global/base/${filename}`;
+    const cleanRoot = settings.rootPath.replace(/[\\/]+$/, '');
+    // filePath comes from explorer as relative (e.g. "tokens/clients/brand-a/theme.json")
+    const cleanFile = filePath.replace(/^[\\/]+/, '');
+    const fullPath = `${cleanRoot}/${cleanFile}`;
     return `${targetIde.protocol}file/${fullPath}`;
   }, [settings]);
 
