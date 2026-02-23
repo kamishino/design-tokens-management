@@ -57,8 +57,6 @@ interface StudioViewProps {
 const templates = createListCollection({
   items: [
     { label: "Unified Studio", value: "unified" },
-    { label: "Component Catalog", value: "catalog" },
-    { label: "Design System Atlas", value: "atlas" },
     { label: "SaaS Landing Page", value: "landing" },
     { label: "Admin Dashboard", value: "dashboard" },
     { label: "E-commerce Product", value: "ecommerce" },
@@ -82,7 +80,6 @@ export const StudioView = ({
   canRedo,
 }: StudioViewProps) => {
   const [template, setTemplate] = useState("unified");
-  const [refreshKey, setRefreshKey] = useState(0);
   const [isInspectMode, setIsInspectMode] = useState(false);
   const [activeTool, setActiveTool] = useState<"manager" | "lab" | null>(null);
   const [hoveredRect, setHoveredRect] = useState<{
@@ -154,12 +151,7 @@ export const StudioView = ({
     styleTag.innerHTML = `:root {\n${rules}\n}`;
   }, [globalTokens]);
 
-  // Generate new mock data whenever refreshKey changes
-  const mockData = useMemo(() => {
-    return generateStudioMockData();
-  }, [refreshKey]);
-
-  const handleRefresh = () => setRefreshKey((prev) => prev + 1);
+  const mockData = useMemo(() => generateStudioMockData(), []);
 
   // Inspector Logic
   useEffect(() => {
@@ -355,14 +347,6 @@ export const StudioView = ({
               </AppSelectRoot>
             </Box>
           </HStack>
-          <Button
-            size="xs"
-            variant="ghost"
-            onClick={handleRefresh}
-            title="Regenerate Mock Data"
-          >
-            Refresh Data ✨
-          </Button>
         </HStack>
 
         <HStack gap={3}>

@@ -3,7 +3,8 @@ import { useState, useEffect, useCallback } from 'react';
 export interface IDEConfig {
   id: string;
   name: string;
-  protocol: string;
+  /** Editor encoding name for launch-ide */
+  editor: string;
 }
 
 export interface AppSettings {
@@ -12,10 +13,10 @@ export interface AppSettings {
 }
 
 export const SUPPORTED_IDES: IDEConfig[] = [
-  { id: 'antigravity', name: 'AntiGravity', protocol: 'antigravity://' },
-  { id: 'windsurf', name: 'Windsurf', protocol: 'windsurf://' },
-  { id: 'vscode', name: 'VS Code', protocol: 'vscode://' },
-  { id: 'cursor', name: 'Cursor', protocol: 'cursor://' },
+  { id: 'antigravity', name: 'AntiGravity', editor: 'antigravity' },
+  { id: 'windsurf', name: 'Windsurf', editor: 'windsurf' },
+  { id: 'vscode', name: 'VS Code', editor: 'code' },
+  { id: 'cursor', name: 'Cursor', editor: 'cursor' },
 ];
 
 const STORAGE_KEY = 'kami_app_settings';
@@ -47,14 +48,28 @@ export const useAppSettings = () => {
     setSettings(prev => ({ ...prev, ...newSettings }));
   };
 
-  const getFullIdePath = useCallback((filePath: string, ideId?: string) => {
+  /** Open a file in the specified editor via launch-ide server API */
+  const openInEditor = useCallback(async (filePath: string, ideId?: string) => {
     const targetIde = SUPPORTED_IDES.find(i => i.id === (ideId || settings.preferredIde)) || SUPPORTED_IDES[0];
     const cleanRoot = settings.rootPath.replace(/[\\/]+$/, '');
-    // filePath comes from explorer as relative (e.g. "tokens/clients/brand-a/theme.json")
     const cleanFile = filePath.replace(/^[\\/]+/, '');
     const fullPath = `${cleanRoot}/${cleanFile}`;
-    return `${targetIde.protocol}file/${fullPath}`;
+
+    try {
+      const res = await fetch('/api/open-in-editor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file: fullPath, editor: targetIde.editor }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        console.error('Failed to open in editor:', data.error);
+      }
+      return data;
+    } catch (err) {
+      console.error('Failed to open in editor:', err);
+    }
   }, [settings]);
 
-  return { settings, updateSettings, getFullIdePath };
+  return { settings, updateSettings, openInEditor };
 };

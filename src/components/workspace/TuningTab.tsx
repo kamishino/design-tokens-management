@@ -3,12 +3,14 @@ import {
   VStack,
   HStack,
   Text,
-  Input,
   Popover,
   Portal,
+  Table,
+  Input,
 } from "@chakra-ui/react";
 import { useCallback, useMemo, useState } from "react";
 import { LuPalette, LuType, LuUndo2, LuRedo2, LuCheck } from "react-icons/lu";
+import { Slider } from "../ui/slider";
 import { StudioColorPicker } from "../playground/panels/StudioColorPicker";
 import { getPrioritizedTokenMap } from "../../utils/token-graph";
 import { prependFont } from "../../utils/fonts";
@@ -86,6 +88,182 @@ const FONT_OPTIONS = [
   { name: "IBM Plex Mono", category: "Mono" },
   { name: "Fira Code", category: "Mono" },
 ];
+
+// --- Harmony Lab Color Utilities ---
+const hexToHsl = (hex: string): [number, number, number] => {
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  const max = Math.max(r, g, b),
+    min = Math.min(r, g, b);
+  let h = 0,
+    s = 0;
+  const l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r:
+        h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+        break;
+      case g:
+        h = ((b - r) / d + 2) / 6;
+        break;
+      case b:
+        h = ((r - g) / d + 4) / 6;
+        break;
+    }
+  }
+  return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
+};
+
+const hslToHex = (h: number, s: number, l: number): string => {
+  h = ((h % 360) + 360) % 360;
+  const s1 = s / 100,
+    l1 = l / 100;
+  const a = s1 * Math.min(l1, 1 - l1);
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    const color = l1 - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * color)
+      .toString(16)
+      .padStart(2, "0");
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+};
+
+interface HarmonyPalette {
+  name: string;
+  secondary: string;
+  accent: string;
+}
+
+const generateHarmonies = (primary: string): HarmonyPalette[] => {
+  const [h, s, l] = hexToHsl(primary);
+  return [
+    {
+      name: "Triadic",
+      secondary: hslToHex(h + 120, s, l),
+      accent: hslToHex(h + 240, s, l),
+    },
+    {
+      name: "Complementary",
+      secondary: hslToHex(h + 180, s, Math.min(l + 10, 85)),
+      accent: hslToHex(h + 180, s, l),
+    },
+    {
+      name: "Analogous",
+      secondary: hslToHex(h + 30, s, l),
+      accent: hslToHex(h - 30, s, l),
+    },
+    {
+      name: "Split-Comp",
+      secondary: hslToHex(h + 150, s, l),
+      accent: hslToHex(h + 210, s, l),
+    },
+  ];
+};
+
+const HarmonyLabSection = ({
+  primaryColor,
+  onApply,
+}: {
+  primaryColor: string;
+  onApply: (secondary: string, accent: string) => void;
+}) => {
+  const harmonies = useMemo(
+    () => generateHarmonies(primaryColor),
+    [primaryColor],
+  );
+  const [selected, setSelected] = useState(0);
+
+  return (
+    <VStack align="stretch" gap={2}>
+      <HStack gap={1} mb={1}>
+        <Box
+          w="16px"
+          h="16px"
+          borderRadius="sm"
+          bg={primaryColor}
+          border="1px solid rgba(0,0,0,0.1)"
+        />
+        <Text fontSize="9px" fontWeight="600" color="gray.500">
+          Primary → Generate palette
+        </Text>
+      </HStack>
+      {harmonies.map((h, i) => (
+        <HStack
+          key={h.name}
+          px={2}
+          py={1.5}
+          borderRadius="md"
+          cursor="pointer"
+          bg={selected === i ? "blue.50" : "transparent"}
+          border={selected === i ? "1px solid" : "1px solid transparent"}
+          borderColor={selected === i ? "blue.200" : "transparent"}
+          _hover={{ bg: selected === i ? "blue.50" : "gray.50" }}
+          onClick={() => setSelected(i)}
+          transition="all 0.15s"
+        >
+          <Text
+            fontSize="10px"
+            fontWeight={selected === i ? "700" : "500"}
+            flex={1}
+            color={selected === i ? "blue.700" : "gray.600"}
+          >
+            {h.name}
+          </Text>
+          <HStack gap={1}>
+            <Box
+              w="18px"
+              h="18px"
+              borderRadius="sm"
+              bg={primaryColor}
+              border="1px solid rgba(0,0,0,0.1)"
+              title="Primary"
+            />
+            <Box
+              w="18px"
+              h="18px"
+              borderRadius="sm"
+              bg={h.secondary}
+              border="1px solid rgba(0,0,0,0.1)"
+              title="Secondary"
+            />
+            <Box
+              w="18px"
+              h="18px"
+              borderRadius="sm"
+              bg={h.accent}
+              border="1px solid rgba(0,0,0,0.1)"
+              title="Accent"
+            />
+          </HStack>
+        </HStack>
+      ))}
+      <Box
+        as="button"
+        mt={1}
+        py={1.5}
+        px={3}
+        borderRadius="md"
+        bg="blue.500"
+        color="white"
+        fontSize="10px"
+        fontWeight="700"
+        textAlign="center"
+        cursor="pointer"
+        _hover={{ bg: "blue.600" }}
+        transition="all 0.1s"
+        onClick={() =>
+          onApply(harmonies[selected].secondary, harmonies[selected].accent)
+        }
+      >
+        Apply {harmonies[selected].name} Palette
+      </Box>
+    </VStack>
+  );
+};
 
 interface TuningTabProps {
   overrides: TokenOverrides;
@@ -185,6 +363,36 @@ export const TuningTab = ({
         </VStack>
       </Box>
 
+      {/* Harmony Lab */}
+      <Box p={3} borderBottom="1px solid" borderColor="gray.50">
+        <HStack gap={1.5} mb={3}>
+          <LuPalette size={12} color="var(--chakra-colors-gray-400)" />
+          <Text
+            fontSize="9px"
+            fontWeight="700"
+            color="gray.400"
+            textTransform="uppercase"
+            letterSpacing="wider"
+          >
+            🎨 Harmony Lab
+          </Text>
+        </HStack>
+
+        <HarmonyLabSection
+          primaryColor={getEffectiveValue(
+            "--brand-primary",
+            "brand.primary",
+            "#4A6DA7",
+          )}
+          onApply={(secondary, accent) =>
+            updateOverride(
+              { "--brand-secondary": secondary, "--brand-accent": accent },
+              `Harmony palette applied`,
+            )
+          }
+        />
+      </Box>
+
       {/* Font Picker */}
       <Box p={3} borderBottom="1px solid" borderColor="gray.50">
         <HStack gap={1.5} mb={3}>
@@ -239,7 +447,7 @@ export const TuningTab = ({
         </HStack>
 
         <VStack align="stretch" gap={3}>
-          {/* Base Size */}
+          {/* Base Size Slider */}
           <Box>
             <HStack justify="space-between" mb={1}>
               <Text fontSize="10px" fontWeight="600" color="gray.500">
@@ -254,22 +462,18 @@ export const TuningTab = ({
                 {Number(overrides["--font-size-root"]) || 16}px
               </Text>
             </HStack>
-            <Input
-              type="range"
+            <Slider
               min={12}
               max={24}
               step={1}
-              value={Number(overrides["--font-size-root"]) || 16}
-              onChange={(e) =>
+              value={[Number(overrides["--font-size-root"]) || 16]}
+              onValueChange={(details) =>
                 updateOverride(
-                  { "--font-size-root": Number(e.target.value) },
-                  `Base size: ${e.target.value}px`,
+                  { "--font-size-root": details.value[0] },
+                  `Base size: ${details.value[0]}px`,
                 )
               }
-              h="20px"
-              p={0}
-              border="none"
-              cursor="pointer"
+              size="sm"
             />
           </Box>
 
@@ -339,6 +543,92 @@ export const TuningTab = ({
                 );
               })}
             </VStack>
+          </Box>
+
+          {/* Computed Sizes Preview Table */}
+          <Box mt={2}>
+            <Text
+              fontSize="9px"
+              fontWeight="700"
+              color="gray.400"
+              textTransform="uppercase"
+              letterSpacing="wider"
+              mb={2}
+            >
+              Preview
+            </Text>
+            <Table.Root size="sm" variant="outline">
+              <Table.Header>
+                <Table.Row>
+                  <Table.ColumnHeader
+                    fontSize="9px"
+                    color="gray.400"
+                    py={1}
+                    px={2}
+                  >
+                    Step
+                  </Table.ColumnHeader>
+                  <Table.ColumnHeader
+                    fontSize="9px"
+                    color="gray.400"
+                    py={1}
+                    px={2}
+                  >
+                    Size
+                  </Table.ColumnHeader>
+                  <Table.ColumnHeader
+                    fontSize="9px"
+                    color="gray.400"
+                    py={1}
+                    px={2}
+                  >
+                    Sample
+                  </Table.ColumnHeader>
+                </Table.Row>
+              </Table.Header>
+              <Table.Body>
+                {[6, 5, 4, 3, 2, 1, 0, -1, -2].map((step) => {
+                  const base = Number(overrides["--font-size-root"]) || 16;
+                  const ratio =
+                    Number(overrides["--typography-config-scale-ratio"]) ||
+                    1.25;
+                  const size =
+                    Math.round(base * Math.pow(ratio, step) * 100) / 100;
+                  return (
+                    <Table.Row key={step}>
+                      <Table.Cell py={0.5} px={2}>
+                        <Text
+                          fontSize="9px"
+                          fontFamily="monospace"
+                          color={step === 0 ? "blue.600" : "gray.500"}
+                        >
+                          {step}
+                        </Text>
+                      </Table.Cell>
+                      <Table.Cell py={0.5} px={2}>
+                        <Text
+                          fontSize="9px"
+                          fontFamily="'Space Mono', monospace"
+                          fontWeight="600"
+                          color={step === 0 ? "blue.600" : "gray.700"}
+                        >
+                          {size}px
+                        </Text>
+                      </Table.Cell>
+                      <Table.Cell py={0.5} px={2}>
+                        <Text
+                          style={{ fontSize: `${Math.min(size, 28)}px` }}
+                          lineClamp={1}
+                          fontWeight={step > 0 ? "bold" : "normal"}
+                        >
+                          Aa
+                        </Text>
+                      </Table.Cell>
+                    </Table.Row>
+                  );
+                })}
+              </Table.Body>
+            </Table.Root>
           </Box>
         </VStack>
       </Box>
