@@ -184,21 +184,29 @@ const generateHarmoniesOklch = (primary: string): HarmonyPalette[] => {
   ];
 };
 
+/** Simple seeded PRNG (0-1 range) for deterministic but varied results */
+const seededRandom = (seed: number, idx: number) => {
+  const x = Math.sin(seed * 9301 + idx * 4973) * 49297;
+  return x - Math.floor(x);
+};
+
 const generateVariant = (
   palette: HarmonyPalette,
-  primary: string,
+  _primary: string,
+  seed: number,
 ): HarmonyPalette => {
-  const tweakColor = (hex: string, dL: number, dC: number) => {
+  const tweakColor = (hex: string, idx: number) => {
     const p = parse(hex);
     if (!p) return hex;
     const { l, c, h } = toOklch(p);
+    const dL = (seededRandom(seed, idx) - 0.5) * 0.2; // ±10% lightness
+    const dC = (seededRandom(seed, idx + 7) - 0.5) * 0.08; // ±0.04 chroma
     return oklchToHex(l + dL, c + dC, h ?? 0);
   };
-  const isLight = primary > "#808080";
   return {
     name: palette.name + " Var",
-    secondary: tweakColor(palette.secondary, isLight ? -0.08 : 0.08, 0.03),
-    accent: tweakColor(palette.accent, isLight ? -0.1 : 0.1, 0.05),
+    secondary: tweakColor(palette.secondary, 0),
+    accent: tweakColor(palette.accent, 1),
   };
 };
 
@@ -216,11 +224,12 @@ const HarmonyLabSection = ({
   );
   const [selected, setSelected] = useState(0);
   const [showVariant, setShowVariant] = useState(false);
+  const [variantSeed, setVariantSeed] = useState(1);
 
   const displayPalettes = useMemo(() => {
     if (!showVariant) return harmonies;
-    return harmonies.map((h) => generateVariant(h, primaryColor));
-  }, [harmonies, showVariant, primaryColor]);
+    return harmonies.map((h) => generateVariant(h, primaryColor, variantSeed));
+  }, [harmonies, showVariant, primaryColor, variantSeed]);
 
   const primaryInfo = useMemo(() => {
     const p = parse(primaryColor);
@@ -273,7 +282,13 @@ const HarmonyLabSection = ({
           bg={showVariant ? "purple.500" : "gray.100"}
           color={showVariant ? "white" : "gray.600"}
           cursor="pointer"
-          onClick={() => setShowVariant(true)}
+          onClick={() => {
+            if (showVariant) {
+              setVariantSeed((s) => s + 1);
+            } else {
+              setShowVariant(true);
+            }
+          }}
           transition="all 0.1s"
         >
           Variant
@@ -400,6 +415,9 @@ export const TuningTab = ({
   );
 
   const hasOverrides = Object.keys(overrides).length > 0;
+  const [tuningSubTab, setTuningSubTab] = useState<
+    "colors" | "typography" | "harmony"
+  >("colors");
 
   const handleFontSelect = (font: (typeof FONT_ROLES)[0], family: string) => {
     const currentStack = getEffectiveValue(
@@ -412,462 +430,569 @@ export const TuningTab = ({
   };
 
   return (
-    <VStack align="stretch" gap={0} h="full" overflowY="auto">
-      {/* Color Channels */}
-      <Box p={3} borderBottom="1px solid" borderColor="gray.50">
-        <HStack gap={1.5} mb={3}>
-          <LuPalette size={12} color="var(--chakra-colors-gray-400)" />
-          <Text
-            fontSize="9px"
-            fontWeight="700"
-            color="gray.400"
-            textTransform="uppercase"
-            letterSpacing="wider"
-          >
-            Semantic Colors
-          </Text>
-        </HStack>
-
-        <VStack align="stretch" gap={2}>
-          {SEMANTIC_CHANNELS.map((channel) => {
-            const color = getEffectiveValue(
-              channel.variable,
-              channel.token,
-              "#000000",
-            );
-            const info = getColorInfo(color);
-            const bestContrast =
-              info.contrastW >= info.contrastB
-                ? info.contrastW
-                : info.contrastB;
-            const wcag = getWcagBadge(bestContrast);
-            const apca = getApcaBadge(info.apcaLc);
-            return (
-              <VStack key={channel.id} gap={0.5} align="stretch">
-                <HStack gap={2}>
-                  <StudioColorPicker
-                    variant="button"
-                    label={channel.label}
-                    color={color}
-                    onChange={(c) =>
-                      updateOverride(
-                        { [channel.variable]: c },
-                        `Changed ${channel.label}`,
-                      )
-                    }
-                  />
-                </HStack>
-                <HStack gap={1} pl={1} flexWrap="wrap">
-                  <Text fontSize="8px" fontFamily="monospace" color="gray.400">
-                    L:{info.l}%
-                  </Text>
-                  <Text fontSize="8px" fontFamily="monospace" color="gray.400">
-                    C:{info.c}
-                  </Text>
-                  <Text fontSize="8px" fontFamily="monospace" color="gray.400">
-                    H:{info.h}°
-                  </Text>
-                  <Badge
-                    size="xs"
-                    variant="subtle"
-                    colorPalette={wcag.colorPalette}
-                    fontSize="7px"
-                    px={1}
-                    py={0}
-                  >
-                    {wcag.label} {bestContrast}:1
-                  </Badge>
-                  <Badge
-                    size="xs"
-                    variant="subtle"
-                    colorPalette={apca.colorPalette}
-                    fontSize="7px"
-                    px={1}
-                    py={0}
-                  >
-                    APCA {apca.label}
-                  </Badge>
-                </HStack>
-              </VStack>
-            );
-          })}
-        </VStack>
-
-        {/* 60/30/10 Proportion Guide */}
-        <Box mt={3}>
-          <Text
-            fontSize="9px"
-            fontWeight="700"
-            color="gray.400"
-            textTransform="uppercase"
-            letterSpacing="wider"
-            mb={1.5}
-          >
-            60 / 30 / 10 Rule
-          </Text>
-          <HStack
-            gap={0}
-            h="20px"
-            borderRadius="md"
-            overflow="hidden"
-            border="1px solid"
-            borderColor="gray.200"
-          >
+    <VStack align="stretch" gap={0} h="full" overflow="hidden">
+      {/* Sub-tab bar */}
+      <HStack
+        px={2}
+        py={1.5}
+        gap={0.5}
+        borderBottom="1px solid"
+        borderColor="gray.100"
+        flexShrink={0}
+      >
+        {(["colors", "typography", "harmony"] as const).map((tab) => {
+          const labels = {
+            colors: "🎨 Colors",
+            typography: "🔤 Typo",
+            harmony: "🎯 Harmony",
+          };
+          return (
             <Box
-              w="60%"
-              h="full"
-              bg={getEffectiveValue(
-                "--brand-primary",
-                "brand.primary",
-                "#2B4D86",
-              )}
-              position="relative"
+              key={tab}
+              as="button"
+              px={2.5}
+              py={1}
+              borderRadius="md"
+              fontSize="10px"
+              fontWeight="600"
+              color={tuningSubTab === tab ? "blue.600" : "gray.400"}
+              bg={tuningSubTab === tab ? "blue.50" : "transparent"}
+              cursor="pointer"
+              _hover={{ bg: tuningSubTab === tab ? "blue.50" : "gray.50" }}
+              transition="all 0.1s"
+              onClick={() => setTuningSubTab(tab)}
             >
-              <Text
-                fontSize="7px"
-                fontWeight="700"
-                color="white"
-                position="absolute"
-                left="50%"
-                top="50%"
-                transform="translate(-50%, -50%)"
-                textShadow="0 1px 2px rgba(0,0,0,0.4)"
-              >
-                60%
-              </Text>
+              {labels[tab]}
+            </Box>
+          );
+        })}
+        <Box flex={1} />
+        {hasOverrides && (
+          <HStack gap={0.5}>
+            <Box
+              as="button"
+              p={1}
+              borderRadius="sm"
+              color={canUndo ? "gray.500" : "gray.200"}
+              cursor={canUndo ? "pointer" : "default"}
+              onClick={undo}
+              _hover={canUndo ? { color: "blue.500" } : {}}
+            >
+              <LuUndo2 size={11} />
             </Box>
             <Box
-              w="30%"
-              h="full"
-              bg={getEffectiveValue(
-                "--brand-secondary",
-                "brand.secondary",
-                "#4A6DA7",
-              )}
-              position="relative"
+              as="button"
+              p={1}
+              borderRadius="sm"
+              color={canRedo ? "gray.500" : "gray.200"}
+              cursor={canRedo ? "pointer" : "default"}
+              onClick={redo}
+              _hover={canRedo ? { color: "blue.500" } : {}}
             >
-              <Text
-                fontSize="7px"
-                fontWeight="700"
-                color="white"
-                position="absolute"
-                left="50%"
-                top="50%"
-                transform="translate(-50%, -50%)"
-                textShadow="0 1px 2px rgba(0,0,0,0.4)"
-              >
-                30%
-              </Text>
-            </Box>
-            <Box
-              w="10%"
-              h="full"
-              bg={getEffectiveValue(
-                "--brand-accent",
-                "brand.accent",
-                "#1F8055",
-              )}
-              position="relative"
-            >
-              <Text
-                fontSize="7px"
-                fontWeight="700"
-                color="white"
-                position="absolute"
-                left="50%"
-                top="50%"
-                transform="translate(-50%, -50%)"
-                textShadow="0 1px 2px rgba(0,0,0,0.4)"
-              >
-                10%
-              </Text>
+              <LuRedo2 size={11} />
             </Box>
           </HStack>
-          <HStack gap={0} mt={1} justifyContent="space-between">
-            <Text fontSize="7px" color="gray.400" w="60%" textAlign="center">
-              Dominant
-            </Text>
-            <Text fontSize="7px" color="gray.400" w="30%" textAlign="center">
-              Supporting
-            </Text>
-            <Text fontSize="7px" color="gray.400" w="10%" textAlign="center">
-              CTA
-            </Text>
-          </HStack>
-        </Box>
-      </Box>
+        )}
+      </HStack>
 
-      {/* Harmony Lab */}
-      <Box p={3} borderBottom="1px solid" borderColor="gray.50">
-        <HStack gap={1.5} mb={3}>
-          <LuPalette size={12} color="var(--chakra-colors-gray-400)" />
-          <Text
-            fontSize="9px"
-            fontWeight="700"
-            color="gray.400"
-            textTransform="uppercase"
-            letterSpacing="wider"
-          >
-            🎨 Harmony Lab
-          </Text>
-        </HStack>
-
-        <HarmonyLabSection
-          primaryColor={getEffectiveValue(
-            "--brand-primary",
-            "brand.primary",
-            "#4A6DA7",
-          )}
-          onApply={(secondary, accent) =>
-            updateOverride(
-              { "--brand-secondary": secondary, "--brand-accent": accent },
-              `Harmony palette applied`,
-            )
-          }
-        />
-      </Box>
-
-      {/* Font Picker */}
-      <Box p={3} borderBottom="1px solid" borderColor="gray.50">
-        <HStack gap={1.5} mb={3}>
-          <LuType size={12} color="var(--chakra-colors-gray-400)" />
-          <Text
-            fontSize="9px"
-            fontWeight="700"
-            color="gray.400"
-            textTransform="uppercase"
-            letterSpacing="wider"
-          >
-            Typography
-          </Text>
-        </HStack>
-
-        <VStack align="stretch" gap={2}>
-          {FONT_ROLES.map((font) => {
-            const value = getEffectiveValue(
-              font.variable,
-              font.token,
-              "Inter, sans-serif",
-            );
-            const shortName = (value || "Inter")
-              .split(",")[0]
-              .replace(/['"]/g, "")
-              .trim();
-            return (
-              <FontPickerRow
-                key={font.id}
-                font={font}
-                currentFont={shortName}
-                onSelect={(family) => handleFontSelect(font, family)}
-              />
-            );
-          })}
-        </VStack>
-      </Box>
-
-      {/* Type Scale */}
-      <Box p={3} borderBottom="1px solid" borderColor="gray.50">
-        <HStack gap={1.5} mb={3}>
-          <LuType size={12} color="var(--chakra-colors-gray-400)" />
-          <Text
-            fontSize="9px"
-            fontWeight="700"
-            color="gray.400"
-            textTransform="uppercase"
-            letterSpacing="wider"
-          >
-            Type Scale
-          </Text>
-        </HStack>
-
-        <VStack align="stretch" gap={3}>
-          {/* Base Size Slider */}
-          <Box>
-            <HStack justify="space-between" mb={1}>
-              <Text fontSize="10px" fontWeight="600" color="gray.500">
-                Base Size
-              </Text>
+      <Box flex={1} overflowY="auto">
+        {/* Color Channels */}
+        {tuningSubTab === "colors" && (
+          <Box p={3} borderBottom="1px solid" borderColor="gray.50">
+            <HStack gap={1.5} mb={3}>
+              <LuPalette size={12} color="var(--chakra-colors-gray-400)" />
               <Text
-                fontSize="10px"
+                fontSize="9px"
                 fontWeight="700"
-                color="gray.700"
-                fontFamily="'Space Mono', monospace"
+                color="gray.400"
+                textTransform="uppercase"
+                letterSpacing="wider"
               >
-                {Number(overrides["--font-size-root"]) || 16}px
+                Semantic Colors
               </Text>
             </HStack>
-            <Slider
-              min={12}
-              max={24}
-              step={1}
-              value={[Number(overrides["--font-size-root"]) || 16]}
-              onValueChange={(details) =>
-                updateOverride(
-                  { "--font-size-root": details.value[0] },
-                  `Base size: ${details.value[0]}px`,
-                )
-              }
-              size="sm"
-            />
-          </Box>
 
-          {/* Scale Ratio */}
-          <Box>
-            <HStack justify="space-between" mb={1}>
-              <Text fontSize="10px" fontWeight="600" color="gray.500">
-                Scale Ratio
-              </Text>
-              <Text
-                fontSize="10px"
-                fontWeight="700"
-                color="gray.700"
-                fontFamily="'Space Mono', monospace"
-              >
-                {Number(overrides["--typography-config-scale-ratio"]) || 1.25}
-              </Text>
-            </HStack>
-            <VStack align="stretch" gap={0.5}>
-              {[
-                { label: "Minor Second", value: 1.067 },
-                { label: "Major Second", value: 1.125 },
-                { label: "Minor Third", value: 1.2 },
-                { label: "Major Third", value: 1.25 },
-                { label: "Perfect Fourth", value: 1.333 },
-                { label: "Aug. Fourth", value: 1.414 },
-                { label: "Perfect Fifth", value: 1.5 },
-                { label: "Golden Ratio", value: 1.618 },
-              ].map((ratio) => {
-                const current =
-                  Number(overrides["--typography-config-scale-ratio"]) || 1.25;
-                const isActive = Math.abs(current - ratio.value) < 0.01;
+            <VStack align="stretch" gap={2}>
+              {SEMANTIC_CHANNELS.map((channel) => {
+                const color = getEffectiveValue(
+                  channel.variable,
+                  channel.token,
+                  "#000000",
+                );
+                const info = getColorInfo(color);
+                const bestContrast =
+                  info.contrastW >= info.contrastB
+                    ? info.contrastW
+                    : info.contrastB;
+                const wcag = getWcagBadge(bestContrast);
+                const apca = getApcaBadge(info.apcaLc);
                 return (
-                  <HStack
-                    key={ratio.value}
-                    px={2}
-                    py={1}
-                    borderRadius="sm"
-                    cursor="pointer"
-                    bg={isActive ? "blue.50" : "transparent"}
-                    color={isActive ? "blue.600" : "gray.600"}
-                    _hover={{ bg: isActive ? "blue.50" : "gray.50" }}
-                    onClick={() =>
-                      updateOverride(
-                        { "--typography-config-scale-ratio": ratio.value },
-                        `Scale: ${ratio.label}`,
-                      )
-                    }
-                    transition="all 0.1s"
-                  >
-                    <Text
-                      fontSize="10px"
-                      fontWeight={isActive ? "700" : "500"}
-                      flex={1}
-                    >
-                      {ratio.label}
-                    </Text>
-                    <Text
-                      fontSize="10px"
-                      fontFamily="'Space Mono', monospace"
-                      fontWeight={isActive ? "700" : "400"}
-                    >
-                      {ratio.value}
-                    </Text>
-                    {isActive && <LuCheck size={10} />}
-                  </HStack>
+                  <VStack key={channel.id} gap={0.5} align="stretch">
+                    <HStack gap={2}>
+                      <StudioColorPicker
+                        variant="button"
+                        label={channel.label}
+                        color={color}
+                        onChange={(c) =>
+                          updateOverride(
+                            { [channel.variable]: c },
+                            `Changed ${channel.label}`,
+                          )
+                        }
+                      />
+                    </HStack>
+                    <HStack gap={1} pl={1} flexWrap="wrap">
+                      <Text
+                        fontSize="8px"
+                        fontFamily="monospace"
+                        color="gray.400"
+                      >
+                        L:{info.l}%
+                      </Text>
+                      <Text
+                        fontSize="8px"
+                        fontFamily="monospace"
+                        color="gray.400"
+                      >
+                        C:{info.c}
+                      </Text>
+                      <Text
+                        fontSize="8px"
+                        fontFamily="monospace"
+                        color="gray.400"
+                      >
+                        H:{info.h}°
+                      </Text>
+                      <Badge
+                        size="xs"
+                        variant="subtle"
+                        colorPalette={wcag.colorPalette}
+                        fontSize="7px"
+                        px={1}
+                        py={0}
+                      >
+                        {wcag.label} {bestContrast}:1
+                      </Badge>
+                      <Badge
+                        size="xs"
+                        variant="subtle"
+                        colorPalette={apca.colorPalette}
+                        fontSize="7px"
+                        px={1}
+                        py={0}
+                      >
+                        APCA {apca.label}
+                      </Badge>
+                    </HStack>
+                  </VStack>
                 );
               })}
             </VStack>
-          </Box>
 
-          {/* Computed Sizes Preview Table */}
-          <Box mt={2}>
-            <Text
-              fontSize="9px"
-              fontWeight="700"
-              color="gray.400"
-              textTransform="uppercase"
-              letterSpacing="wider"
-              mb={2}
-            >
-              Preview
-            </Text>
-            <Table.Root size="sm" variant="outline">
-              <Table.Header>
-                <Table.Row>
-                  <Table.ColumnHeader
-                    fontSize="9px"
-                    color="gray.400"
-                    py={1}
-                    px={2}
+            {/* 60/30/10 Proportion Guide */}
+            <Box mt={3}>
+              <Text
+                fontSize="9px"
+                fontWeight="700"
+                color="gray.400"
+                textTransform="uppercase"
+                letterSpacing="wider"
+                mb={1.5}
+              >
+                60 / 30 / 10 Rule
+              </Text>
+              <HStack
+                gap={0}
+                h="20px"
+                borderRadius="md"
+                overflow="hidden"
+                border="1px solid"
+                borderColor="gray.200"
+              >
+                <Box
+                  w="60%"
+                  h="full"
+                  bg={getEffectiveValue(
+                    "--brand-primary",
+                    "brand.primary",
+                    "#2B4D86",
+                  )}
+                  position="relative"
+                >
+                  <Text
+                    fontSize="7px"
+                    fontWeight="700"
+                    color="white"
+                    position="absolute"
+                    left="50%"
+                    top="50%"
+                    transform="translate(-50%, -50%)"
+                    textShadow="0 1px 2px rgba(0,0,0,0.4)"
                   >
-                    Step
-                  </Table.ColumnHeader>
-                  <Table.ColumnHeader
-                    fontSize="9px"
-                    color="gray.400"
-                    py={1}
-                    px={2}
+                    60%
+                  </Text>
+                </Box>
+                <Box
+                  w="30%"
+                  h="full"
+                  bg={getEffectiveValue(
+                    "--brand-secondary",
+                    "brand.secondary",
+                    "#4A6DA7",
+                  )}
+                  position="relative"
+                >
+                  <Text
+                    fontSize="7px"
+                    fontWeight="700"
+                    color="white"
+                    position="absolute"
+                    left="50%"
+                    top="50%"
+                    transform="translate(-50%, -50%)"
+                    textShadow="0 1px 2px rgba(0,0,0,0.4)"
                   >
-                    Size
-                  </Table.ColumnHeader>
-                  <Table.ColumnHeader
-                    fontSize="9px"
-                    color="gray.400"
-                    py={1}
-                    px={2}
+                    30%
+                  </Text>
+                </Box>
+                <Box
+                  w="10%"
+                  h="full"
+                  bg={getEffectiveValue(
+                    "--brand-accent",
+                    "brand.accent",
+                    "#1F8055",
+                  )}
+                  position="relative"
+                >
+                  <Text
+                    fontSize="7px"
+                    fontWeight="700"
+                    color="white"
+                    position="absolute"
+                    left="50%"
+                    top="50%"
+                    transform="translate(-50%, -50%)"
+                    textShadow="0 1px 2px rgba(0,0,0,0.4)"
                   >
-                    REM
-                  </Table.ColumnHeader>
-                </Table.Row>
-              </Table.Header>
-              <Table.Body>
-                {[6, 5, 4, 3, 2, 1, 0, -1, -2].map((step) => {
-                  const base = Number(overrides["--font-size-root"]) || 16;
-                  const ratio =
-                    Number(overrides["--typography-config-scale-ratio"]) ||
-                    1.25;
-                  const size =
-                    Math.round(base * Math.pow(ratio, step) * 100) / 100;
-                  const rem = Math.round((size / 16) * 1000) / 1000;
-                  const isBase = step === 0;
+                    10%
+                  </Text>
+                </Box>
+              </HStack>
+              <HStack gap={0} mt={1} justifyContent="space-between">
+                <Text
+                  fontSize="7px"
+                  color="gray.400"
+                  w="60%"
+                  textAlign="center"
+                >
+                  Dominant
+                </Text>
+                <Text
+                  fontSize="7px"
+                  color="gray.400"
+                  w="30%"
+                  textAlign="center"
+                >
+                  Supporting
+                </Text>
+                <Text
+                  fontSize="7px"
+                  color="gray.400"
+                  w="10%"
+                  textAlign="center"
+                >
+                  CTA
+                </Text>
+              </HStack>
+            </Box>
+          </Box>
+        )}
+
+        {/* Harmony Lab */}
+        {tuningSubTab === "harmony" && (
+          <Box p={3} borderBottom="1px solid" borderColor="gray.50">
+            <HStack gap={1.5} mb={3}>
+              <LuPalette size={12} color="var(--chakra-colors-gray-400)" />
+              <Text
+                fontSize="9px"
+                fontWeight="700"
+                color="gray.400"
+                textTransform="uppercase"
+                letterSpacing="wider"
+              >
+                🎨 Harmony Lab
+              </Text>
+            </HStack>
+
+            <HarmonyLabSection
+              primaryColor={getEffectiveValue(
+                "--brand-primary",
+                "brand.primary",
+                "#4A6DA7",
+              )}
+              onApply={(secondary, accent) =>
+                updateOverride(
+                  { "--brand-secondary": secondary, "--brand-accent": accent },
+                  `Harmony palette applied`,
+                )
+              }
+            />
+          </Box>
+        )}
+
+        {/* Font Picker */}
+        {tuningSubTab === "typography" && (
+          <>
+            <Box p={3} borderBottom="1px solid" borderColor="gray.50">
+              <HStack gap={1.5} mb={3}>
+                <LuType size={12} color="var(--chakra-colors-gray-400)" />
+                <Text
+                  fontSize="9px"
+                  fontWeight="700"
+                  color="gray.400"
+                  textTransform="uppercase"
+                  letterSpacing="wider"
+                >
+                  Typography
+                </Text>
+              </HStack>
+
+              <VStack align="stretch" gap={2}>
+                {FONT_ROLES.map((font) => {
+                  const value = getEffectiveValue(
+                    font.variable,
+                    font.token,
+                    "Inter, sans-serif",
+                  );
+                  const shortName = (value || "Inter")
+                    .split(",")[0]
+                    .replace(/['"]/g, "")
+                    .trim();
                   return (
-                    <Table.Row key={step}>
-                      <Table.Cell py={0.5} px={2}>
-                        <Text
-                          fontSize="9px"
-                          fontFamily="monospace"
-                          color={isBase ? "blue.600" : "gray.500"}
-                        >
-                          {step}
-                        </Text>
-                      </Table.Cell>
-                      <Table.Cell py={0.5} px={2}>
-                        <Text
-                          fontSize="9px"
-                          fontFamily="'Space Mono', monospace"
-                          fontWeight="600"
-                          color={isBase ? "blue.600" : "gray.700"}
-                        >
-                          {size}px
-                        </Text>
-                      </Table.Cell>
-                      <Table.Cell py={0.5} px={2}>
-                        <Text
-                          fontSize="9px"
-                          fontFamily="'Space Mono', monospace"
-                          fontWeight="500"
-                          color={isBase ? "blue.600" : "gray.500"}
-                        >
-                          {rem}rem
-                        </Text>
-                      </Table.Cell>
-                    </Table.Row>
+                    <FontPickerRow
+                      key={font.id}
+                      font={font}
+                      currentFont={shortName}
+                      onSelect={(family) => handleFontSelect(font, family)}
+                    />
                   );
                 })}
-              </Table.Body>
-            </Table.Root>
-          </Box>
-        </VStack>
+              </VStack>
+            </Box>
+
+            {/* Type Scale */}
+            <Box p={3} borderBottom="1px solid" borderColor="gray.50">
+              <HStack gap={1.5} mb={3}>
+                <LuType size={12} color="var(--chakra-colors-gray-400)" />
+                <Text
+                  fontSize="9px"
+                  fontWeight="700"
+                  color="gray.400"
+                  textTransform="uppercase"
+                  letterSpacing="wider"
+                >
+                  Type Scale
+                </Text>
+              </HStack>
+
+              <VStack align="stretch" gap={3}>
+                {/* Base Size Slider */}
+                <Box>
+                  <HStack justify="space-between" mb={1}>
+                    <Text fontSize="10px" fontWeight="600" color="gray.500">
+                      Base Size
+                    </Text>
+                    <Text
+                      fontSize="10px"
+                      fontWeight="700"
+                      color="gray.700"
+                      fontFamily="'Space Mono', monospace"
+                    >
+                      {Number(overrides["--font-size-root"]) || 16}px
+                    </Text>
+                  </HStack>
+                  <Slider
+                    min={12}
+                    max={24}
+                    step={1}
+                    value={[Number(overrides["--font-size-root"]) || 16]}
+                    onValueChange={(details) =>
+                      updateOverride(
+                        { "--font-size-root": details.value[0] },
+                        `Base size: ${details.value[0]}px`,
+                      )
+                    }
+                    size="sm"
+                  />
+                </Box>
+
+                {/* Scale Ratio */}
+                <Box>
+                  <HStack justify="space-between" mb={1}>
+                    <Text fontSize="10px" fontWeight="600" color="gray.500">
+                      Scale Ratio
+                    </Text>
+                    <Text
+                      fontSize="10px"
+                      fontWeight="700"
+                      color="gray.700"
+                      fontFamily="'Space Mono', monospace"
+                    >
+                      {Number(overrides["--typography-config-scale-ratio"]) ||
+                        1.25}
+                    </Text>
+                  </HStack>
+                  <VStack align="stretch" gap={0.5}>
+                    {[
+                      { label: "Minor Second", value: 1.067 },
+                      { label: "Major Second", value: 1.125 },
+                      { label: "Minor Third", value: 1.2 },
+                      { label: "Major Third", value: 1.25 },
+                      { label: "Perfect Fourth", value: 1.333 },
+                      { label: "Aug. Fourth", value: 1.414 },
+                      { label: "Perfect Fifth", value: 1.5 },
+                      { label: "Golden Ratio", value: 1.618 },
+                    ].map((ratio) => {
+                      const current =
+                        Number(overrides["--typography-config-scale-ratio"]) ||
+                        1.25;
+                      const isActive = Math.abs(current - ratio.value) < 0.01;
+                      return (
+                        <HStack
+                          key={ratio.value}
+                          px={2}
+                          py={1}
+                          borderRadius="sm"
+                          cursor="pointer"
+                          bg={isActive ? "blue.50" : "transparent"}
+                          color={isActive ? "blue.600" : "gray.600"}
+                          _hover={{ bg: isActive ? "blue.50" : "gray.50" }}
+                          onClick={() =>
+                            updateOverride(
+                              {
+                                "--typography-config-scale-ratio": ratio.value,
+                              },
+                              `Scale: ${ratio.label}`,
+                            )
+                          }
+                          transition="all 0.1s"
+                        >
+                          <Text
+                            fontSize="10px"
+                            fontWeight={isActive ? "700" : "500"}
+                            flex={1}
+                          >
+                            {ratio.label}
+                          </Text>
+                          <Text
+                            fontSize="10px"
+                            fontFamily="'Space Mono', monospace"
+                            fontWeight={isActive ? "700" : "400"}
+                          >
+                            {ratio.value}
+                          </Text>
+                          {isActive && <LuCheck size={10} />}
+                        </HStack>
+                      );
+                    })}
+                  </VStack>
+                </Box>
+
+                {/* Computed Sizes Preview Table */}
+                <Box mt={2}>
+                  <Text
+                    fontSize="9px"
+                    fontWeight="700"
+                    color="gray.400"
+                    textTransform="uppercase"
+                    letterSpacing="wider"
+                    mb={2}
+                  >
+                    Preview
+                  </Text>
+                  <Table.Root size="sm" variant="outline">
+                    <Table.Header>
+                      <Table.Row>
+                        <Table.ColumnHeader
+                          fontSize="9px"
+                          color="gray.400"
+                          py={1}
+                          px={2}
+                        >
+                          Step
+                        </Table.ColumnHeader>
+                        <Table.ColumnHeader
+                          fontSize="9px"
+                          color="gray.400"
+                          py={1}
+                          px={2}
+                        >
+                          Size
+                        </Table.ColumnHeader>
+                        <Table.ColumnHeader
+                          fontSize="9px"
+                          color="gray.400"
+                          py={1}
+                          px={2}
+                        >
+                          REM
+                        </Table.ColumnHeader>
+                      </Table.Row>
+                    </Table.Header>
+                    <Table.Body>
+                      {[6, 5, 4, 3, 2, 1, 0, -1, -2].map((step) => {
+                        const base =
+                          Number(overrides["--font-size-root"]) || 16;
+                        const ratio =
+                          Number(
+                            overrides["--typography-config-scale-ratio"],
+                          ) || 1.25;
+                        const size =
+                          Math.round(base * Math.pow(ratio, step) * 100) / 100;
+                        const rem = Math.round((size / 16) * 1000) / 1000;
+                        const isBase = step === 0;
+                        return (
+                          <Table.Row key={step}>
+                            <Table.Cell py={0.5} px={2}>
+                              <Text
+                                fontSize="9px"
+                                fontFamily="monospace"
+                                color={isBase ? "blue.600" : "gray.500"}
+                              >
+                                {step}
+                              </Text>
+                            </Table.Cell>
+                            <Table.Cell py={0.5} px={2}>
+                              <Text
+                                fontSize="9px"
+                                fontFamily="'Space Mono', monospace"
+                                fontWeight="600"
+                                color={isBase ? "blue.600" : "gray.700"}
+                              >
+                                {size}px
+                              </Text>
+                            </Table.Cell>
+                            <Table.Cell py={0.5} px={2}>
+                              <Text
+                                fontSize="9px"
+                                fontFamily="'Space Mono', monospace"
+                                fontWeight="500"
+                                color={isBase ? "blue.600" : "gray.500"}
+                              >
+                                {rem}rem
+                              </Text>
+                            </Table.Cell>
+                          </Table.Row>
+                        );
+                      })}
+                    </Table.Body>
+                  </Table.Root>
+                </Box>
+              </VStack>
+            </Box>
+          </>
+        )}
       </Box>
       {hasOverrides && (
         <Box p={3}>

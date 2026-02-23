@@ -13,7 +13,6 @@ import { ExportModal } from "../export/ExportModal";
 import { CommandPalette } from "../command/CommandPalette";
 import { StudioView } from "../studio/StudioView";
 import { InspectorPanel } from "./InspectorPanel";
-import { ThemeBar } from "./ThemeBar";
 import type {
   Manifest,
   TokenOverrides,
@@ -54,9 +53,8 @@ export const WorkspaceLayout = ({
   const { globalTokens } = useGlobalTokens();
   const [searchTerm, setSearchTerm] = useState("");
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [layoutMode, setLayoutMode] = useState<
-    "normal" | "widget" | "fullscreen"
-  >("normal");
+  const [sidebarVisible, setSidebarVisible] = useState(true);
+  const [inspectorVisible, setInspectorVisible] = useState(true);
   const [explorerCollapsed, setExplorerCollapsed] = useState(false);
 
   const [activePanel, setActivePanel] = useState<SidebarPanelId>(() => {
@@ -197,29 +195,17 @@ export const WorkspaceLayout = ({
         hasOverrides={hasOverrides}
         onOpenExport={handleExport}
         onOpenPalette={cmdPalette.open}
-        layoutMode={layoutMode}
-        onCycleLayout={() =>
-          setLayoutMode((m) =>
-            m === "normal"
-              ? "widget"
-              : m === "widget"
-                ? "fullscreen"
-                : "normal",
-          )
-        }
-      />
-
-      {/* Theme Bar */}
-      <ThemeBar
-        manifest={manifest}
-        activePath={selectedProject}
-        onSelect={onProjectChange}
+        sidebarVisible={sidebarVisible}
+        inspectorVisible={inspectorVisible}
+        onToggleSidebar={() => setSidebarVisible((v) => !v)}
+        onToggleInspector={() => setInspectorVisible((v) => !v)}
+        onProjectChange={onProjectChange}
       />
 
       {/* Main Content */}
       <HStack flex={1} gap={0} overflow="hidden" w="full">
         {/* Activity Bar */}
-        {layoutMode === "normal" && (
+        {sidebarVisible && (
           <ActivityBar
             activePanel={activePanel}
             onPanelChange={setActivePanel}
@@ -227,7 +213,7 @@ export const WorkspaceLayout = ({
         )}
 
         {/* Left Panel: File Explorer + Token Tree */}
-        {layoutMode === "normal" && (
+        {sidebarVisible && (
           <VStack
             w="280px"
             minW="240px"
@@ -318,7 +304,7 @@ export const WorkspaceLayout = ({
         </Box>
 
         {/* Right: Inspector Panel */}
-        {layoutMode !== "fullscreen" && (
+        {inspectorVisible && (
           <Box
             w="300px"
             minW="260px"

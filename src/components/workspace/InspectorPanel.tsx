@@ -37,7 +37,7 @@ interface InspectorPanelProps {
 
 const tabConfig: { id: InspectorTab; label: string; icon: React.ReactNode }[] =
   [
-    { id: "token", label: "Token", icon: <LuCircleDot size={12} /> },
+    { id: "token", label: "Detail", icon: <LuCircleDot size={12} /> },
     { id: "tuning", label: "Tuning", icon: <LuPalette size={12} /> },
     { id: "changes", label: "Changes", icon: <LuGitBranch size={12} /> },
   ];
@@ -57,7 +57,7 @@ export const InspectorPanel = ({
   onDiscardOverride,
   onDiscardAll,
 }: InspectorPanelProps) => {
-  const [activeTab, setActiveTab] = useState<InspectorTab>("token");
+  const [activeTab, setActiveTab] = useState<InspectorTab>("tuning");
   const pendingCount = Object.keys(overrides).length;
 
   return (

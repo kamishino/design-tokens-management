@@ -44,7 +44,35 @@ export const InspectorOverlay = ({ token, pos }: InspectorOverlayProps) => {
         maxW="340px"
         pointerEvents="auto"
       >
-        <VStack align="start" gap={3}>
+        <VStack align="start" gap={2}>
+          {/* Token identity */}
+          <HStack gap={2} w="full">
+            <Text
+              fontSize="11px"
+              fontWeight="700"
+              color="white"
+              fontFamily="'Space Mono', monospace"
+              wordBreak="break-all"
+            >
+              {token.path.join(".")}
+            </Text>
+            {token.type && (
+              <Text
+                fontSize="8px"
+                fontWeight="700"
+                color="blue.300"
+                bg="whiteAlpha.100"
+                px={1.5}
+                py={0.5}
+                borderRadius="full"
+                textTransform="uppercase"
+                flexShrink={0}
+              >
+                {token.type}
+              </Text>
+            )}
+          </HStack>
+
           <HStack gap={3} w="full" justify="space-between">
             <HStack gap={3}>
               {token.type === "color" && (
