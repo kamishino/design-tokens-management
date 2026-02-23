@@ -23,17 +23,9 @@ import {
   SelectTrigger,
   SelectValueText,
 } from "../ui/select";
-import { MenuRoot, MenuTrigger, MenuContent, MenuItem } from "../ui/menu";
+
 import { generateStudioMockData } from "./templates/shared/mock-data";
-import {
-  LuScanEye,
-  LuArrowRight,
-  LuSettings,
-  LuX,
-  LuPalette,
-  LuDatabase,
-  LuChevronDown,
-} from "react-icons/lu";
+import { LuScanEye, LuArrowRight, LuX } from "react-icons/lu";
 import type { Manifest, TokenOverrides } from "../../schemas/manifest";
 import type { TokenDoc } from "../../utils/token-parser";
 import { TokenViewer } from "../TokenViewer";
@@ -511,33 +503,6 @@ export const StudioView = ({
           </Box>
         </Portal>
       )}
-
-      {/* Tools Menu Trigger (Bottom Left) */}
-      <Box position="fixed" bottom={6} left={6} zIndex={1800}>
-        <MenuRoot>
-          <MenuTrigger asChild>
-            <Button
-              size="md"
-              colorScheme="gray"
-              variant="surface"
-              boxShadow="lg"
-              border="1px solid"
-              borderColor="gray.200"
-            >
-              <LuSettings style={{ marginRight: 8 }} /> Studio Tools{" "}
-              <LuChevronDown style={{ marginLeft: 8 }} />
-            </Button>
-          </MenuTrigger>
-          <MenuContent>
-            <MenuItem value="manager" onClick={() => setActiveTool("manager")}>
-              <LuDatabase style={{ marginRight: 8 }} /> Token Manager
-            </MenuItem>
-            <MenuItem value="lab" onClick={() => setActiveTool("lab")}>
-              <LuPalette style={{ marginRight: 8 }} /> Visual Lab
-            </MenuItem>
-          </MenuContent>
-        </MenuRoot>
-      </Box>
 
       {/* Template Preview Area */}
       <Box className={isInspectMode ? "studio-inspect-mode" : ""}>

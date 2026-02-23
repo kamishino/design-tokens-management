@@ -1,8 +1,17 @@
-import { Box, VStack, HStack, Text } from "@chakra-ui/react";
-import { useCallback, useMemo } from "react";
-import { LuPalette, LuType, LuUndo2, LuRedo2 } from "react-icons/lu";
+import {
+  Box,
+  VStack,
+  HStack,
+  Text,
+  Input,
+  Popover,
+  Portal,
+} from "@chakra-ui/react";
+import { useCallback, useMemo, useState } from "react";
+import { LuPalette, LuType, LuUndo2, LuRedo2, LuCheck } from "react-icons/lu";
 import { StudioColorPicker } from "../playground/panels/StudioColorPicker";
 import { getPrioritizedTokenMap } from "../../utils/token-graph";
+import { prependFont } from "../../utils/fonts";
 import { Button } from "../ui/button";
 import type { TokenDoc } from "../../utils/token-parser";
 import type { TokenOverrides } from "../../schemas/manifest";
@@ -61,6 +70,23 @@ const FONT_ROLES = [
   },
 ];
 
+const FONT_OPTIONS = [
+  { name: "Inter", category: "Sans" },
+  { name: "Roboto", category: "Sans" },
+  { name: "Open Sans", category: "Sans" },
+  { name: "Montserrat", category: "Sans" },
+  { name: "Poppins", category: "Sans" },
+  { name: "Lato", category: "Sans" },
+  { name: "Outfit", category: "Sans" },
+  { name: "Playfair Display", category: "Serif" },
+  { name: "Merriweather", category: "Serif" },
+  { name: "Lora", category: "Serif" },
+  { name: "Source Code Pro", category: "Mono" },
+  { name: "JetBrains Mono", category: "Mono" },
+  { name: "IBM Plex Mono", category: "Mono" },
+  { name: "Fira Code", category: "Mono" },
+];
+
 interface TuningTabProps {
   overrides: TokenOverrides;
   updateOverride: (
@@ -106,6 +132,16 @@ export const TuningTab = ({
 
   const hasOverrides = Object.keys(overrides).length > 0;
 
+  const handleFontSelect = (font: (typeof FONT_ROLES)[0], family: string) => {
+    const currentStack = getEffectiveValue(
+      font.variable,
+      font.token,
+      "Inter, sans-serif",
+    );
+    const newStack = prependFont(family, currentStack);
+    updateOverride({ [font.variable]: newStack }, `Changed ${font.label} font`);
+  };
+
   return (
     <VStack align="stretch" gap={0} h="full" overflowY="auto">
       {/* Color Channels */}
@@ -149,7 +185,7 @@ export const TuningTab = ({
         </VStack>
       </Box>
 
-      {/* Font Preview */}
+      {/* Font Picker */}
       <Box p={3} borderBottom="1px solid" borderColor="gray.50">
         <HStack gap={1.5} mb={3}>
           <LuType size={12} color="var(--chakra-colors-gray-400)" />
@@ -173,34 +209,15 @@ export const TuningTab = ({
             );
             const shortName = (value || "Inter")
               .split(",")[0]
-              .replace(/['"]/g, "");
+              .replace(/['"]/g, "")
+              .trim();
             return (
-              <HStack
+              <FontPickerRow
                 key={font.id}
-                py={1.5}
-                px={2}
-                borderRadius="md"
-                bg="gray.50"
-                gap={2}
-              >
-                <Text
-                  fontSize="10px"
-                  fontWeight="600"
-                  color="gray.400"
-                  minW="50px"
-                >
-                  {font.label}
-                </Text>
-                <Text
-                  fontSize="11px"
-                  fontFamily={value}
-                  color="gray.700"
-                  flex={1}
-                  truncate
-                >
-                  {shortName}
-                </Text>
-              </HStack>
+                font={font}
+                currentFont={shortName}
+                onSelect={(family) => handleFontSelect(font, family)}
+              />
             );
           })}
         </VStack>
@@ -244,5 +261,119 @@ export const TuningTab = ({
         </Box>
       )}
     </VStack>
+  );
+};
+
+// ---------------------
+// Font Picker Row
+// ---------------------
+
+interface FontPickerRowProps {
+  font: { id: string; label: string };
+  currentFont: string;
+  onSelect: (family: string) => void;
+}
+
+const FontPickerRow = ({ font, currentFont, onSelect }: FontPickerRowProps) => {
+  const [search, setSearch] = useState("");
+
+  const filtered = useMemo(
+    () =>
+      FONT_OPTIONS.filter((f) =>
+        f.name.toLowerCase().includes(search.toLowerCase()),
+      ),
+    [search],
+  );
+
+  return (
+    <Popover.Root positioning={{ placement: "left-start", gutter: 8 }}>
+      <Popover.Trigger asChild>
+        <HStack
+          py={1.5}
+          px={2}
+          borderRadius="md"
+          bg="gray.50"
+          gap={2}
+          cursor="pointer"
+          _hover={{ bg: "blue.50", borderColor: "blue.200" }}
+          border="1px solid"
+          borderColor="transparent"
+          transition="all 0.15s"
+        >
+          <Text fontSize="10px" fontWeight="600" color="gray.400" minW="50px">
+            {font.label}
+          </Text>
+          <Text
+            fontSize="11px"
+            fontFamily={currentFont}
+            color="gray.700"
+            flex={1}
+            truncate
+          >
+            {currentFont}
+          </Text>
+        </HStack>
+      </Popover.Trigger>
+      <Portal>
+        <Popover.Positioner>
+          <Popover.Content
+            w="220px"
+            boxShadow="xl"
+            border="1px solid"
+            borderColor="gray.200"
+            borderRadius="lg"
+            overflow="hidden"
+          >
+            <Box p={2} borderBottom="1px solid" borderColor="gray.100">
+              <Input
+                size="xs"
+                placeholder="Search fonts..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                autoFocus
+              />
+            </Box>
+            <VStack align="stretch" gap={0} maxH="200px" overflowY="auto" p={1}>
+              {filtered.map((f) => (
+                <HStack
+                  key={f.name}
+                  px={2}
+                  py={1.5}
+                  borderRadius="md"
+                  cursor="pointer"
+                  bg={f.name === currentFont ? "blue.50" : "transparent"}
+                  _hover={{ bg: "blue.50" }}
+                  onClick={() => {
+                    onSelect(f.name);
+                    setSearch("");
+                  }}
+                  gap={2}
+                >
+                  <Text
+                    fontSize="11px"
+                    fontFamily={`'${f.name}', sans-serif`}
+                    color="gray.700"
+                    flex={1}
+                  >
+                    {f.name}
+                  </Text>
+                  <Text fontSize="9px" color="gray.300">
+                    {f.category}
+                  </Text>
+                  {f.name === currentFont && (
+                    <LuCheck size={12} color="var(--chakra-colors-blue-500)" />
+                  )}
+                </HStack>
+              ))}
+              {filtered.length === 0 && (
+                <Text fontSize="10px" color="gray.400" p={2} textAlign="center">
+                  No fonts match
+                </Text>
+              )}
+            </VStack>
+          </Popover.Content>
+        </Popover.Positioner>
+      </Portal>
+    </Popover.Root>
   );
 };
