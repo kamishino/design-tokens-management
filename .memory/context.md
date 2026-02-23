@@ -2,50 +2,44 @@
 
 > Current project state snapshot. Overwritten at the end of each session via `/sync`.
 
-## Checkpoint — 16:12 2026-02-23
+## Checkpoint — 20:34 2026-02-23
 
-**Current task:** UX Overhaul — Tuning Tab Pipeline (Phase C+D)
+**Current task:** Phase H→I→J — Color Science, UX Polish, Header & Typography
 **Done so far:**
 
-- Phase C (8 tasks): Scroll fix, CSS var key mapping, font picker (14 fonts), Studio Tools removal, git-style staging panel (StagingPanel.tsx), per-token discard, robust override display
-- Phase D (6 tasks): CSS var normalization (5 templates + CSS injection), Exit Studio removal, AntiGravity IDE support, inline token value editing
-  **About to do:** Session complete — all issues resolved
-  **Rollback plan:** `git log --oneline -6` shows clean commit history, revert any commit with `git revert <hash>`
+- Phase H: OKLCH Harmony Lab (culori), variant toggle (L/C shift), 3-mode layout, dual WCAG/APCA contrast, 60/30/10 rule bar
+- Phase I: Variant re-randomize (seeded PRNG), VSCode-style panel toggles, Tuning sub-tabs, ThemeBar merged into header, enhanced token tooltip
+- Phase J: Remove duplicate header dropdown, merge Harmony into Colors (2 sub-tabs), group layout icons, line-height control, typescale.com-style preview
 
 ## Active Work
 
-- **Last Completed Task:** Phase D — CSS var normalization + token editing + IDE
+- **Last Completed Task:** Phase J — Header cleanup + Typography upgrade
 - **Current Release:** v0.4.0 "Studio Manager"
 - **Project Phase:** Discovery
-- **Current Focus:** Design System Automation — Tuning Pipeline
-- **Next Planned Task:** Task 134 — Distribution Pipeline (NPM Publishing)
+- **Current Focus:** Design System Automation — UX Polish Pipeline
+- **Next Planned Task:** TBD — user may continue UX refinements or start distribution pipeline
 
 ## Recent Commits (This Session)
 
-- `d2e8f60` feat: CSS var normalization, inline token editing, Exit Studio removal, AntiGravity IDE (Phase D)
-- `b8ef363` fix: StagingPanel shows all overrides without requiring token match (C8)
-- `12ec817` feat: git-style staging panel with per-token checkboxes, visual diffs, discard (C5-C7)
-- `fd9aea2` feat: font picker in Tuning tab + remove Studio Tools button (C3+C4)
-- `0ea4ed6` fix: Design Studio scroll + CSS var key mapping for CommitCenter (C1+C2)
+- `d731cde` feat(phase-j): header cleanup, grouped toggles, 2 sub-tabs, line-height, type scale
+- `1ca5f64` feat(phase-i): UX polish — variant re-randomize, VSCode toggles, sub-tabs, merged header
+- `3479e19` feat(phase-h): OKLCH harmony lab, 3-mode layout, APCA contrast, 60/30/10 bar
 
 ## Key Files Changed
 
-- `src/components/workspace/StagingPanel.tsx` — NEW: git-style staging UI
-- `src/components/workspace/TuningTab.tsx` — color pickers + font picker
-- `src/components/workspace/InspectorPanel.tsx` — inline token editing
-- `src/components/studio/templates/*.tsx` — CSS var normalization (5 files)
-- `src/hooks/usePersistentPlayground.ts` — DISCARD_KEY + dash-case injection
-- `src/hooks/useAppSettings.ts` — AntiGravity IDE added
-- `src/components/studio/StudioView.tsx` — Exit Studio removed
+- `src/components/workspace/TuningTab.tsx` — 2 sub-tabs (Colors+Harmony / Typography), line-height, typescale preview
+- `src/components/workspace/WorkspaceHeader.tsx` — read-only label, grouped VSCode toggle icons
+- `src/components/workspace/WorkspaceLayout.tsx` — sidebar/inspector toggle state
+- `src/components/workspace/InspectorPanel.tsx` — Token→Detail rename, default=Tuning
+- `src/components/explorer/InspectorOverlay.tsx` — token path + type badge tooltip
 
 ## Open Questions
 
-- Distribution Pipeline (Task 134): NPM publishing strategy and versioning scheme TBD.
-- CSS Variable column in Token tab still shows camelCase (`--brandPrimary`) from parser — cosmetic only.
-- Cross-file reference validation in Commit Center (backlogged).
+- Distribution Pipeline (Task 134): NPM publishing strategy TBD.
+- Type scale preview could support custom text input (typescale.com feature).
 
 ## Technical Debt
 
-- Token parser generates camelCase CSS variable names — could be normalized to dash-case for consistency.
-- `useMemo` with side-effect (`setStaged`) in StagingPanel — works but should ideally be `useEffect`.
-- StudioView lint: `refreshKey` unnecessary dependency in useMemo (line 112).
+- TuningTab.tsx is ~1080 lines — consider extracting ColorsTuning and TypographyTuning components.
+- `useMemo` with side-effect (`setStaged`) in StagingPanel — should ideally be `useEffect`.
+- PowerShell `2>&1 | Select-Object` silently drops tsc errors — use `npx tsc --noEmit; echo "EXIT: $LASTEXITCODE"` instead.

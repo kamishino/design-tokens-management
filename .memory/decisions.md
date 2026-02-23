@@ -50,3 +50,24 @@
 **Decision:** Refactored to button-popover interaction pattern with dedicated Portal Container for Z-Index.
 **Alternatives:** Inline pickers (too large), modal pickers (too disruptive).
 **Consequences:** All color pickers in dashboard use this pattern; requires container ref for proper stacking.
+
+## [2026-02-23] — VSCode-Style Independent Panel Toggles
+
+**Context:** 3-mode layout cycle (Normal/Widget/Fullscreen) was unintuitive — users couldn't independently control sidebar and inspector.
+**Decision:** Replaced with 2 independent toggle buttons (sidebar + inspector), grouped together at the right edge of the header, mimicking VSCode's panel toggle pattern.
+**Alternatives:** 3-mode cycle (unintuitive), keyboard-only shortcuts (undiscoverable).
+**Consequences:** 4 natural layout states from 2 toggles. More flexible and familiar for developer users.
+
+## [2026-02-23] — 2-Tab Tuning Architecture (Colors / Typography)
+
+**Context:** 3 sub-tabs (Colors/Typography/Harmony) diluted focus. Harmony Lab is color-related and belongs with Colors.
+**Decision:** Merged Harmony Lab into Colors sub-tab. Reduced to 2 sub-tabs: Colors (semantic colors + 60/30/10 + Harmony Lab) and Typography (font picker + type scale + line-height).
+**Alternatives:** 3 tabs (unfocused), single scrollable tab (too long ~1080 lines of content).
+**Consequences:** Clearer mental model. TuningTab.tsx is large but each conditional section is self-contained.
+
+## [2026-02-23] — typescale.com-Inspired Preview
+
+**Context:** Type scale preview was a plain 3-column table (Step/Size/REM) — no visual feedback.
+**Decision:** Replaced with labeled visual rows (h1→xs) showing live text at computed size, font family, and px/rem/lh metrics. Inspired by typescale.com.
+**Alternatives:** Keep table (uninspiring), embed iframe (overcomplicated).
+**Consequences:** Designers can see actual visual hierarchy at a glance; line-height control affects preview in real-time.

@@ -12,3 +12,5 @@
 - **[CSS]:** Do NOT use `z-index` hacks to escape parent overflow clipping. Use React Portals instead. (Learned 2026-02-07)
 - **[Logic]:** Do NOT create components during render (e.g., defining a component inside another component's return). This causes cascading re-renders and React 19 violations. (Learned 2026-02-07)
 - **[Config]:** Do NOT hardcode token file lists. Use `import.meta.glob` for dynamic discovery to maintain file system parity. (Learned 2026-02-05)
+- **[Shell]:** Do NOT use `npx tsc --noEmit 2>&1 | Select-Object` in PowerShell — stderr gets converted to `ErrorRecord` objects and is silently dropped by pipe. Use `npx tsc --noEmit; echo "EXIT: $LASTEXITCODE"` instead. (Learned 2026-02-23)
+- **[Z-Index]:** Do NOT add custom dropdowns with low `z-index` when existing sticky toolbars use higher values (e.g., StudioToolbar at `z-index: 2000` blocked a `z-index: 100` dropdown). Always check the z-index hierarchy first. (Learned 2026-02-23)
