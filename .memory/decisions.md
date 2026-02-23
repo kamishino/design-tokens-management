@@ -71,3 +71,24 @@
 **Decision:** Replaced with labeled visual rows (h1→xs) showing live text at computed size, font family, and px/rem/lh metrics. Inspired by typescale.com.
 **Alternatives:** Keep table (uninspiring), embed iframe (overcomplicated).
 **Consequences:** Designers can see actual visual hierarchy at a glance; line-height control affects preview in real-time.
+
+## [2026-02-23] — Smart Tips as Dedicated Sub-Tab
+
+**Context:** SmartTipsPanel inside Colors sub-tab was cluttering the color controls.
+**Decision:** Moved to its own "✨ Tips" sub-tab (3 tabs: Colors / Typography / Tips).
+**Alternatives:** Collapsible section inside Colors (still crowded), floating panel (too disruptive).
+**Consequences:** Cleaner Colors tab; Tips panel has full vertical space for suggestions.
+
+## [2026-02-23] — Number Inputs + Preset Chips for TypeScale Controls
+
+**Context:** Base Size slider, Scale Ratio preset list, and Line Height buttons were inconsistent and space-hungry.
+**Decision:** Replaced with compact number inputs + preset chip rows. Added dual-view toggle (Scale Ladder / Article Preview).
+**Alternatives:** Select dropdowns like typescale.com (less visual), keep sliders (imprecise).
+**Consequences:** Consistent UX pattern across all 3 controls. Chips provide quick access, inputs allow precision.
+
+## [2026-02-23] — Per-Role Typography Controls (typescale.com Parity)
+
+**Context:** typescale.com gap analysis revealed missing Weight, Line Height, and Letter Spacing per font role.
+**Decision:** Added 3 controls per font role card: weight chip selector (300-900), LH number input, LS number input (em). CSS vars: `--font-weight-{role}`, `--line-height-{role}`, `--letter-spacing-{role}`.
+**Alternatives:** Shared controls only (less precise), full typescale.com clone (responsive breakpoints — overkill).
+**Consequences:** ArticlePreview reflects per-role values. Heading defaults differ from body (weight 700 vs 400, LH 1.2 vs 1.5).

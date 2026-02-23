@@ -11,9 +11,18 @@
 
 > **INTEGRATOR RULE:** Always update all 4 fields (Phase, Last Action, Focus, Next Step) during `/kamiflow:ops:sync`.
 
-- **Last Completed Action: Task 133 - fix-popover-container
-- **Current Focus: Design System Automation
-- **Next Step: Task 134 - Distribution Pipeline (NPM Publishing)
+- **Last Completed Action:** Phase M2 — Per-role typography controls (Weight/LH/LS per font role)
+- **Current Focus:** Typography Tuning Enhancements
+- **Next Step:** Continue typography refinements or next feature
+- **Session Commits (2026-02-23):**
+  - `3a7758f` fix: Smart Tips → own sub-tab + 3 CSS variable mismatches
+  - `18c69c5` fix: sidebar treeview full width
+  - `2416a29` feat(phase-m): typescale configurator with article preview
+  - `e9897fe` feat(m2): per-role typography controls (weight, line-height, letter-spacing)
+- **New CSS Variables:**
+  - `--font-weight-{heading,body,code}` (defaults: 700/400/400)
+  - `--line-height-{heading,body,code}` (defaults: 1.2/1.5/1.5)
+  - `--letter-spacing-{heading,body,code}` (defaults: 0em)
 
 ## 3. Knowledge Map (Directory Guide)
 
@@ -32,7 +41,3 @@
 - **Reflection Required:** Yes (Phase 4 quality gates)
 - **Self-Healing Rate:** Target >80% for Level 1 errors
 - **Validation Pass Rate:** Target >90% first-attempt success
-
-
-
-

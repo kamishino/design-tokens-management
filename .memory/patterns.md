@@ -51,3 +51,11 @@
 
 - **Pattern:** Singleton instance pattern for performance-critical UI (hover inspector, floating lab).
 - **When to use:** Components that must remain unique and performant across the app.
+
+- **Pattern:** Compact number input + preset chip row for bounded numeric controls.
+- **Example:** Base Size (10-32px), Scale Ratio (1.0-2.0 + named presets), Line Height (1.0-2.5).
+- **When to use:** When a control has both free-form numeric input AND common preset values.
+
+- **Pattern:** Per-role typography card with inline controls (Weight chips, LH input, LS input).
+- **Example:** Heading card: `[Font ▾] Weight:[700] LH:[1.2] LS:[0em]`
+- **When to use:** Any font role that needs independent weight, line-height, and letter-spacing.

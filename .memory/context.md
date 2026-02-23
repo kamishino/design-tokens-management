@@ -2,44 +2,51 @@
 
 > Current project state snapshot. Overwritten at the end of each session via `/sync`.
 
-## Checkpoint — 20:34 2026-02-23
+## Checkpoint — 22:08 2026-02-23
 
-**Current task:** Phase H→I→J — Color Science, UX Polish, Header & Typography
+**Current task:** Phase M2 — Per-role typography controls (typescale.com parity)
 **Done so far:**
 
-- Phase H: OKLCH Harmony Lab (culori), variant toggle (L/C shift), 3-mode layout, dual WCAG/APCA contrast, 60/30/10 rule bar
-- Phase I: Variant re-randomize (seeded PRNG), VSCode-style panel toggles, Tuning sub-tabs, ThemeBar merged into header, enhanced token tooltip
-- Phase J: Remove duplicate header dropdown, merge Harmony into Colors (2 sub-tabs), group layout icons, line-height control, typescale.com-style preview
+- Phase L: Smart Tips engine — extensible rule architecture, CSS variable mismatch fixes, Tips → own sub-tab
+- Phase M: TypeScale Configurator — number inputs + preset chips for base size/ratio/line-height, ArticlePreview component, dual-view toggle (ladder/article)
+- Phase M2: Per-role typography controls — weight/line-height/letter-spacing per font role (heading/body/code)
+- Sidebar fix: treeview full width (removed hardcoded 260px)
 
 ## Active Work
 
-- **Last Completed Task:** Phase J — Header cleanup + Typography upgrade
+- **Last Completed Task:** Phase M2 — Per-role typography controls
 - **Current Release:** v0.4.0 "Studio Manager"
 - **Project Phase:** Discovery
-- **Current Focus:** Design System Automation — UX Polish Pipeline
-- **Next Planned Task:** TBD — user may continue UX refinements or start distribution pipeline
+- **Current Focus:** Typography Tuning Enhancements
+- **Next Planned Task:** TBD — user may continue refinements or start new feature
 
 ## Recent Commits (This Session)
 
-- `d731cde` feat(phase-j): header cleanup, grouped toggles, 2 sub-tabs, line-height, type scale
-- `1ca5f64` feat(phase-i): UX polish — variant re-randomize, VSCode toggles, sub-tabs, merged header
-- `3479e19` feat(phase-h): OKLCH harmony lab, 3-mode layout, APCA contrast, 60/30/10 bar
+- `3a7758f` fix: Smart Tips → own sub-tab + 3 CSS variable mismatches
+- `18c69c5` fix: sidebar treeview full width
+- `2416a29` feat(phase-m): typescale configurator with article preview
+- `e9897fe` feat(m2): per-role typography controls (weight, line-height, letter-spacing)
 
 ## Key Files Changed
 
-- `src/components/workspace/TuningTab.tsx` — 2 sub-tabs (Colors+Harmony / Typography), line-height, typescale preview
-- `src/components/workspace/WorkspaceHeader.tsx` — read-only label, grouped VSCode toggle icons
-- `src/components/workspace/WorkspaceLayout.tsx` — sidebar/inspector toggle state
-- `src/components/workspace/InspectorPanel.tsx` — Token→Detail rename, default=Tuning
-- `src/components/explorer/InspectorOverlay.tsx` — token path + type badge tooltip
+- `src/components/workspace/TuningTab.tsx` — 3 sub-tabs (Colors / Typography / Tips), per-role controls (weight/LH/LS), ArticlePreview, dual-view toggle (~1700 lines)
+- `src/components/explorer/FileExplorer.tsx` — sidebar width fix (w="full")
+- `src/utils/design-rules.ts` — 3 CSS variable mismatch fixes
+
+## New CSS Variables (This Session)
+
+- `--font-weight-{heading,body,code}` — defaults: 700/400/400
+- `--line-height-{heading,body,code}` — defaults: 1.2/1.5/1.5
+- `--letter-spacing-{heading,body,code}` — defaults: 0em
 
 ## Open Questions
 
 - Distribution Pipeline (Task 134): NPM publishing strategy TBD.
-- Type scale preview could support custom text input (typescale.com feature).
+- Type scale preview: custom text input support (typescale.com feature)?
+- Font category filter for font picker (Serif/Sans/Mono/Display)?
 
 ## Technical Debt
 
-- TuningTab.tsx is ~1080 lines — consider extracting ColorsTuning and TypographyTuning components.
+- TuningTab.tsx is ~1700 lines — extract ColorsTuning, TypographyTuning, ArticlePreview into separate files.
 - `useMemo` with side-effect (`setStaged`) in StagingPanel — should ideally be `useEffect`.
-- PowerShell `2>&1 | Select-Object` silently drops tsc errors — use `npx tsc --noEmit; echo "EXIT: $LASTEXITCODE"` instead.
+- Global `--typography-line-height` in Type Scale section overlaps with per-role `--line-height-{role}` — consider consolidating.
