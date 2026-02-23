@@ -1,11 +1,4 @@
-import {
-  Box,
-  Text,
-  HStack,
-  VStack,
-  Clipboard,
-  IconButton,
-} from "@chakra-ui/react";
+import { Box, Text, HStack, Clipboard, IconButton } from "@chakra-ui/react";
 import { useState, memo } from "react";
 import {
   LuChevronRight,
