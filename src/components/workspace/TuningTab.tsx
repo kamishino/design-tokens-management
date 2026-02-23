@@ -7,16 +7,43 @@ import {
   Portal,
   Table,
   Input,
+  Badge,
 } from "@chakra-ui/react";
 import { useCallback, useMemo, useState } from "react";
 import { LuPalette, LuType, LuUndo2, LuRedo2, LuCheck } from "react-icons/lu";
 import { Slider } from "../ui/slider";
+import { parse, converter, wcagContrast } from "culori";
 import { StudioColorPicker } from "../playground/panels/StudioColorPicker";
 import { getPrioritizedTokenMap } from "../../utils/token-graph";
 import { prependFont } from "../../utils/fonts";
 import { Button } from "../ui/button";
 import type { TokenDoc } from "../../utils/token-parser";
 import type { TokenOverrides } from "../../schemas/manifest";
+
+// --- Color Science Utilities (culori) ---
+const toOklch = converter("oklch");
+
+const getColorInfo = (hex: string) => {
+  const parsed = parse(hex);
+  if (!parsed) return { l: 0, c: 0, h: 0, contrastW: 1, contrastB: 21 };
+  const oklch = toOklch(parsed);
+  const contrastW = wcagContrast(parsed, "white");
+  const contrastB = wcagContrast(parsed, "black");
+  return {
+    l: Math.round((oklch.l ?? 0) * 100),
+    c: Math.round((oklch.c ?? 0) * 1000) / 1000,
+    h: Math.round(oklch.h ?? 0),
+    contrastW: Math.round(contrastW * 100) / 100,
+    contrastB: Math.round(contrastB * 100) / 100,
+  };
+};
+
+const getWcagBadge = (ratio: number) => {
+  if (ratio >= 7) return { label: "AAA", colorPalette: "green" };
+  if (ratio >= 4.5) return { label: "AA", colorPalette: "green" };
+  if (ratio >= 3) return { label: "AA18", colorPalette: "yellow" };
+  return { label: "Fail", colorPalette: "red" };
+};
 
 const SEMANTIC_CHANNELS = [
   {
@@ -344,20 +371,51 @@ export const TuningTab = ({
               channel.token,
               "#000000",
             );
+            const info = getColorInfo(color);
+            const bestContrast =
+              info.contrastW >= info.contrastB
+                ? info.contrastW
+                : info.contrastB;
+            const contrastLabel =
+              info.contrastW >= info.contrastB ? "on white" : "on black";
+            const badge = getWcagBadge(bestContrast);
             return (
-              <HStack key={channel.id} gap={2}>
-                <StudioColorPicker
-                  variant="button"
-                  label={channel.label}
-                  color={color}
-                  onChange={(c) =>
-                    updateOverride(
-                      { [channel.variable]: c },
-                      `Changed ${channel.label}`,
-                    )
-                  }
-                />
-              </HStack>
+              <VStack key={channel.id} gap={0.5} align="stretch">
+                <HStack gap={2}>
+                  <StudioColorPicker
+                    variant="button"
+                    label={channel.label}
+                    color={color}
+                    onChange={(c) =>
+                      updateOverride(
+                        { [channel.variable]: c },
+                        `Changed ${channel.label}`,
+                      )
+                    }
+                  />
+                </HStack>
+                <HStack gap={1} pl={1}>
+                  <Text fontSize="8px" fontFamily="monospace" color="gray.400">
+                    L:{info.l}%
+                  </Text>
+                  <Text fontSize="8px" fontFamily="monospace" color="gray.400">
+                    C:{info.c}
+                  </Text>
+                  <Text fontSize="8px" fontFamily="monospace" color="gray.400">
+                    H:{info.h}°
+                  </Text>
+                  <Badge
+                    size="xs"
+                    variant="subtle"
+                    colorPalette={badge.colorPalette}
+                    fontSize="7px"
+                    px={1}
+                    py={0}
+                  >
+                    {badge.label} {bestContrast}:1 {contrastLabel}
+                  </Badge>
+                </HStack>
+              </VStack>
             );
           })}
         </VStack>
@@ -582,7 +640,7 @@ export const TuningTab = ({
                     py={1}
                     px={2}
                   >
-                    Sample
+                    REM
                   </Table.ColumnHeader>
                 </Table.Row>
               </Table.Header>
@@ -594,13 +652,15 @@ export const TuningTab = ({
                     1.25;
                   const size =
                     Math.round(base * Math.pow(ratio, step) * 100) / 100;
+                  const rem = Math.round((size / 16) * 1000) / 1000;
+                  const isBase = step === 0;
                   return (
                     <Table.Row key={step}>
                       <Table.Cell py={0.5} px={2}>
                         <Text
                           fontSize="9px"
                           fontFamily="monospace"
-                          color={step === 0 ? "blue.600" : "gray.500"}
+                          color={isBase ? "blue.600" : "gray.500"}
                         >
                           {step}
                         </Text>
@@ -610,18 +670,19 @@ export const TuningTab = ({
                           fontSize="9px"
                           fontFamily="'Space Mono', monospace"
                           fontWeight="600"
-                          color={step === 0 ? "blue.600" : "gray.700"}
+                          color={isBase ? "blue.600" : "gray.700"}
                         >
                           {size}px
                         </Text>
                       </Table.Cell>
                       <Table.Cell py={0.5} px={2}>
                         <Text
-                          style={{ fontSize: `${Math.min(size, 28)}px` }}
-                          lineClamp={1}
-                          fontWeight={step > 0 ? "bold" : "normal"}
+                          fontSize="9px"
+                          fontFamily="'Space Mono', monospace"
+                          fontWeight="500"
+                          color={isBase ? "blue.600" : "gray.500"}
                         >
-                          Aa
+                          {rem}rem
                         </Text>
                       </Table.Cell>
                     </Table.Row>

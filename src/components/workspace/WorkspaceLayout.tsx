@@ -1,4 +1,4 @@
-import { Box, HStack, VStack } from "@chakra-ui/react";
+import { Box, HStack, VStack, Text } from "@chakra-ui/react";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useGlobalTokens } from "../../hooks/useGlobalTokens";
 import { useCommandPalette } from "../../hooks/useCommandPalette";
@@ -55,6 +55,7 @@ export const WorkspaceLayout = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [inspectorVisible, setInspectorVisible] = useState(true);
+  const [explorerCollapsed, setExplorerCollapsed] = useState(false);
 
   const [activePanel, setActivePanel] = useState<SidebarPanelId>(() => {
     if (typeof window === "undefined") return "explorer";
@@ -222,19 +223,48 @@ export const WorkspaceLayout = ({
           borderColor="gray.200"
           overflow="hidden"
         >
+          {/* File Explorer — collapsible */}
           <Box
-            h="45%"
             w="full"
             borderBottom="1px solid"
             borderColor="gray.100"
-            overflowY="auto"
+            overflow="hidden"
+            transition="height 0.2s"
+            h={explorerCollapsed ? "28px" : "45%"}
+            flexShrink={0}
           >
-            <FileExplorer
-              manifest={manifest}
-              context={activePanel}
-              activePath={selectedProject}
-              onSelect={(_, key) => onProjectChange(key)}
-            />
+            <HStack
+              h="28px"
+              px={3}
+              bg="gray.50"
+              cursor="pointer"
+              _hover={{ bg: "gray.100" }}
+              onClick={() => setExplorerCollapsed((v) => !v)}
+              userSelect="none"
+              borderBottom="1px solid"
+              borderColor="gray.100"
+            >
+              <Text
+                fontSize="9px"
+                fontWeight="700"
+                color="gray.400"
+                textTransform="uppercase"
+                letterSpacing="wider"
+                flex={1}
+              >
+                {explorerCollapsed ? "▶" : "▼"} Files
+              </Text>
+            </HStack>
+            {!explorerCollapsed && (
+              <Box h="calc(100% - 28px)" overflowY="auto">
+                <FileExplorer
+                  manifest={manifest}
+                  context={activePanel}
+                  activePath={selectedProject}
+                  onSelect={(_, key) => onProjectChange(key)}
+                />
+              </Box>
+            )}
           </Box>
           <Box flex={1} w="full" overflow="hidden">
             <TokenTree
