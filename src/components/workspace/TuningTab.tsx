@@ -20,6 +20,7 @@ import { prependFont } from "../../utils/fonts";
 import { Button } from "../ui/button";
 import type { TokenDoc } from "../../utils/token-parser";
 import type { TokenOverrides } from "../../schemas/manifest";
+import { ColorScalePanel } from "./ColorScalePanel";
 
 // --- Color Science Utilities (culori + APCA) ---
 const toOklch = converter("oklch");
@@ -587,6 +588,37 @@ export const TuningTab = ({
                   );
                 })}
               </VStack>
+
+              {/* OKLCH Color Scales (K3+K5) */}
+              <Box mt={3}>
+                <Text
+                  fontSize="9px"
+                  fontWeight="700"
+                  color="gray.400"
+                  textTransform="uppercase"
+                  letterSpacing="wider"
+                  mb={1.5}
+                >
+                  Shade Scales
+                </Text>
+                <ColorScalePanel
+                  colors={SEMANTIC_CHANNELS.filter((c) =>
+                    [
+                      "--brand-primary",
+                      "--brand-secondary",
+                      "--brand-accent",
+                    ].includes(c.variable),
+                  ).map((c) => ({
+                    id: c.id,
+                    label: c.label,
+                    hex: getEffectiveValue(c.variable, c.token, "#000000"),
+                    variable: c.variable,
+                  }))}
+                  onSelectShade={(variable, hex, label) =>
+                    updateOverride({ [variable]: hex }, label)
+                  }
+                />
+              </Box>
 
               {/* 60/30/10 Proportion Guide */}
               <Box mt={3}>

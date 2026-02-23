@@ -4,6 +4,7 @@ import { useGlobalTokens } from "../../hooks/useGlobalTokens";
 import { useCommandPalette } from "../../hooks/useCommandPalette";
 import { groupTokensByFile } from "../../utils/token-grouping";
 import { WorkspaceHeader } from "./WorkspaceHeader";
+import { ResizeHandle } from "./ResizeHandle";
 import { ActivityBar } from "../explorer/ActivityBar";
 import { FileExplorer } from "../explorer/FileExplorer";
 import { TokenTree } from "../explorer/TokenTree";
@@ -56,6 +57,22 @@ export const WorkspaceLayout = ({
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const [inspectorVisible, setInspectorVisible] = useState(true);
   const [explorerCollapsed, setExplorerCollapsed] = useState(false);
+
+  // Resizable panel widths (K1)
+  const [sidebarWidth, setSidebarWidth] = useState(() => {
+    const saved = localStorage.getItem("ide_sidebar_width");
+    return saved ? Number(saved) : 280;
+  });
+  const [inspectorWidth, setInspectorWidth] = useState(() => {
+    const saved = localStorage.getItem("ide_inspector_width");
+    return saved ? Number(saved) : 300;
+  });
+  const saveSidebarWidth = useCallback(() => {
+    localStorage.setItem("ide_sidebar_width", String(sidebarWidth));
+  }, [sidebarWidth]);
+  const saveInspectorWidth = useCallback(() => {
+    localStorage.setItem("ide_inspector_width", String(inspectorWidth));
+  }, [inspectorWidth]);
 
   const [activePanel, setActivePanel] = useState<SidebarPanelId>(() => {
     if (typeof window === "undefined") return "explorer";
@@ -214,9 +231,9 @@ export const WorkspaceLayout = ({
         {/* Left Panel: File Explorer + Token Tree */}
         {sidebarVisible && (
           <VStack
-            w="280px"
+            w={`${sidebarWidth}px`}
             minW="240px"
-            maxW="320px"
+            maxW="480px"
             h="full"
             gap={0}
             bg="white"
@@ -282,6 +299,17 @@ export const WorkspaceLayout = ({
           </VStack>
         )}
 
+        {/* Sidebar Resize Handle */}
+        {sidebarVisible && (
+          <ResizeHandle
+            side="left"
+            onResize={(d) =>
+              setSidebarWidth((w) => Math.max(240, Math.min(480, w + d)))
+            }
+            onResizeEnd={saveSidebarWidth}
+          />
+        )}
+
         {/* Center: Preview Canvas */}
         <Box flex={1} h="full" overflow="auto" bg="gray.50">
           <StudioView
@@ -302,11 +330,22 @@ export const WorkspaceLayout = ({
           />
         </Box>
 
+        {/* Inspector Resize Handle */}
+        {inspectorVisible && (
+          <ResizeHandle
+            side="right"
+            onResize={(d) =>
+              setInspectorWidth((w) => Math.max(240, Math.min(500, w + d)))
+            }
+            onResizeEnd={saveInspectorWidth}
+          />
+        )}
+
         {/* Right: Inspector Panel */}
         {inspectorVisible && (
           <Box
-            w="300px"
-            minW="260px"
+            w={`${inspectorWidth}px`}
+            minW="240px"
             h="full"
             bg="white"
             borderLeft="1px solid"

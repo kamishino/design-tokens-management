@@ -12,6 +12,7 @@ import {
 } from "@chakra-ui/react";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { LandingPage } from "./templates/LandingPage";
+import { BlogPost } from "./templates/BlogPost";
 import { Dashboard } from "./templates/Dashboard";
 import { UnifiedStudio } from "./templates/UnifiedStudio";
 import { ProductDetail } from "./templates/ProductDetail";
@@ -60,6 +61,7 @@ const templates = createListCollection({
     { label: "SaaS Landing Page", value: "landing" },
     { label: "Admin Dashboard", value: "dashboard" },
     { label: "E-commerce Product", value: "ecommerce" },
+    { label: "Blog Post", value: "blog" },
   ],
 });
 
@@ -540,6 +542,7 @@ export const StudioView = ({
         {template === "landing" && <LandingPage data={mockData} />}
         {template === "dashboard" && <Dashboard data={mockData} />}
         {template === "ecommerce" && <ProductDetail data={mockData} />}
+        {template === "blog" && <BlogPost data={mockData} />}
       </Box>
     </Box>
   );
