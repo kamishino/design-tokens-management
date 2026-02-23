@@ -10,47 +10,52 @@ import type { TokenOverrides } from "../../schemas/manifest";
 const SEMANTIC_CHANNELS = [
   {
     id: "primary",
-    variable: "--brandPrimary",
+    variable: "--brand-primary",
     label: "Primary",
     token: "brand.primary",
   },
   {
     id: "secondary",
-    variable: "--brandSecondary",
+    variable: "--brand-secondary",
     label: "Secondary",
     token: "brand.secondary",
   },
   {
     id: "accent",
-    variable: "--brandAccent",
+    variable: "--brand-accent",
     label: "Accent",
     token: "brand.accent",
   },
   {
     id: "text",
-    variable: "--textPrimary",
+    variable: "--text-primary",
     label: "Text",
     token: "text.primary",
   },
-  { id: "bg", variable: "--bgCanvas", label: "Background", token: "bg.canvas" },
+  {
+    id: "bg",
+    variable: "--bg-canvas",
+    label: "Background",
+    token: "bg.canvas",
+  },
 ];
 
 const FONT_ROLES = [
   {
     id: "heading",
-    variable: "--fontFamilyHeading",
+    variable: "--font-family-base",
     label: "Heading",
     token: "font.family.base",
   },
   {
     id: "body",
-    variable: "--fontFamilyBody",
+    variable: "--font-family-body",
     label: "Body",
     token: "font.family.base",
   },
   {
     id: "code",
-    variable: "--fontFamilyCode",
+    variable: "--font-family-mono",
     label: "Code",
     token: "font.family.mono",
   },

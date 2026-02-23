@@ -249,7 +249,7 @@ export const WorkspaceLayout = ({
         </VStack>
 
         {/* Center: Preview Canvas */}
-        <Box flex={1} h="full" overflow="hidden" bg="gray.50">
+        <Box flex={1} h="full" overflow="auto" bg="gray.50">
           <StudioView
             manifest={manifest}
             globalTokens={globalTokens}
