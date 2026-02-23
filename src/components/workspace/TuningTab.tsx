@@ -21,6 +21,8 @@ import { Button } from "../ui/button";
 import type { TokenDoc } from "../../utils/token-parser";
 import type { TokenOverrides } from "../../schemas/manifest";
 import { ColorScalePanel } from "./ColorScalePanel";
+import { SmartTipsPanel } from "./SmartTipsPanel";
+import type { AnalysisContext } from "../../utils/design-rules";
 
 // --- Color Science Utilities (culori + APCA) ---
 const toOklch = converter("oklch");
@@ -498,6 +500,59 @@ export const TuningTab = ({
         {/* Color Channels */}
         {tuningSubTab === "colors" && (
           <>
+            {/* Smart Tips (Phase L) */}
+            <SmartTipsPanel
+              context={
+                {
+                  colors: SEMANTIC_CHANNELS.map((c) => ({
+                    variable: c.variable,
+                    label: c.label,
+                    hex: getEffectiveValue(c.variable, c.token, "#000000"),
+                  })),
+                  typography: {
+                    baseSize: Number(overrides["--font-size-root"]) || 16,
+                    scaleRatio:
+                      Number(overrides["--typography-config-scale-ratio"]) ||
+                      1.25,
+                    lineHeight:
+                      Number(overrides["--typography-line-height"]) || 1.5,
+                    headingFont: (
+                      getEffectiveValue(
+                        "--font-family-heading",
+                        "font.family.heading",
+                        "Inter",
+                      ) || "Inter"
+                    )
+                      .split(",")[0]
+                      .replace(/['"]/g, "")
+                      .trim(),
+                    bodyFont: (
+                      getEffectiveValue(
+                        "--font-family-base",
+                        "font.family.base",
+                        "Inter",
+                      ) || "Inter"
+                    )
+                      .split(",")[0]
+                      .replace(/['"]/g, "")
+                      .trim(),
+                    codeFont: (
+                      getEffectiveValue(
+                        "--font-family-mono",
+                        "font.family.mono",
+                        "monospace",
+                      ) || "monospace"
+                    )
+                      .split(",")[0]
+                      .replace(/['"]/g, "")
+                      .trim(),
+                  },
+                } satisfies AnalysisContext
+              }
+              onApplyFix={(variable, value, label) =>
+                updateOverride({ [variable]: value }, label)
+              }
+            />
             <Box p={3} borderBottom="1px solid" borderColor="gray.50">
               <HStack gap={1.5} mb={3}>
                 <LuPalette size={12} color="var(--chakra-colors-gray-400)" />
