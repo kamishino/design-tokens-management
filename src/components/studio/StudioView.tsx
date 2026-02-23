@@ -37,7 +37,7 @@ interface StudioViewProps {
   globalTokens: TokenDoc[];
   selectedProject: string;
   onProjectChange: (val: string) => void;
-  onExit: () => void;
+
   onOpenDocs: () => void;
   onInspectChange: (tokens: string[] | undefined) => void;
   inspectedTokens?: string[];
@@ -68,7 +68,7 @@ export const StudioView = ({
   globalTokens,
   selectedProject,
   onProjectChange,
-  onExit,
+
   onInspectChange,
   inspectedTokens,
   overrides,
@@ -329,10 +329,6 @@ export const StudioView = ({
           >
             <LuScanEye size={14} style={{ marginRight: 6 }} />
             {isInspectMode ? "Exit Inspect" : "Inspect Mode"}
-          </Button>
-
-          <Button size="xs" variant="outline" onClick={onExit}>
-            Exit Studio
           </Button>
         </HStack>
       </Box>

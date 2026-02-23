@@ -152,13 +152,13 @@ export const usePersistentPlayground = () => {
       document.head.appendChild(styleTag);
     }
 
-    const baseSize = Number(state.overrides['--fontSizeRoot']) || 16;
-    const ratio = Number(state.overrides['--typographyConfigScaleRatio']) || 1.250;
+    const baseSize = Number(state.overrides['--font-size-root']) || 16;
+    const ratio = Number(state.overrides['--typography-config-scale-ratio']) || 1.250;
 
     // Generate Derived Typography Scale (Step -2 to 8)
     const scaleRules: string[] = [];
     const steps = [
-      { id: -2, name: 'Minus2' }, { id: -1, name: 'Minus1' }, { id: 0, name: '0' },
+      { id: -2, name: 'minus-2' }, { id: -1, name: 'minus-1' }, { id: 0, name: '0' },
       { id: 1, name: '1' }, { id: 2, name: '2' }, { id: 3, name: '3' },
       { id: 4, name: '4' }, { id: 5, name: '5' }, { id: 6, name: '6' },
       { id: 7, name: '7' }, { id: 8, name: '8' }
@@ -168,7 +168,7 @@ export const usePersistentPlayground = () => {
       const exactPx = baseSize * Math.pow(ratio, step.id);
       const roundedPx = Math.round(exactPx);
       
-      scaleRules.push(`  --fontSizeScale${step.name}: ${roundedPx}px !important;`);
+      scaleRules.push(`  --font-size-scale-${step.name}: ${roundedPx}px !important;`);
     });
 
     const overrideRules = Object.entries(state.overrides)

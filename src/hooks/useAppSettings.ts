@@ -12,6 +12,7 @@ export interface AppSettings {
 }
 
 export const SUPPORTED_IDES: IDEConfig[] = [
+  { id: 'antigravity', name: 'AntiGravity', protocol: 'antigravity://' },
   { id: 'windsurf', name: 'Windsurf', protocol: 'windsurf://' },
   { id: 'vscode', name: 'VS Code', protocol: 'vscode://' },
   { id: 'cursor', name: 'Cursor', protocol: 'cursor://' },

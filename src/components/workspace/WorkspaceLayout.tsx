@@ -257,7 +257,6 @@ export const WorkspaceLayout = ({
             globalTokens={globalTokens}
             selectedProject={selectedProject}
             onProjectChange={onProjectChange}
-            onExit={() => {}} // No-op in unified layout
             onOpenDocs={() => {}}
             onInspectChange={setInspectedTokens}
             inspectedTokens={inspectedTokens}

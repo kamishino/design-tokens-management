@@ -1,10 +1,13 @@
-import { Box, VStack, HStack, Text, Badge } from "@chakra-ui/react";
-import { useState, useMemo } from "react";
+import { Box, VStack, HStack, Text, Badge, Input } from "@chakra-ui/react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import {
   LuArrowRight,
   LuCircleDot,
   LuPalette,
   LuGitBranch,
+  LuPencil,
+  LuCheck,
+  LuX,
 } from "react-icons/lu";
 import { StagingPanel } from "./StagingPanel";
 import { TuningTab } from "./TuningTab";
@@ -138,22 +141,88 @@ export const InspectorPanel = ({
 // ---------------------
 
 const TokenDetailTab = ({ token }: { token: TokenDoc | null }) => {
+  const [editValue, setEditValue] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">(
+    "idle",
+  );
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Reset edit state when token changes
+  useEffect(() => {
+    setEditValue(null);
+    setSaveStatus("idle");
+  }, [token?.id]);
+
   const details = useMemo(() => {
     if (!token) return [];
     return [
-      { label: "Name", value: token.name },
-      { label: "Type", value: token.type },
-      { label: "Value", value: String(token.value) },
+      { label: "Name", value: token.name, editable: false },
+      { label: "Type", value: token.type, editable: false },
+      { label: "Value", value: String(token.value), editable: true },
       ...(token.resolvedValue !== token.value
-        ? [{ label: "Resolved", value: String(token.resolvedValue) }]
+        ? [
+            {
+              label: "Resolved",
+              value: String(token.resolvedValue),
+              editable: false,
+            },
+          ]
         : []),
-      { label: "CSS Variable", value: token.cssVariable },
-      { label: "Source", value: token.sourceFile },
+      { label: "CSS Variable", value: token.cssVariable, editable: false },
+      { label: "Source", value: token.sourceFile, editable: false },
       ...(token.path.length > 0
-        ? [{ label: "Path", value: token.path.join(" → ") }]
+        ? [{ label: "Path", value: token.path.join(" → "), editable: false }]
         : []),
     ];
   }, [token]);
+
+  const handleStartEdit = () => {
+    if (!token) return;
+    setEditValue(String(token.value));
+    setSaveStatus("idle");
+    setTimeout(() => inputRef.current?.focus(), 50);
+  };
+
+  const handleCancelEdit = () => {
+    setEditValue(null);
+    setSaveStatus("idle");
+  };
+
+  const handleSave = async () => {
+    if (!token || editValue === null || isSaving) return;
+    if (editValue === String(token.value)) {
+      setEditValue(null);
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const response = await fetch("/api/save-token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          targetPath: token.sourceFile,
+          tokenPath: token.id,
+          valueObj: { $value: editValue },
+          action: "update",
+        }),
+      });
+      if (!response.ok) throw new Error("Save failed");
+      setSaveStatus("success");
+      setEditValue(null);
+      setTimeout(() => setSaveStatus("idle"), 2000);
+    } catch {
+      setSaveStatus("error");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") handleSave();
+    if (e.key === "Escape") handleCancelEdit();
+  };
 
   if (!token) {
     return (
@@ -206,15 +275,74 @@ const TokenDetailTab = ({ token }: { token: TokenDoc | null }) => {
             >
               {d.label}
             </Text>
-            <Text
-              fontSize="11px"
-              color="gray.700"
-              fontFamily="'Space Mono', monospace"
-              wordBreak="break-all"
-              flex={1}
-            >
-              {d.value}
-            </Text>
+
+            {/* Editable Value Row */}
+            {d.editable && editValue !== null ? (
+              <HStack flex={1} gap={1}>
+                <Input
+                  ref={inputRef}
+                  size="xs"
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  onBlur={handleSave}
+                  fontFamily="'Space Mono', monospace"
+                  fontSize="11px"
+                  disabled={isSaving}
+                  borderColor="blue.300"
+                  _focus={{
+                    borderColor: "blue.500",
+                    boxShadow: "0 0 0 1px var(--chakra-colors-blue-500)",
+                  }}
+                />
+                <Box
+                  as="button"
+                  onClick={handleCancelEdit}
+                  color="gray.400"
+                  _hover={{ color: "red.500" }}
+                  cursor="pointer"
+                  flexShrink={0}
+                >
+                  <LuX size={12} />
+                </Box>
+              </HStack>
+            ) : (
+              <HStack
+                flex={1}
+                gap={1}
+                cursor={d.editable ? "pointer" : "default"}
+                onClick={d.editable ? handleStartEdit : undefined}
+                borderRadius="sm"
+                px={1}
+                mx={-1}
+                _hover={
+                  d.editable ? { bg: "blue.50", color: "blue.600" } : undefined
+                }
+                transition="all 0.1s"
+              >
+                <Text
+                  fontSize="11px"
+                  color={
+                    d.editable && saveStatus === "success"
+                      ? "green.500"
+                      : d.editable && saveStatus === "error"
+                        ? "red.500"
+                        : "gray.700"
+                  }
+                  fontFamily="'Space Mono', monospace"
+                  wordBreak="break-all"
+                  flex={1}
+                >
+                  {d.value}
+                </Text>
+                {d.editable && saveStatus === "success" && (
+                  <LuCheck size={12} color="var(--chakra-colors-green-500)" />
+                )}
+                {d.editable && saveStatus === "idle" && (
+                  <LuPencil size={10} color="var(--chakra-colors-gray-300)" />
+                )}
+              </HStack>
+            )}
           </HStack>
         ))}
       </VStack>

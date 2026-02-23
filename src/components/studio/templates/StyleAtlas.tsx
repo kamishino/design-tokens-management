@@ -23,7 +23,7 @@ export const StyleAtlas = ({ data }: { data: StudioMockData }) => {
   ];
 
   return (
-    <Box bg="var(--bgCanvas)" minH="100vh" color="var(--textPrimary)" pb={32}>
+    <Box bg="var(--bg-canvas)" minH="100vh" color="var(--text-primary)" pb={32}>
       <Container maxW="container.xl" py={12}>
         <HStack align="flex-start" gap={12}>
           
@@ -38,7 +38,7 @@ export const StyleAtlas = ({ data }: { data: StudioMockData }) => {
             {sections.map(s => (
               <Link 
                 key={s.id} href={`#${s.id}`} fontSize="sm" fontWeight="bold" color="gray.500"
-                _hover={{ color: "var(--brandPrimary)", textDecoration: "none" }}
+                _hover={{ color: "var(--brand-primary)", textDecoration: "none" }}
               >
                 {s.label}
               </Link>
@@ -51,7 +51,7 @@ export const StyleAtlas = ({ data }: { data: StudioMockData }) => {
             {/* --- SECTION: TYPOGRAPHY --- */}
             <VStack id="typography" align="stretch" gap={10}>
               <VStack align="start" gap={2}>
-                <Heading size="2xl" fontFamily="var(--fontFamilyHeading)">Typography Foundations</Heading>
+                <Heading size="2xl" fontFamily="var(--font-family-heading)">Typography Foundations</Heading>
                 <Text color="gray.500">Validation for {data.brand.name} Type Scale and pairings.</Text>
               </VStack>
 
@@ -63,8 +63,8 @@ export const StyleAtlas = ({ data }: { data: StudioMockData }) => {
                     <HStack key={step} gap={8} w="full">
                       <Text w="80px" fontSize="10px" fontFamily="monospace" color="gray.400">Step {step}</Text>
                       <Text 
-                        style={{ fontSize: `var(--fontSizeScale${step === 0 ? '' : step})` }} 
-                        fontFamily="var(--fontFamilyHeading)" 
+                        style={{ fontSize: `var(--font-size-scale-${step === 0 ? '' : step})` }} 
+                        fontFamily="var(--font-family-heading)" 
                         fontWeight="black"
                         lineClamp={1}
                       >
@@ -78,15 +78,15 @@ export const StyleAtlas = ({ data }: { data: StudioMockData }) => {
               {/* Composition */}
               <SimpleGrid columns={{ base: 1, md: 2 }} gap={8}>
                 <VStack align="start" gap={6} p={8} bg="white" borderRadius="var(--radius3)" border="1px solid" borderColor="gray.100">
-                  <Heading as="h1" fontSize="var(--fontSizeScale6)" fontFamily="var(--fontFamilyHeading)">Main Header</Heading>
-                  <Text fontSize="var(--fontSizeScale)" fontFamily="var(--fontFamilyBody)" lineHeight="tall">
+                  <Heading as="h1" fontSize="var(--font-size-scale-6)" fontFamily="var(--font-family-heading)">Main Header</Heading>
+                  <Text fontSize="var(--font-size-scale-)" fontFamily="var(--font-family-body)" lineHeight="tall">
                     Our platform provides the tools to manage tokens from initial concept to global distribution. 
                      stop manually syncing JSON files. Our engine handles the complexity of 3-level inheritance.
                   </Text>
                 </VStack>
                 <VStack align="start" gap={6} p={8} bg="white" borderRadius="var(--radius3)" border="1px solid" borderColor="gray.100">
-                  <Heading as="h3" fontSize="var(--fontSizeScale3)" fontFamily="var(--fontFamilyHeading)">Section Subheader</Heading>
-                  <Text fontSize="var(--fontSizeScale-1)" fontFamily="var(--fontFamilyBody)" color="gray.500">
+                  <Heading as="h3" fontSize="var(--font-size-scale-3)" fontFamily="var(--font-family-heading)">Section Subheader</Heading>
+                  <Text fontSize="var(--font-size-scale--1)" fontFamily="var(--font-family-body)" color="gray.500">
                     The leading platform for design token management and cross-platform distribution.
                     Built for pragmatic indie builders and elite design teams.
                   </Text>
@@ -97,17 +97,17 @@ export const StyleAtlas = ({ data }: { data: StudioMockData }) => {
             {/* --- SECTION: COLORS --- */}
             <VStack id="colors" align="stretch" gap={10}>
               <VStack align="start" gap={2}>
-                <Heading size="xl" fontFamily="var(--fontFamilyHeading)">Color System</Heading>
+                <Heading size="xl" fontFamily="var(--font-family-heading)">Color System</Heading>
                 <Text color="gray.500">Semantic channel validation.</Text>
               </VStack>
 
               <SimpleGrid columns={{ base: 1, md: 3, xl: 5 }} gap={4}>
                 {[
-                  { id: 'primary', var: '--brandPrimary', token: 'brand.primary', label: 'Primary' },
-                  { id: 'secondary', var: '--brandSecondary', token: 'brand.secondary', label: 'Secondary' },
-                  { id: 'accent', var: '--brandAccent', token: 'brand.accent', label: 'Accent' },
-                  { id: 'text', var: '--textPrimary', token: 'text.primary', label: 'Text' },
-                  { id: 'bg', var: '--bgCanvas', token: 'bg.canvas', label: 'Background' }
+                  { id: 'primary', var: '--brand-primary', token: 'brand.primary', label: 'Primary' },
+                  { id: 'secondary', var: '--brand-secondary', token: 'brand.secondary', label: 'Secondary' },
+                  { id: 'accent', var: '--brand-accent', token: 'brand.accent', label: 'Accent' },
+                  { id: 'text', var: '--text-primary', token: 'text.primary', label: 'Text' },
+                  { id: 'bg', var: '--bg-canvas', token: 'bg.canvas', label: 'Background' }
                 ].map(c => (
                   <VStack key={c.id} p={4} bg="white" borderRadius="var(--radius2)" border="1px solid" borderColor="gray.100" align="start" data-tokens={c.token}>
                     <Box w="full" h="80px" bg={`var(${c.var})`} borderRadius="var(--radius1)" border="1px solid rgba(0,0,0,0.05)" />
@@ -123,7 +123,7 @@ export const StyleAtlas = ({ data }: { data: StudioMockData }) => {
             {/* --- SECTION: ACTIONS --- */}
             <VStack id="buttons" align="stretch" gap={10}>
               <VStack align="start" gap={2}>
-                <Heading size="xl" fontFamily="var(--fontFamilyHeading)">Action Suite</Heading>
+                <Heading size="xl" fontFamily="var(--font-family-heading)">Action Suite</Heading>
                 <Text color="gray.500">Button variants and interaction states.</Text>
               </VStack>
 
@@ -131,21 +131,21 @@ export const StyleAtlas = ({ data }: { data: StudioMockData }) => {
                 <SimpleGrid columns={{ base: 1, md: 3 }} gap={12}>
                   <VStack align="stretch" gap={4}>
                     <Text fontSize="xs" fontWeight="bold" color="gray.400" mb={2}>SOLID</Text>
-                    <Button bg="var(--brandPrimary)" color="white" borderRadius="var(--radius2)">Primary Action</Button>
-                    <Button bg="var(--brandSecondary)" color="var(--textPrimary)" borderRadius="var(--radius2)">Secondary Action</Button>
-                    <Button bg="var(--brandAccent)" color="white" borderRadius="var(--radius2)">Accent Action</Button>
+                    <Button bg="var(--brand-primary)" color="white" borderRadius="var(--radius2)">Primary Action</Button>
+                    <Button bg="var(--brand-secondary)" color="var(--text-primary)" borderRadius="var(--radius2)">Secondary Action</Button>
+                    <Button bg="var(--brand-accent)" color="white" borderRadius="var(--radius2)">Accent Action</Button>
                   </VStack>
                   <VStack align="stretch" gap={4}>
                     <Text fontSize="xs" fontWeight="bold" color="gray.400" mb={2}>OUTLINE</Text>
-                    <Button variant="outline" borderColor="var(--brandPrimary)" color="var(--brandPrimary)" borderRadius="var(--radius2)">Primary Outline</Button>
-                    <Button variant="outline" borderColor="var(--brandSecondary)" color="var(--textPrimary)" borderRadius="var(--radius2)">Secondary Outline</Button>
-                    <Button variant="outline" borderColor="var(--brandAccent)" color="var(--brandAccent)" borderRadius="var(--radius2)">Accent Outline</Button>
+                    <Button variant="outline" borderColor="var(--brand-primary)" color="var(--brand-primary)" borderRadius="var(--radius2)">Primary Outline</Button>
+                    <Button variant="outline" borderColor="var(--brand-secondary)" color="var(--text-primary)" borderRadius="var(--radius2)">Secondary Outline</Button>
+                    <Button variant="outline" borderColor="var(--brand-accent)" color="var(--brand-accent)" borderRadius="var(--radius2)">Accent Outline</Button>
                   </VStack>
                   <VStack align="stretch" gap={4}>
                     <Text fontSize="xs" fontWeight="bold" color="gray.400" mb={2}>GHOST & ICON</Text>
-                    <Button variant="ghost" color="var(--brandPrimary)" borderRadius="var(--radius2)">Ghost Action</Button>
+                    <Button variant="ghost" color="var(--brand-primary)" borderRadius="var(--radius2)">Ghost Action</Button>
                     <HStack>
-                      <Button bg="var(--brandPrimary)" color="white" borderRadius="full" w={10} h={10} p={0}><LuZap /></Button>
+                      <Button bg="var(--brand-primary)" color="white" borderRadius="full" w={10} h={10} p={0}><LuZap /></Button>
                       <Button variant="outline" borderColor="gray.200" borderRadius="full" w={10} h={10} p={0}><LuShield /></Button>
                     </HStack>
                   </VStack>
@@ -156,7 +156,7 @@ export const StyleAtlas = ({ data }: { data: StudioMockData }) => {
             {/* --- SECTION: FORMS --- */}
             <VStack id="forms" align="stretch" gap={10}>
               <VStack align="start" gap={2}>
-                <Heading size="xl" fontFamily="var(--fontFamilyHeading)">Form Elements</Heading>
+                <Heading size="xl" fontFamily="var(--font-family-heading)">Form Elements</Heading>
                 <Text color="gray.500">Inputs, states, and validation styles.</Text>
               </VStack>
 
@@ -164,11 +164,11 @@ export const StyleAtlas = ({ data }: { data: StudioMockData }) => {
                 <VStack align="stretch" gap={6} p={8} bg="white" borderRadius="var(--radius3)" border="1px solid" borderColor="gray.100">
                   <VStack align="start" gap={1}>
                     <Text fontSize="xs" fontWeight="bold">Default Input</Text>
-                    <Input placeholder="Enter username..." borderRadius="var(--radius2)" border="1px solid" borderColor="var(--brandSecondary)" />
+                    <Input placeholder="Enter username..." borderRadius="var(--radius2)" border="1px solid" borderColor="var(--brand-secondary)" />
                   </VStack>
                   <VStack align="start" gap={1}>
                     <Text fontSize="xs" fontWeight="bold">Icon Input</Text>
-                    <HStack w="full" px={3} border="1px solid" borderColor="var(--brandSecondary)" borderRadius="var(--radius2)">
+                    <HStack w="full" px={3} border="1px solid" borderColor="var(--brand-secondary)" borderRadius="var(--radius2)">
                       <LuMail color="gray" size={14} />
                       <Input variant="plain" placeholder="Email address" size="sm" />
                     </HStack>
@@ -179,8 +179,8 @@ export const StyleAtlas = ({ data }: { data: StudioMockData }) => {
                     <Input placeholder="Invalid value" borderRadius="var(--radius2)" />
                   </Field>
                   <VStack align="start" gap={1}>
-                    <Text fontSize="xs" fontWeight="bold" color="var(--brandPrimary)">Focus Style (Simulated)</Text>
-                    <Input placeholder="Focused input" borderRadius="var(--radius2)" border="2px solid" borderColor="var(--brandPrimary)" boxShadow="0 0 0 4px var(--brandSecondary)" />
+                    <Text fontSize="xs" fontWeight="bold" color="var(--brand-primary)">Focus Style (Simulated)</Text>
+                    <Input placeholder="Focused input" borderRadius="var(--radius2)" border="2px solid" borderColor="var(--brand-primary)" boxShadow="0 0 0 4px var(--brand-secondary)" />
                   </VStack>
                 </VStack>
               </SimpleGrid>
@@ -189,7 +189,7 @@ export const StyleAtlas = ({ data }: { data: StudioMockData }) => {
             {/* --- SECTION: ELEVATION --- */}
             <VStack id="elevation" align="stretch" gap={10}>
               <VStack align="start" gap={2}>
-                <Heading size="xl" fontFamily="var(--fontFamilyHeading)">Elevation & Shape</Heading>
+                <Heading size="xl" fontFamily="var(--font-family-heading)">Elevation & Shape</Heading>
                 <Text color="gray.500">Testing radius and shadow intensity.</Text>
               </VStack>
 
