@@ -20,6 +20,7 @@ export type PlaygroundAction =
   | { type: 'UNDO' }
   | { type: 'REDO' }
   | { type: 'RESET' }
+  | { type: 'DISCARD_KEY', key: string }
   | { type: 'HYDRATE', payload: Partial<PlaygroundState> };
 
 // --- Constants ---
@@ -92,6 +93,15 @@ function playgroundReducer(state: PlaygroundState, action: PlaygroundAction): Pl
 
     case 'RESET': {
       return initialState;
+    }
+
+    case 'DISCARD_KEY': {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { [action.key]: _discarded, ...rest } = state.overrides;
+      return {
+        ...state,
+        overrides: rest
+      };
     }
 
     case 'HYDRATE': {
@@ -187,10 +197,20 @@ export const usePersistentPlayground = () => {
     dispatch({ type: 'RESET' });
   }, []);
 
+  const discardOverride = useCallback((key: string) => {
+    dispatch({ type: 'DISCARD_KEY', key });
+    // Push to history so it's undoable
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      dispatch({ type: 'PUSH_HISTORY', label: `Discarded ${key}` });
+    }, 100);
+  }, []);
+
   return {
     overrides: state.overrides,
     history: state.history,
     updateOverride,
+    discardOverride,
     undo,
     redo,
     resetOverrides,

@@ -30,6 +30,7 @@ interface WorkspaceLayoutProps {
     newValues: Record<string, string | number>,
     label?: string,
   ) => void;
+  discardOverride: (key: string) => void;
   onReset: () => void;
   undo: () => void;
   redo: () => void;
@@ -43,6 +44,7 @@ export const WorkspaceLayout = ({
   onProjectChange,
   overrides,
   updateOverride,
+  discardOverride,
   onReset,
   undo,
   redo,
@@ -292,6 +294,8 @@ export const WorkspaceLayout = ({
               redo={redo}
               canUndo={canUndo}
               canRedo={canRedo}
+              onDiscardOverride={discardOverride}
+              onDiscardAll={onReset}
             />
           </Box>
         )}

@@ -6,7 +6,7 @@ import {
   LuPalette,
   LuGitBranch,
 } from "react-icons/lu";
-import { CommitCenter } from "../playground/panels/CommitCenter";
+import { StagingPanel } from "./StagingPanel";
 import { TuningTab } from "./TuningTab";
 import type { TokenDoc } from "../../utils/token-parser";
 import type { TokenOverrides } from "../../schemas/manifest";
@@ -28,6 +28,8 @@ interface InspectorPanelProps {
   redo: () => void;
   canUndo: boolean;
   canRedo: boolean;
+  onDiscardOverride: (cssVar: string) => void;
+  onDiscardAll: () => void;
 }
 
 const tabConfig: { id: InspectorTab; label: string; icon: React.ReactNode }[] =
@@ -49,6 +51,8 @@ export const InspectorPanel = ({
   redo,
   canUndo,
   canRedo,
+  onDiscardOverride,
+  onDiscardAll,
 }: InspectorPanelProps) => {
   const [activeTab, setActiveTab] = useState<InspectorTab>("token");
   const pendingCount = Object.keys(overrides).length;
@@ -116,10 +120,12 @@ export const InspectorPanel = ({
           />
         )}
         {activeTab === "changes" && (
-          <CommitCenter
-            overrides={overrides as Record<string, string | number>}
+          <StagingPanel
+            overrides={overrides}
             globalTokens={globalTokens}
             onCommitSuccess={onCommitSuccess}
+            onDiscardOverride={onDiscardOverride}
+            onDiscardAll={onDiscardAll}
           />
         )}
       </Box>

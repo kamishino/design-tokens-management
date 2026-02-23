@@ -18,6 +18,7 @@ function App() {
   const {
     overrides,
     updateOverride,
+    discardOverride,
     undo,
     redo,
     canUndo,
@@ -80,6 +81,7 @@ function App() {
       onProjectChange={handleProjectChange}
       overrides={overrides}
       updateOverride={updateOverride}
+      discardOverride={discardOverride}
       onReset={resetOverrides}
       undo={undo}
       redo={redo}
