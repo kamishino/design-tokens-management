@@ -804,7 +804,7 @@ export const TuningTab = ({
                 </Text>
               </HStack>
 
-              <VStack align="stretch" gap={2}>
+              <VStack align="stretch" gap={3}>
                 {FONT_ROLES.map((font) => {
                   const value = getEffectiveValue(
                     font.variable,
@@ -815,13 +815,158 @@ export const TuningTab = ({
                     .split(",")[0]
                     .replace(/['"]/g, "")
                     .trim();
+
+                  // Per-role CSS variable keys
+                  const weightVar = `--font-weight-${font.id}`;
+                  const lhVar = `--line-height-${font.id}`;
+                  const lsVar = `--letter-spacing-${font.id}`;
+
+                  const currentWeight =
+                    Number(overrides[weightVar]) ||
+                    (font.id === "heading" ? 700 : 400);
+                  const currentLH =
+                    Number(overrides[lhVar]) ||
+                    (font.id === "heading" ? 1.2 : 1.5);
+                  const currentLS = Number(overrides[lsVar]) || 0;
+
                   return (
-                    <FontPickerRow
+                    <Box
                       key={font.id}
-                      font={font}
-                      currentFont={shortName}
-                      onSelect={(family) => handleFontSelect(font, family)}
-                    />
+                      p={2}
+                      bg="gray.25"
+                      borderRadius="md"
+                      border="1px solid"
+                      borderColor="gray.100"
+                    >
+                      {/* Font picker row */}
+                      <FontPickerRow
+                        font={font}
+                        currentFont={shortName}
+                        onSelect={(family) => handleFontSelect(font, family)}
+                      />
+
+                      {/* Per-role controls: Weight, Line Height, Letter Spacing */}
+                      <HStack mt={2} gap={2} flexWrap="wrap">
+                        {/* Weight */}
+                        <VStack gap={0.5} align="start">
+                          <Text
+                            fontSize="8px"
+                            color="gray.400"
+                            fontWeight="600"
+                            textTransform="uppercase"
+                          >
+                            Weight
+                          </Text>
+                          <HStack gap={0}>
+                            {[300, 400, 500, 600, 700, 800, 900].map((w) => {
+                              const isActive = currentWeight === w;
+                              return (
+                                <Box
+                                  key={w}
+                                  as="button"
+                                  px={1}
+                                  py={0.5}
+                                  fontSize="8px"
+                                  fontFamily="'Space Mono', monospace"
+                                  fontWeight={isActive ? "700" : "400"}
+                                  bg={isActive ? "blue.50" : "transparent"}
+                                  color={isActive ? "blue.600" : "gray.500"}
+                                  borderRadius="sm"
+                                  cursor="pointer"
+                                  _hover={{
+                                    bg: isActive ? "blue.50" : "gray.50",
+                                  }}
+                                  onClick={() =>
+                                    updateOverride(
+                                      { [weightVar]: w },
+                                      `${font.label} weight: ${w}`,
+                                    )
+                                  }
+                                  transition="all 0.1s"
+                                >
+                                  {w}
+                                </Box>
+                              );
+                            })}
+                          </HStack>
+                        </VStack>
+
+                        {/* Line Height */}
+                        <VStack gap={0.5} align="start">
+                          <Text
+                            fontSize="8px"
+                            color="gray.400"
+                            fontWeight="600"
+                            textTransform="uppercase"
+                          >
+                            LH
+                          </Text>
+                          <Input
+                            type="number"
+                            min={0.8}
+                            max={3.0}
+                            step={0.05}
+                            value={currentLH}
+                            onChange={(e) => {
+                              const v = Number(e.target.value);
+                              if (v >= 0.8 && v <= 3.0)
+                                updateOverride(
+                                  { [lhVar]: v },
+                                  `${font.label} line-height: ${v}`,
+                                );
+                            }}
+                            size="xs"
+                            w="48px"
+                            textAlign="center"
+                            fontFamily="'Space Mono', monospace"
+                            fontSize="9px"
+                            fontWeight="600"
+                            borderRadius="sm"
+                            bg="white"
+                          />
+                        </VStack>
+
+                        {/* Letter Spacing */}
+                        <VStack gap={0.5} align="start">
+                          <Text
+                            fontSize="8px"
+                            color="gray.400"
+                            fontWeight="600"
+                            textTransform="uppercase"
+                          >
+                            LS
+                          </Text>
+                          <HStack gap={0.5}>
+                            <Input
+                              type="number"
+                              min={-0.1}
+                              max={0.5}
+                              step={0.005}
+                              value={currentLS}
+                              onChange={(e) => {
+                                const v = Number(e.target.value);
+                                if (v >= -0.1 && v <= 0.5)
+                                  updateOverride(
+                                    { [lsVar]: v },
+                                    `${font.label} letter-spacing: ${v}em`,
+                                  );
+                              }}
+                              size="xs"
+                              w="56px"
+                              textAlign="center"
+                              fontFamily="'Space Mono', monospace"
+                              fontSize="9px"
+                              fontWeight="600"
+                              borderRadius="sm"
+                              bg="white"
+                            />
+                            <Text fontSize="8px" color="gray.400">
+                              em
+                            </Text>
+                          </HStack>
+                        </VStack>
+                      </HStack>
+                    </Box>
                   );
                 })}
               </VStack>
@@ -1181,9 +1326,6 @@ export const TuningTab = ({
                         Number(overrides["--typography-config-scale-ratio"]) ||
                         1.25
                       }
-                      lineHeight={
-                        Number(overrides["--typography-line-height"]) || 1.5
-                      }
                       headingFont={getEffectiveValue(
                         "--font-family-heading",
                         "font.family.heading",
@@ -1194,6 +1336,20 @@ export const TuningTab = ({
                         "font.family.base",
                         "Inter",
                       )}
+                      headingWeight={
+                        Number(overrides["--font-weight-heading"]) || 700
+                      }
+                      bodyWeight={
+                        Number(overrides["--font-weight-body"]) || 400
+                      }
+                      headingLH={
+                        Number(overrides["--line-height-heading"]) || 1.2
+                      }
+                      bodyLH={Number(overrides["--line-height-body"]) || 1.5}
+                      headingLS={
+                        Number(overrides["--letter-spacing-heading"]) || 0
+                      }
+                      bodyLS={Number(overrides["--letter-spacing-body"]) || 0}
                     />
                   )}
                 </Box>
@@ -1417,15 +1573,25 @@ const FontPickerRow = ({ font, currentFont, onSelect }: FontPickerRowProps) => {
 function ArticlePreview({
   baseSize,
   scaleRatio,
-  lineHeight,
   headingFont,
   bodyFont,
+  headingWeight = 700,
+  bodyWeight = 400,
+  headingLH = 1.2,
+  bodyLH = 1.5,
+  headingLS = 0,
+  bodyLS = 0,
 }: {
   baseSize: number;
   scaleRatio: number;
-  lineHeight: number;
   headingFont: string;
   bodyFont: string;
+  headingWeight?: number;
+  bodyWeight?: number;
+  headingLH?: number;
+  bodyLH?: number;
+  headingLS?: number;
+  bodyLS?: number;
 }) {
   const s = (step: number) =>
     `${Math.round(baseSize * Math.pow(scaleRatio, step) * 100) / 100}px`;
@@ -1433,8 +1599,9 @@ function ArticlePreview({
   const hStyle = (step: number): React.CSSProperties => ({
     fontFamily: headingFont,
     fontSize: s(step),
-    lineHeight: `${lineHeight}`,
-    fontWeight: 700,
+    lineHeight: `${headingLH}`,
+    fontWeight: headingWeight,
+    letterSpacing: `${headingLS}em`,
     margin: 0,
     padding: 0,
     color: "var(--chakra-colors-gray-800)",
@@ -1443,8 +1610,9 @@ function ArticlePreview({
   const pStyle: React.CSSProperties = {
     fontFamily: bodyFont,
     fontSize: s(0),
-    lineHeight: `${lineHeight}`,
-    fontWeight: 400,
+    lineHeight: `${bodyLH}`,
+    fontWeight: bodyWeight,
+    letterSpacing: `${bodyLS}em`,
     margin: 0,
     padding: 0,
     color: "var(--chakra-colors-gray-600)",
@@ -1453,7 +1621,7 @@ function ArticlePreview({
   const smallStyle: React.CSSProperties = {
     fontFamily: bodyFont,
     fontSize: s(-1),
-    lineHeight: `${lineHeight}`,
+    lineHeight: `${bodyLH}`,
     color: "var(--chakra-colors-gray-400)",
   };
 
