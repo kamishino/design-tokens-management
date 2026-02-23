@@ -19,6 +19,8 @@ import { TokenEditModal } from "./explorer/TokenEditModal";
 import { InspectorOverlay } from "./explorer/InspectorOverlay";
 import { TokenTree } from "./explorer/TokenTree";
 import { ExportModal } from "./export/ExportModal";
+import { CommandPalette } from "./command/CommandPalette";
+import { useCommandPalette } from "../hooks/useCommandPalette";
 import type {
   Manifest,
   TokenOverrides,
@@ -155,6 +157,27 @@ export const TokenViewer = ({
   const handleExport = useCallback(() => {
     setIsExportModalOpen(true);
   }, []);
+
+  const cmdPalette = useCommandPalette({
+    tokens: globalTokens,
+    onNavigateToken: (token) => {
+      navigator.clipboard.writeText(token.cssVariable);
+    },
+    onEnterStudio,
+    onOpenExport: handleExport,
+  });
+
+  // Cmd+K — must be after cmdPalette declaration
+  useEffect(() => {
+    const handleCmdK = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        cmdPalette.open();
+      }
+    };
+    window.addEventListener("keydown", handleCmdK);
+    return () => window.removeEventListener("keydown", handleCmdK);
+  }, [cmdPalette]);
 
   if (loading)
     return (
@@ -336,6 +359,17 @@ export const TokenViewer = ({
         manifest={manifest}
         globalTokens={globalTokens}
         overrides={overrides}
+      />
+
+      <CommandPalette
+        isOpen={cmdPalette.isOpen}
+        query={cmdPalette.query}
+        onQueryChange={cmdPalette.setQuery}
+        results={cmdPalette.results}
+        selectedIndex={cmdPalette.selectedIndex}
+        onClose={cmdPalette.close}
+        onExecute={cmdPalette.executeSelected}
+        onMoveSelection={cmdPalette.moveSelection}
       />
     </HStack>
   );
