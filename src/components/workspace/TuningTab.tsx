@@ -12,7 +12,9 @@ import {
 import { useCallback, useMemo, useState } from "react";
 import { LuPalette, LuType, LuUndo2, LuRedo2, LuCheck } from "react-icons/lu";
 import { Slider } from "../ui/slider";
-import { parse, converter, wcagContrast } from "culori";
+import { parse, converter, wcagContrast, formatHex } from "culori";
+// @ts-expect-error apca-w3 has no type declarations
+import { APCAcontrast, sRGBtoY } from "apca-w3";
 import { StudioColorPicker } from "../playground/panels/StudioColorPicker";
 import { getPrioritizedTokenMap } from "../../utils/token-graph";
 import { prependFont } from "../../utils/fonts";
@@ -20,21 +22,32 @@ import { Button } from "../ui/button";
 import type { TokenDoc } from "../../utils/token-parser";
 import type { TokenOverrides } from "../../schemas/manifest";
 
-// --- Color Science Utilities (culori) ---
+// --- Color Science Utilities (culori + APCA) ---
 const toOklch = converter("oklch");
+const toRgb = converter("rgb");
 
 const getColorInfo = (hex: string) => {
   const parsed = parse(hex);
-  if (!parsed) return { l: 0, c: 0, h: 0, contrastW: 1, contrastB: 21 };
+  if (!parsed)
+    return { l: 0, c: 0, h: 0, contrastW: 1, contrastB: 21, apcaLc: 0 };
   const oklch = toOklch(parsed);
   const contrastW = wcagContrast(parsed, "white");
   const contrastB = wcagContrast(parsed, "black");
+  const rgb = toRgb(parsed);
+  const r = Math.round((rgb.r ?? 0) * 255);
+  const g = Math.round((rgb.g ?? 0) * 255);
+  const b = Math.round((rgb.b ?? 0) * 255);
+  const apcaLcW = APCAcontrast(sRGBtoY([r, g, b]), sRGBtoY([255, 255, 255]));
+  const apcaLcB = APCAcontrast(sRGBtoY([r, g, b]), sRGBtoY([0, 0, 0]));
   return {
     l: Math.round((oklch.l ?? 0) * 100),
     c: Math.round((oklch.c ?? 0) * 1000) / 1000,
     h: Math.round(oklch.h ?? 0),
     contrastW: Math.round(contrastW * 100) / 100,
     contrastB: Math.round(contrastB * 100) / 100,
+    apcaLc: Math.round(
+      Math.abs(apcaLcW) >= Math.abs(apcaLcB) ? apcaLcW : apcaLcB,
+    ),
   };
 };
 
@@ -45,6 +58,15 @@ const getWcagBadge = (ratio: number) => {
   return { label: "Fail", colorPalette: "red" };
 };
 
+const getApcaBadge = (lc: number) => {
+  const absLc = Math.abs(lc);
+  if (absLc >= 75) return { label: "Lc75+", colorPalette: "green" };
+  if (absLc >= 60) return { label: "Lc60+", colorPalette: "green" };
+  if (absLc >= 45) return { label: "Lc45", colorPalette: "yellow" };
+  return { label: "Lc<45", colorPalette: "red" };
+};
+
+// --- Constants ---
 const SEMANTIC_CHANNELS = [
   {
     id: "primary",
@@ -83,11 +105,11 @@ const FONT_ROLES = [
     id: "heading",
     variable: "--font-family-heading",
     label: "Heading",
-    token: "font.family.base",
+    token: "font.family.heading",
   },
   {
     id: "body",
-    variable: "--font-family-body",
+    variable: "--font-family-base",
     label: "Body",
     token: "font.family.base",
   },
@@ -116,47 +138,15 @@ const FONT_OPTIONS = [
   { name: "Fira Code", category: "Mono" },
 ];
 
-// --- Harmony Lab Color Utilities ---
-const hexToHsl = (hex: string): [number, number, number] => {
-  const r = parseInt(hex.slice(1, 3), 16) / 255;
-  const g = parseInt(hex.slice(3, 5), 16) / 255;
-  const b = parseInt(hex.slice(5, 7), 16) / 255;
-  const max = Math.max(r, g, b),
-    min = Math.min(r, g, b);
-  let h = 0,
-    s = 0;
-  const l = (max + min) / 2;
-  if (max !== min) {
-    const d = max - min;
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    switch (max) {
-      case r:
-        h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
-        break;
-      case g:
-        h = ((b - r) / d + 2) / 6;
-        break;
-      case b:
-        h = ((r - g) / d + 4) / 6;
-        break;
-    }
-  }
-  return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
-};
-
-const hslToHex = (h: number, s: number, l: number): string => {
-  h = ((h % 360) + 360) % 360;
-  const s1 = s / 100,
-    l1 = l / 100;
-  const a = s1 * Math.min(l1, 1 - l1);
-  const f = (n: number) => {
-    const k = (n + h / 30) % 12;
-    const color = l1 - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-    return Math.round(255 * color)
-      .toString(16)
-      .padStart(2, "0");
+// --- OKLCH Harmony Utilities ---
+const oklchToHex = (l: number, c: number, h: number): string => {
+  const clamped = {
+    mode: "oklch" as const,
+    l: Math.max(0, Math.min(1, l)),
+    c: Math.max(0, c),
+    h: ((h % 360) + 360) % 360,
   };
-  return `#${f(0)}${f(8)}${f(4)}`;
+  return formatHex(clamped) ?? "#000000";
 };
 
 interface HarmonyPalette {
@@ -165,32 +155,54 @@ interface HarmonyPalette {
   accent: string;
 }
 
-const generateHarmonies = (primary: string): HarmonyPalette[] => {
-  const [h, s, l] = hexToHsl(primary);
+const generateHarmoniesOklch = (primary: string): HarmonyPalette[] => {
+  const parsed = parse(primary);
+  if (!parsed) return [];
+  const { l, c, h } = toOklch(parsed);
+  const hh = h ?? 0;
   return [
     {
       name: "Triadic",
-      secondary: hslToHex(h + 120, s, l),
-      accent: hslToHex(h + 240, s, l),
+      secondary: oklchToHex(l, c, hh + 120),
+      accent: oklchToHex(l, c, hh + 240),
     },
     {
       name: "Complementary",
-      secondary: hslToHex(h + 180, s, Math.min(l + 10, 85)),
-      accent: hslToHex(h + 180, s, l),
+      secondary: oklchToHex(Math.min(l + 0.08, 0.9), c, hh + 180),
+      accent: oklchToHex(l, c, hh + 180),
     },
     {
       name: "Analogous",
-      secondary: hslToHex(h + 30, s, l),
-      accent: hslToHex(h - 30, s, l),
+      secondary: oklchToHex(l, c, hh + 30),
+      accent: oklchToHex(l, c, hh - 30),
     },
     {
       name: "Split-Comp",
-      secondary: hslToHex(h + 150, s, l),
-      accent: hslToHex(h + 210, s, l),
+      secondary: oklchToHex(l, c, hh + 150),
+      accent: oklchToHex(l, c, hh + 210),
     },
   ];
 };
 
+const generateVariant = (
+  palette: HarmonyPalette,
+  primary: string,
+): HarmonyPalette => {
+  const tweakColor = (hex: string, dL: number, dC: number) => {
+    const p = parse(hex);
+    if (!p) return hex;
+    const { l, c, h } = toOklch(p);
+    return oklchToHex(l + dL, c + dC, h ?? 0);
+  };
+  const isLight = primary > "#808080";
+  return {
+    name: palette.name + " Var",
+    secondary: tweakColor(palette.secondary, isLight ? -0.08 : 0.08, 0.03),
+    accent: tweakColor(palette.accent, isLight ? -0.1 : 0.1, 0.05),
+  };
+};
+
+// --- Harmony Lab Component ---
 const HarmonyLabSection = ({
   primaryColor,
   onApply,
@@ -199,10 +211,27 @@ const HarmonyLabSection = ({
   onApply: (secondary: string, accent: string) => void;
 }) => {
   const harmonies = useMemo(
-    () => generateHarmonies(primaryColor),
+    () => generateHarmoniesOklch(primaryColor),
     [primaryColor],
   );
   const [selected, setSelected] = useState(0);
+  const [showVariant, setShowVariant] = useState(false);
+
+  const displayPalettes = useMemo(() => {
+    if (!showVariant) return harmonies;
+    return harmonies.map((h) => generateVariant(h, primaryColor));
+  }, [harmonies, showVariant, primaryColor]);
+
+  const primaryInfo = useMemo(() => {
+    const p = parse(primaryColor);
+    if (!p) return { l: 0, c: 0, h: 0 };
+    const oklch = toOklch(p);
+    return {
+      l: Math.round((oklch.l ?? 0) * 100),
+      c: Math.round((oklch.c ?? 0) * 1000) / 1000,
+      h: Math.round(oklch.h ?? 0),
+    };
+  }, [primaryColor]);
 
   return (
     <VStack align="stretch" gap={2}>
@@ -214,11 +243,43 @@ const HarmonyLabSection = ({
           bg={primaryColor}
           border="1px solid rgba(0,0,0,0.1)"
         />
-        <Text fontSize="9px" fontWeight="600" color="gray.500">
-          Primary → Generate palette
+        <Text fontSize="8px" fontFamily="monospace" color="gray.400">
+          L:{primaryInfo.l}% C:{primaryInfo.c} H:{primaryInfo.h}°
         </Text>
       </HStack>
-      {harmonies.map((h, i) => (
+      <HStack gap={1}>
+        <Box
+          as="button"
+          px={2}
+          py={0.5}
+          borderRadius="md"
+          fontSize="9px"
+          fontWeight="600"
+          bg={!showVariant ? "blue.500" : "gray.100"}
+          color={!showVariant ? "white" : "gray.600"}
+          cursor="pointer"
+          onClick={() => setShowVariant(false)}
+          transition="all 0.1s"
+        >
+          Standard
+        </Box>
+        <Box
+          as="button"
+          px={2}
+          py={0.5}
+          borderRadius="md"
+          fontSize="9px"
+          fontWeight="600"
+          bg={showVariant ? "purple.500" : "gray.100"}
+          color={showVariant ? "white" : "gray.600"}
+          cursor="pointer"
+          onClick={() => setShowVariant(true)}
+          transition="all 0.1s"
+        >
+          Variant
+        </Box>
+      </HStack>
+      {displayPalettes.map((h, i) => (
         <HStack
           key={h.name}
           px={2}
@@ -283,10 +344,13 @@ const HarmonyLabSection = ({
         _hover={{ bg: "blue.600" }}
         transition="all 0.1s"
         onClick={() =>
-          onApply(harmonies[selected].secondary, harmonies[selected].accent)
+          onApply(
+            displayPalettes[selected].secondary,
+            displayPalettes[selected].accent,
+          )
         }
       >
-        Apply {harmonies[selected].name} Palette
+        Apply {displayPalettes[selected].name}
       </Box>
     </VStack>
   );
@@ -376,9 +440,8 @@ export const TuningTab = ({
               info.contrastW >= info.contrastB
                 ? info.contrastW
                 : info.contrastB;
-            const contrastLabel =
-              info.contrastW >= info.contrastB ? "on white" : "on black";
-            const badge = getWcagBadge(bestContrast);
+            const wcag = getWcagBadge(bestContrast);
+            const apca = getApcaBadge(info.apcaLc);
             return (
               <VStack key={channel.id} gap={0.5} align="stretch">
                 <HStack gap={2}>
@@ -394,7 +457,7 @@ export const TuningTab = ({
                     }
                   />
                 </HStack>
-                <HStack gap={1} pl={1}>
+                <HStack gap={1} pl={1} flexWrap="wrap">
                   <Text fontSize="8px" fontFamily="monospace" color="gray.400">
                     L:{info.l}%
                   </Text>
@@ -407,18 +470,131 @@ export const TuningTab = ({
                   <Badge
                     size="xs"
                     variant="subtle"
-                    colorPalette={badge.colorPalette}
+                    colorPalette={wcag.colorPalette}
                     fontSize="7px"
                     px={1}
                     py={0}
                   >
-                    {badge.label} {bestContrast}:1 {contrastLabel}
+                    {wcag.label} {bestContrast}:1
+                  </Badge>
+                  <Badge
+                    size="xs"
+                    variant="subtle"
+                    colorPalette={apca.colorPalette}
+                    fontSize="7px"
+                    px={1}
+                    py={0}
+                  >
+                    APCA {apca.label}
                   </Badge>
                 </HStack>
               </VStack>
             );
           })}
         </VStack>
+
+        {/* 60/30/10 Proportion Guide */}
+        <Box mt={3}>
+          <Text
+            fontSize="9px"
+            fontWeight="700"
+            color="gray.400"
+            textTransform="uppercase"
+            letterSpacing="wider"
+            mb={1.5}
+          >
+            60 / 30 / 10 Rule
+          </Text>
+          <HStack
+            gap={0}
+            h="20px"
+            borderRadius="md"
+            overflow="hidden"
+            border="1px solid"
+            borderColor="gray.200"
+          >
+            <Box
+              w="60%"
+              h="full"
+              bg={getEffectiveValue(
+                "--brand-primary",
+                "brand.primary",
+                "#2B4D86",
+              )}
+              position="relative"
+            >
+              <Text
+                fontSize="7px"
+                fontWeight="700"
+                color="white"
+                position="absolute"
+                left="50%"
+                top="50%"
+                transform="translate(-50%, -50%)"
+                textShadow="0 1px 2px rgba(0,0,0,0.4)"
+              >
+                60%
+              </Text>
+            </Box>
+            <Box
+              w="30%"
+              h="full"
+              bg={getEffectiveValue(
+                "--brand-secondary",
+                "brand.secondary",
+                "#4A6DA7",
+              )}
+              position="relative"
+            >
+              <Text
+                fontSize="7px"
+                fontWeight="700"
+                color="white"
+                position="absolute"
+                left="50%"
+                top="50%"
+                transform="translate(-50%, -50%)"
+                textShadow="0 1px 2px rgba(0,0,0,0.4)"
+              >
+                30%
+              </Text>
+            </Box>
+            <Box
+              w="10%"
+              h="full"
+              bg={getEffectiveValue(
+                "--brand-accent",
+                "brand.accent",
+                "#1F8055",
+              )}
+              position="relative"
+            >
+              <Text
+                fontSize="7px"
+                fontWeight="700"
+                color="white"
+                position="absolute"
+                left="50%"
+                top="50%"
+                transform="translate(-50%, -50%)"
+                textShadow="0 1px 2px rgba(0,0,0,0.4)"
+              >
+                10%
+              </Text>
+            </Box>
+          </HStack>
+          <HStack gap={0} mt={1} justifyContent="space-between">
+            <Text fontSize="7px" color="gray.400" w="60%" textAlign="center">
+              Dominant
+            </Text>
+            <Text fontSize="7px" color="gray.400" w="30%" textAlign="center">
+              Supporting
+            </Text>
+            <Text fontSize="7px" color="gray.400" w="10%" textAlign="center">
+              CTA
+            </Text>
+          </HStack>
+        </Box>
       </Box>
 
       {/* Harmony Lab */}

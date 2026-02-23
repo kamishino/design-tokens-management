@@ -10,11 +10,14 @@ import {
   LuDownload,
   LuCommand,
   LuEye,
+  LuColumns3,
   LuPanelRight,
-  LuPanelRightClose,
+  LuMaximize,
 } from "react-icons/lu";
 import { Button } from "../ui/button";
 import type { Manifest } from "../../schemas/manifest";
+
+export type LayoutMode = "normal" | "widget" | "fullscreen";
 
 interface WorkspaceHeaderProps {
   manifest: Manifest;
@@ -22,18 +25,25 @@ interface WorkspaceHeaderProps {
   hasOverrides: boolean;
   onOpenExport: () => void;
   onOpenPalette: () => void;
-  inspectorVisible: boolean;
-  onToggleInspector: () => void;
+  layoutMode: LayoutMode;
+  onCycleLayout: () => void;
 }
+
+const LAYOUT_ICONS = {
+  normal: { Icon: LuColumns3, label: "Normal" },
+  widget: { Icon: LuPanelRight, label: "Widget" },
+  fullscreen: { Icon: LuMaximize, label: "Fullscreen" },
+};
 
 export const WorkspaceHeader = ({
   selectedProject,
   hasOverrides,
   onOpenExport,
   onOpenPalette,
-  inspectorVisible,
-  onToggleInspector,
+  layoutMode,
+  onCycleLayout,
 }: WorkspaceHeaderProps) => {
+  const { Icon, label } = LAYOUT_ICONS[layoutMode];
   return (
     <HStack
       h="44px"
@@ -131,18 +141,15 @@ export const WorkspaceHeader = ({
         </Button>
 
         <IconButton
-          aria-label="Toggle inspector"
+          aria-label={`Layout: ${label}`}
           variant="ghost"
           size="xs"
-          color={inspectorVisible ? "blue.500" : "gray.400"}
-          onClick={onToggleInspector}
+          color="blue.500"
+          onClick={onCycleLayout}
           _hover={{ color: "blue.600" }}
+          title={`Layout: ${label} (click to cycle)`}
         >
-          {inspectorVisible ? (
-            <LuPanelRightClose size={14} />
-          ) : (
-            <LuPanelRight size={14} />
-          )}
+          <Icon size={14} />
         </IconButton>
       </HStack>
     </HStack>

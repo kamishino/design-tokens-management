@@ -54,7 +54,9 @@ export const WorkspaceLayout = ({
   const { globalTokens } = useGlobalTokens();
   const [searchTerm, setSearchTerm] = useState("");
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [inspectorVisible, setInspectorVisible] = useState(true);
+  const [layoutMode, setLayoutMode] = useState<
+    "normal" | "widget" | "fullscreen"
+  >("normal");
   const [explorerCollapsed, setExplorerCollapsed] = useState(false);
 
   const [activePanel, setActivePanel] = useState<SidebarPanelId>(() => {
@@ -195,8 +197,16 @@ export const WorkspaceLayout = ({
         hasOverrides={hasOverrides}
         onOpenExport={handleExport}
         onOpenPalette={cmdPalette.open}
-        inspectorVisible={inspectorVisible}
-        onToggleInspector={() => setInspectorVisible((v) => !v)}
+        layoutMode={layoutMode}
+        onCycleLayout={() =>
+          setLayoutMode((m) =>
+            m === "normal"
+              ? "widget"
+              : m === "widget"
+                ? "fullscreen"
+                : "normal",
+          )
+        }
       />
 
       {/* Theme Bar */}
@@ -209,76 +219,83 @@ export const WorkspaceLayout = ({
       {/* Main Content */}
       <HStack flex={1} gap={0} overflow="hidden" w="full">
         {/* Activity Bar */}
-        <ActivityBar activePanel={activePanel} onPanelChange={setActivePanel} />
+        {layoutMode === "normal" && (
+          <ActivityBar
+            activePanel={activePanel}
+            onPanelChange={setActivePanel}
+          />
+        )}
 
         {/* Left Panel: File Explorer + Token Tree */}
-        <VStack
-          w="280px"
-          minW="240px"
-          maxW="320px"
-          h="full"
-          gap={0}
-          bg="white"
-          borderRight="1px solid"
-          borderColor="gray.200"
-          overflow="hidden"
-        >
-          {/* File Explorer — collapsible */}
-          <Box
-            w="full"
-            borderBottom="1px solid"
-            borderColor="gray.100"
+        {layoutMode === "normal" && (
+          <VStack
+            w="280px"
+            minW="240px"
+            maxW="320px"
+            h="full"
+            gap={0}
+            bg="white"
+            borderRight="1px solid"
+            borderColor="gray.200"
             overflow="hidden"
-            transition="height 0.2s"
-            h={explorerCollapsed ? "28px" : "45%"}
-            flexShrink={0}
           >
-            <HStack
-              h="28px"
-              px={3}
-              bg="gray.50"
-              cursor="pointer"
-              _hover={{ bg: "gray.100" }}
-              onClick={() => setExplorerCollapsed((v) => !v)}
-              userSelect="none"
+            {/* File Explorer — collapsible */}
+            <Box
+              w="full"
               borderBottom="1px solid"
               borderColor="gray.100"
+              overflow="hidden"
+              transition="height 0.2s"
+              h={explorerCollapsed ? "28px" : "45%"}
+              flexShrink={0}
             >
-              <Text
-                fontSize="9px"
-                fontWeight="700"
-                color="gray.400"
-                textTransform="uppercase"
-                letterSpacing="wider"
-                flex={1}
+              <HStack
+                h="28px"
+                px={3}
+                bg="gray.50"
+                cursor="pointer"
+                _hover={{ bg: "gray.100" }}
+                onClick={() => setExplorerCollapsed((v) => !v)}
+                userSelect="none"
+                borderBottom="1px solid"
+                borderColor="gray.100"
               >
-                {explorerCollapsed ? "▶" : "▼"} Files
-              </Text>
-            </HStack>
-            {!explorerCollapsed && (
-              <Box h="calc(100% - 28px)" overflowY="auto">
-                <FileExplorer
-                  manifest={manifest}
-                  context={activePanel}
-                  activePath={selectedProject}
-                  onSelect={(_, key) => onProjectChange(key)}
-                />
-              </Box>
-            )}
-          </Box>
-          <Box flex={1} w="full" overflow="hidden">
-            <TokenTree
-              semanticTokens={semanticTokens}
-              foundationTokens={foundationTokens}
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
-              editMode={false}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onHover={handleHover}
-            />
-          </Box>
-        </VStack>
+                <Text
+                  fontSize="9px"
+                  fontWeight="700"
+                  color="gray.400"
+                  textTransform="uppercase"
+                  letterSpacing="wider"
+                  flex={1}
+                >
+                  {explorerCollapsed ? "▶" : "▼"} Files
+                </Text>
+              </HStack>
+              {!explorerCollapsed && (
+                <Box h="calc(100% - 28px)" overflowY="auto">
+                  <FileExplorer
+                    manifest={manifest}
+                    context={activePanel}
+                    activePath={selectedProject}
+                    onSelect={(_, key) => onProjectChange(key)}
+                  />
+                </Box>
+              )}
+            </Box>
+            <Box flex={1} w="full" overflow="hidden">
+              <TokenTree
+                semanticTokens={semanticTokens}
+                foundationTokens={foundationTokens}
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                editMode={false}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onHover={handleHover}
+              />
+            </Box>
+          </VStack>
+        )}
 
         {/* Center: Preview Canvas */}
         <Box flex={1} h="full" overflow="auto" bg="gray.50">
@@ -301,7 +318,7 @@ export const WorkspaceLayout = ({
         </Box>
 
         {/* Right: Inspector Panel */}
-        {inspectorVisible && (
+        {layoutMode !== "fullscreen" && (
           <Box
             w="300px"
             minW="260px"
