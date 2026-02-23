@@ -1,0 +1,17 @@
+{
+  "installedAt": "2026-02-23T04:53:58.575Z",
+  "workflows": [
+    "develop.md",
+    "quick-fix.md",
+    "review.md",
+    "sync.md",
+    "release.md"
+  ],
+  "memorySystem": "basic",
+  "guardRails": [
+    "anti-hallucination.md",
+    "error-recovery.md",
+    "validation-loop.md",
+    "reflection.md"
+  ]
+}

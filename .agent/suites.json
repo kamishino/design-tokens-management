@@ -1,0 +1,22 @@
+{
+  "installed": [
+    {
+      "name": "react",
+      "displayName": "React Developer",
+      "version": "1.0.0",
+      "installedAt": "2026-02-23T04:49:32.535Z"
+    },
+    {
+      "name": "fullstack",
+      "displayName": "Fullstack",
+      "version": "1.0.0",
+      "installedAt": "2026-02-23T04:49:43.313Z"
+    },
+    {
+      "name": "cli",
+      "displayName": "CLI Tool",
+      "version": "1.0.0",
+      "installedAt": "2026-02-23T04:49:50.395Z"
+    }
+  ]
+}
