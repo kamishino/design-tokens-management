@@ -14,7 +14,7 @@ import {
   Switch,
   Stack,
 } from "@chakra-ui/react";
-import { LuZap, LuShield, LuMail } from "react-icons/lu";
+import { LuZap, LuShield, LuMail, LuX } from "react-icons/lu";
 import { Card } from "../../ui/card";
 import { Field } from "../../ui/field";
 import type { StudioMockData } from "./shared/mock-data";
@@ -28,9 +28,9 @@ export const UnifiedStudio = ({ data }: { data: StudioMockData }) => {
   const sections = [
     { id: "typography", label: "Typography" },
     { id: "colors", label: "Colors" },
-    { id: "buttons", label: "Buttons" },
     { id: "cards", label: "Cards" },
     { id: "forms", label: "Forms" },
+    { id: "alerts", label: "Alerts" },
     { id: "elevation", label: "Elevation" },
   ];
 
@@ -623,6 +623,105 @@ export const UnifiedStudio = ({ data }: { data: StudioMockData }) => {
                     />
                   </VStack>
                 </VStack>
+              </SimpleGrid>
+            </VStack>
+
+            {/* --- ALERTS --- */}
+            <VStack id="alerts" align="stretch" gap={10}>
+              <VStack align="start" gap={2}>
+                <Heading size="xl" fontFamily="var(--font-family-heading)">
+                  Alerts & Status
+                </Heading>
+                <Text color="gray.500">
+                  Semantic color validation for success, warning, and error
+                  states.
+                </Text>
+              </VStack>
+
+              <SimpleGrid columns={{ base: 1, md: 3 }} gap={6}>
+                {/* Success Alert */}
+                <HStack
+                  p={4}
+                  bg="var(--status-success-bg, var(--chakra-colors-green-50))"
+                  border="1px solid"
+                  borderColor="var(--status-success-border, var(--chakra-colors-green-200))"
+                  borderRadius="var(--radius2)"
+                  align="start"
+                  gap={3}
+                >
+                  <LuZap color="var(--status-success-text, var(--chakra-colors-green-600))" />
+                  <VStack align="start" gap={0}>
+                    <Text
+                      fontSize="sm"
+                      fontWeight="bold"
+                      color="var(--status-success-text, var(--chakra-colors-green-700))"
+                    >
+                      Operation Successful
+                    </Text>
+                    <Text
+                      fontSize="xs"
+                      color="var(--status-success-text, var(--chakra-colors-green-600))"
+                    >
+                      Your changes have been saved successfully.
+                    </Text>
+                  </VStack>
+                </HStack>
+
+                {/* Warning Alert */}
+                <HStack
+                  p={4}
+                  bg="var(--status-warning-bg, var(--chakra-colors-orange-50))"
+                  border="1px solid"
+                  borderColor="var(--status-warning-border, var(--chakra-colors-orange-200))"
+                  borderRadius="var(--radius2)"
+                  align="start"
+                  gap={3}
+                >
+                  <LuShield color="var(--status-warning-text, var(--chakra-colors-orange-600))" />
+                  <VStack align="start" gap={0}>
+                    <Text
+                      fontSize="sm"
+                      fontWeight="bold"
+                      color="var(--status-warning-text, var(--chakra-colors-orange-800))"
+                    >
+                      Review Pending
+                    </Text>
+                    <Text
+                      fontSize="xs"
+                      color="var(--status-warning-text, var(--chakra-colors-orange-700))"
+                    >
+                      Your account requires manual verification.
+                    </Text>
+                  </VStack>
+                </HStack>
+
+                {/* Error Alert */}
+                <HStack
+                  p={4}
+                  bg="var(--status-error-bg, var(--chakra-colors-red-50))"
+                  border="1px solid"
+                  borderColor="var(--status-error-border, var(--chakra-colors-red-200))"
+                  borderRadius="var(--radius2)"
+                  align="start"
+                  gap={3}
+                >
+                  <LuX color="var(--status-error-text, var(--chakra-colors-red-600))" />
+                  <VStack align="start" gap={0}>
+                    <Text
+                      fontSize="sm"
+                      fontWeight="bold"
+                      color="var(--status-error-text, var(--chakra-colors-red-700))"
+                    >
+                      Connection Failed
+                    </Text>
+                    <Text
+                      fontSize="xs"
+                      color="var(--status-error-text, var(--chakra-colors-red-600))"
+                    >
+                      We couldn't connect to the server. Please try again.
+                    </Text>
+                  </VStack>
+                </HStack>
               </SimpleGrid>
             </VStack>
 

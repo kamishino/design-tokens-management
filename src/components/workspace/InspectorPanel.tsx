@@ -1,5 +1,5 @@
-import { Box, VStack, HStack, Text, Badge, Input } from "@chakra-ui/react";
-import { useState, useMemo, useRef, useEffect } from "react";
+import { Box, VStack, HStack, Text, Badge } from "@chakra-ui/react";
+import { useState, useMemo, useEffect } from "react";
 import {
   LuArrowRight,
   LuCircleDot,
@@ -11,6 +11,7 @@ import {
 } from "react-icons/lu";
 import { StagingPanel } from "./StagingPanel";
 import { TuningTab } from "./TuningTab";
+import { TokenReferenceInput } from "./TokenReferenceInput";
 import type { TokenDoc } from "../../utils/token-parser";
 import type { TokenOverrides } from "../../schemas/manifest";
 
@@ -108,7 +109,9 @@ export const InspectorPanel = ({
 
       {/* Tab Content */}
       <Box flex={1} w="full" overflowY="auto" bg="white">
-        {activeTab === "token" && <TokenDetailTab token={selectedToken} />}
+        {activeTab === "token" && (
+          <TokenDetailTab token={selectedToken} globalTokens={globalTokens} />
+        )}
         {activeTab === "tuning" && (
           <TuningTab
             overrides={overrides}
@@ -140,13 +143,18 @@ export const InspectorPanel = ({
 // Token Detail Tab
 // ---------------------
 
-const TokenDetailTab = ({ token }: { token: TokenDoc | null }) => {
+const TokenDetailTab = ({
+  token,
+  globalTokens,
+}: {
+  token: TokenDoc | null;
+  globalTokens: TokenDoc[];
+}) => {
   const [editValue, setEditValue] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">(
     "idle",
   );
-  const inputRef = useRef<HTMLInputElement>(null);
 
   // Reset edit state when token changes
   useEffect(() => {
@@ -181,7 +189,6 @@ const TokenDetailTab = ({ token }: { token: TokenDoc | null }) => {
     if (!token) return;
     setEditValue(String(token.value));
     setSaveStatus("idle");
-    setTimeout(() => inputRef.current?.focus(), 50);
   };
 
   const handleCancelEdit = () => {
@@ -278,23 +285,17 @@ const TokenDetailTab = ({ token }: { token: TokenDoc | null }) => {
 
             {/* Editable Value Row */}
             {d.editable && editValue !== null ? (
-              <HStack flex={1} gap={1}>
-                <Input
-                  ref={inputRef}
-                  size="xs"
-                  value={editValue}
-                  onChange={(e) => setEditValue(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  onBlur={handleSave}
-                  fontFamily="'Space Mono', monospace"
-                  fontSize="11px"
-                  disabled={isSaving}
-                  borderColor="blue.300"
-                  _focus={{
-                    borderColor: "blue.500",
-                    boxShadow: "0 0 0 1px var(--chakra-colors-blue-500)",
-                  }}
-                />
+              <HStack flex={1} gap={1} pos="relative">
+                <Box flex={1}>
+                  <TokenReferenceInput
+                    autoFocus
+                    value={editValue}
+                    onChange={setEditValue}
+                    onKeyDown={handleKeyDown}
+                    onBlur={handleSave}
+                    globalTokens={globalTokens}
+                  />
+                </Box>
                 <Box
                   as="button"
                   onClick={handleCancelEdit}
