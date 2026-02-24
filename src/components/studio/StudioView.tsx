@@ -28,6 +28,7 @@ import {
 
 import { generateStudioMockData } from "./templates/shared/mock-data";
 import { LuScanEye, LuArrowRight, LuX } from "react-icons/lu";
+import { parse, oklch, formatHex } from "culori";
 import type { Manifest, TokenOverrides } from "../../schemas/manifest";
 import type { TokenDoc } from "../../utils/token-parser";
 import { TokenViewer } from "../TokenViewer";
@@ -126,7 +127,7 @@ export const StudioView = ({
     const camelToDash = (str: string) =>
       str.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
 
-    // Only inject semantic tokens that templates actually use (brand, bg, text, font, border, etc.)
+    // Only inject semantic tokens that templates actually use
     const semanticPrefixes = [
       "brand",
       "bg",
@@ -136,9 +137,12 @@ export const StudioView = ({
       "action",
       "status",
       "radius",
+      "typography",
+      "shadow",
+      "opacity",
     ];
 
-    const rules = globalTokens
+    let rules = globalTokens
       .filter((t) => {
         const name = t.name.toLowerCase();
         return semanticPrefixes.some((p) => name.startsWith(p + "."));
@@ -150,6 +154,47 @@ export const StudioView = ({
         return `  ${dashVar}: ${val};`;
       })
       .join("\n");
+
+    // --- 60/30/10 RULE MAPPING (Phase S) ---
+    // Inject dynamic semantic mappings for the 60/30/10 Rule
+    // 60% (Dominant) -> --bg-canvas (as a Ghost Tint @ L=98)
+    // 30% (Supporting) -> --bg-surface (as a Subtle Tint @ L=95)
+    const getGhostTint = (hex: string, lightness: number) => {
+      const p = parse(hex);
+      if (!p) return hex;
+      const o = oklch(p);
+      return formatHex({ ...o, l: lightness, c: Math.min(o.c ?? 0, 0.02) });
+    };
+
+    const primaryToken =
+      globalTokens.find((t) => t.name === "brand.primary")?.cssVariable ||
+      "brandPrimary";
+    const secondaryToken =
+      globalTokens.find((t) => t.name === "brand.secondary")?.cssVariable ||
+      "brandSecondary";
+
+    const dashPrimary = camelToDash(primaryToken);
+    const dashSecondary = camelToDash(secondaryToken);
+
+    const primaryVal =
+      overrides[dashPrimary] ??
+      globalTokens.find((t) => t.cssVariable === primaryToken)?.resolvedValue ??
+      "#2B4D86";
+    const secondaryVal =
+      overrides[dashSecondary] ??
+      globalTokens.find((t) => t.cssVariable === secondaryToken)
+        ?.resolvedValue ??
+      "#4A6DA7";
+
+    const bgCanvas = getGhostTint(primaryVal as string, 0.98);
+    const bgSurface = getGhostTint(primaryVal as string, 0.95);
+
+    // Append rule overrides to the bottom of the :root block
+    rules += `\n  /* 60/30/10 Rule Mapping (Phase S) */\n`;
+    rules += `  --bg-canvas: ${bgCanvas};\n`;
+    rules += `  --bg-surface: ${bgSurface};\n`;
+    rules += `  --brand-primary: ${primaryVal};\n`;
+    rules += `  --brand-secondary: ${secondaryVal};`;
 
     styleTag.innerHTML = `:root {\n${rules}\n}`;
   }, [globalTokens, overrides]);

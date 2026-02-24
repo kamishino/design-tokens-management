@@ -4,19 +4,22 @@
  * Generates OKLCH shade scales for each semantic color and displays them
  * as Radix-style horizontal shade strips with contrast labels.
  */
-import { Box, VStack, HStack, Text } from "@chakra-ui/react";
+import { Box, VStack, HStack, Text, IconButton } from "@chakra-ui/react";
 import { useMemo } from "react";
 import { generateColorScale, type ColorScale } from "../../utils/oklch-scale";
 import { wcagContrast } from "culori";
+import { LuRefreshCw } from "react-icons/lu";
 
 interface ColorScalePanelProps {
   colors: { id: string; label: string; hex: string; variable: string }[];
   onSelectShade?: (variable: string, hex: string, label: string) => void;
+  onRefreshScale?: (id: string) => void;
 }
 
 export const ColorScalePanel = ({
   colors,
   onSelectShade,
+  onRefreshScale,
 }: ColorScalePanelProps) => {
   const scales = useMemo(
     () =>
@@ -32,6 +35,7 @@ export const ColorScalePanel = ({
       {scales.map(({ id, label, variable, scale }) => (
         <ScaleRow
           key={id}
+          id={id}
           label={label}
           scale={scale}
           onSelect={
@@ -39,6 +43,7 @@ export const ColorScalePanel = ({
               ? (hex, step) => onSelectShade(variable, hex, `${label} ${step}`)
               : undefined
           }
+          onRefresh={onRefreshScale ? () => onRefreshScale(id) : undefined}
         />
       ))}
     </VStack>
@@ -51,17 +56,36 @@ function ScaleRow({
   label,
   scale,
   onSelect,
+  onRefresh,
 }: {
+  id: string;
   label: string;
   scale: ColorScale;
   onSelect?: (hex: string, step: number) => void;
+  onRefresh?: () => void;
 }) {
   return (
     <Box>
       <HStack justify="space-between" mb={1}>
-        <Text fontSize="9px" fontWeight="700" color="gray.500">
-          {label}
-        </Text>
+        <HStack gap={1.5}>
+          <Text fontSize="9px" fontWeight="700" color="gray.500">
+            {label}
+          </Text>
+          {onRefresh && (
+            <IconButton
+              size="2xs"
+              variant="ghost"
+              aria-label="Refresh scale seed"
+              onClick={onRefresh}
+              h="12px"
+              w="12px"
+              color="gray.400"
+              _hover={{ color: "blue.500", bg: "blue.50" }}
+            >
+              <LuRefreshCw size={8} />
+            </IconButton>
+          )}
+        </HStack>
         <Text
           fontSize="8px"
           fontFamily="'Space Mono', monospace"

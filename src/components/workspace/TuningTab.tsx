@@ -191,6 +191,11 @@ const generateHarmoniesOklch = (primary: string): HarmonyPalette[] => {
       secondary: oklchToHex(l, c, hh + 150),
       accent: oklchToHex(l, c, hh + 210),
     },
+    {
+      name: "Monochrome",
+      secondary: oklchToHex(Math.max(0.2, l - 0.2), c, hh),
+      accent: oklchToHex(Math.min(0.9, l + 0.2), c, hh),
+    },
   ];
 };
 
@@ -433,6 +438,21 @@ export const TuningTab = ({
   );
   const [uiScale, setUiScale] = useState<number>(1);
 
+  // --- Scale Stability (Phase S) ---
+  // We keep a separate "seed" for scales so they don't pivot on every click
+  const [scaleSeeds, setScaleSeeds] = useState<Record<string, string>>({});
+
+  const getScaleSeed = useCallback(
+    (id: string, currentHex: string) => {
+      return scaleSeeds[id] ?? currentHex;
+    },
+    [scaleSeeds],
+  );
+
+  const refreshScaleSeed = (id: string, hex: string) => {
+    setScaleSeeds((prev) => ({ ...prev, [id]: hex }));
+  };
+
   const handleFontSelect = (font: (typeof FONT_ROLES)[0], family: string) => {
     const currentStack = getEffectiveValue(
       font.variable,
@@ -666,12 +686,26 @@ export const TuningTab = ({
                   ).map((c) => ({
                     id: c.id,
                     label: c.label,
-                    hex: getEffectiveValue(c.variable, c.token, "#000000"),
+                    hex: getScaleSeed(
+                      c.id,
+                      getEffectiveValue(c.variable, c.token, "#000000"),
+                    ),
                     variable: c.variable,
                   }))}
                   onSelectShade={(variable, hex, label) =>
                     updateOverride({ [variable]: hex }, label)
                   }
+                  onRefreshScale={(id: string) => {
+                    const channel = SEMANTIC_CHANNELS.find((c) => c.id === id);
+                    if (channel) {
+                      const currentHex = getEffectiveValue(
+                        channel.variable,
+                        channel.token,
+                        "#000000",
+                      );
+                      refreshScaleSeed(id, currentHex);
+                    }
+                  }}
                 />
               </Box>
 

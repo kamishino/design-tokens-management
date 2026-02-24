@@ -43,16 +43,16 @@ export const BlogPost = ({ data }: { data: StudioMockData }) => {
             zIndex={1}
           >
             <Badge
-              bg="white"
+              bg="var(--bg-surface)"
               color="var(--brand-primary)"
-              borderRadius="full"
+              borderRadius="var(--radius-basic-full)"
               px={4}
               py={1}
-              fontSize="10px"
-              fontWeight="bold"
+              fontSize="var(--font-size-basic-xs)"
+              fontWeight="var(--font-weight-bold)"
               textTransform="uppercase"
-              letterSpacing="widest"
-              data-tokens="brand.primary"
+              letterSpacing="var(--font-letter-spacing-widest)"
+              data-tokens="bg.surface, brand.primary, font.size.basic.xs, font.weight.bold"
             >
               Design Systems
             </Badge>
@@ -61,10 +61,10 @@ export const BlogPost = ({ data }: { data: StudioMockData }) => {
               fontSize="var(--font-size-scale-6)"
               fontWeight="var(--font-weight-extrabold)"
               fontFamily="var(--font-family-heading)"
-              lineHeight="var(--typography-line-height, 1.2)"
+              lineHeight="var(--font-leading-tight)"
               color="white"
               maxW="2xl"
-              data-tokens="font.size.scale.6, font.weight.extrabold, font.family.heading"
+              data-tokens="font.size.scale.6, font.weight.extrabold, font.family.heading, font.leading.tight"
             >
               Building a Scalable Design Token Architecture
             </Heading>
@@ -137,10 +137,10 @@ export const BlogPost = ({ data }: { data: StudioMockData }) => {
           {/* Intro paragraph (body text) */}
           <Text
             fontSize="var(--font-size-scale-1)"
-            lineHeight="var(--typography-line-height, 1.6)"
+            lineHeight="var(--font-leading-relaxed)"
             color="var(--text-primary)"
             fontFamily="var(--font-family-body)"
-            data-tokens="font.size.scale.1, font.family.body, text.primary"
+            data-tokens="font.size.scale.1, font.family.body, text.primary, font.leading.relaxed"
           >
             Design tokens are the visual atoms of a design system — they store
             values like colors, spacing, and typography in a platform-agnostic
@@ -154,19 +154,19 @@ export const BlogPost = ({ data }: { data: StudioMockData }) => {
             fontSize="var(--font-size-scale-4)"
             fontWeight="var(--font-weight-bold)"
             fontFamily="var(--font-family-heading)"
-            lineHeight="var(--typography-line-height, 1.3)"
+            lineHeight="var(--font-leading-snug)"
             color="var(--text-primary)"
             mt={4}
-            data-tokens="font.size.scale.4, font.weight.bold, font.family.heading"
+            data-tokens="font.size.scale.4, font.weight.bold, font.family.heading, font.leading.snug"
           >
             Why Tokens Matter
           </Heading>
 
           <Text
             fontSize="var(--font-size-scale-0)"
-            lineHeight="var(--typography-line-height, 1.6)"
+            lineHeight="var(--font-leading-relaxed)"
             fontFamily="var(--font-family-body)"
-            data-tokens="font.size.scale.0, font.family.body"
+            data-tokens="font.size.scale.0, font.family.body, font.leading.relaxed"
           >
             Most design systems start with a Figma file and a CSS stylesheet.
             But the moment you need to support dark mode, multiple brands, or
@@ -187,10 +187,10 @@ export const BlogPost = ({ data }: { data: StudioMockData }) => {
             <Text
               fontSize="var(--font-size-scale-1)"
               fontStyle="italic"
-              lineHeight="var(--typography-line-height, 1.6)"
+              lineHeight="var(--font-leading-relaxed)"
               color="var(--text-primary)"
               fontFamily="var(--font-family-body)"
-              data-tokens="font.size.scale.1"
+              data-tokens="font.size.scale.1, font.leading.relaxed"
             >
               "Design tokens are the subatomic particles of our design system.
               They're the smallest units that still carry meaning."
@@ -211,10 +211,10 @@ export const BlogPost = ({ data }: { data: StudioMockData }) => {
             fontSize="var(--font-size-scale-3)"
             fontWeight="var(--font-weight-bold)"
             fontFamily="var(--font-family-heading)"
-            lineHeight="var(--typography-line-height, 1.3)"
+            lineHeight="var(--font-leading-snug)"
             color="var(--text-primary)"
             mt={4}
-            data-tokens="font.size.scale.3, font.family.heading"
+            data-tokens="font.size.scale.3, font.family.heading, font.leading.snug"
           >
             Token Architecture Layers
           </Heading>
@@ -232,15 +232,15 @@ export const BlogPost = ({ data }: { data: StudioMockData }) => {
 
           {/* Code block */}
           <Box
-            bg="gray.900"
-            color="gray.100"
+            bg="var(--chakra-colors-gray-900)"
+            color="var(--chakra-colors-gray-100)"
             p={6}
-            borderRadius="var(--radius3)"
-            fontFamily="var(--font-family-code, 'Space Mono', monospace)"
-            fontSize="var(--font-size-scale--1)"
-            lineHeight="1.7"
+            borderRadius="var(--radius2)"
+            fontFamily="var(--font-family-code)"
+            fontSize="var(--font-size-basic-sm)"
+            lineHeight="var(--font-leading-relaxed)"
             overflow="auto"
-            data-tokens="border.radius.3, font.family.code, font.size.scale.-1"
+            data-tokens="border.radius.2, font.family.code, font.size.basic.sm, font.leading.relaxed"
           >
             <Text as="pre" whiteSpace="pre" m={0}>
               {`{
@@ -262,9 +262,9 @@ export const BlogPost = ({ data }: { data: StudioMockData }) => {
             fontSize="var(--font-size-scale-2)"
             fontWeight="var(--font-weight-semibold)"
             fontFamily="var(--font-family-heading)"
-            lineHeight="var(--typography-line-height, 1.4)"
+            lineHeight="var(--font-leading-snug)"
             color="var(--text-primary)"
-            data-tokens="font.size.scale.2, font.weight.semibold, font.family.heading"
+            data-tokens="font.size.scale.2, font.weight.semibold, font.family.heading, font.leading.snug"
           >
             Color Scale Generation with OKLCH
           </Heading>
@@ -313,10 +313,10 @@ export const BlogPost = ({ data }: { data: StudioMockData }) => {
                 Pro Tip
               </Text>
               <Text
-                fontSize="var(--font-size-scale--1)"
+                fontSize="var(--font-size-basic-sm)"
                 color="var(--text-secondary)"
-                lineHeight="var(--typography-line-height, 1.5)"
-                data-tokens="text.secondary"
+                lineHeight="var(--font-leading-relaxed)"
+                data-tokens="text.secondary, font.size.basic.sm, font.leading.relaxed"
               >
                 Always validate generated colors against sRGB gamut boundaries.
                 High-chroma colors in OKLCH may fall outside displayable range.
@@ -330,9 +330,9 @@ export const BlogPost = ({ data }: { data: StudioMockData }) => {
             fontSize="var(--font-size-scale-1)"
             fontWeight="var(--font-weight-semibold)"
             fontFamily="var(--font-family-heading)"
-            lineHeight="var(--typography-line-height, 1.4)"
+            lineHeight="var(--font-leading-snug)"
             color="var(--text-primary)"
-            data-tokens="font.size.scale.1, font.family.heading"
+            data-tokens="font.size.scale.1, font.family.heading, font.leading.snug"
           >
             Implementation Checklist
           </Heading>
@@ -357,7 +357,7 @@ export const BlogPost = ({ data }: { data: StudioMockData }) => {
                 </Text>
                 <Text
                   fontSize="var(--font-size-scale-0)"
-                  lineHeight="var(--typography-line-height, 1.6)"
+                  lineHeight="var(--font-leading-relaxed)"
                   fontFamily="var(--font-family-body)"
                 >
                   {item}
@@ -381,10 +381,10 @@ export const BlogPost = ({ data }: { data: StudioMockData }) => {
           </Heading>
 
           <Text
-            fontSize="var(--font-size-scale--1)"
+            fontSize="var(--font-size-basic-sm)"
             color="var(--text-secondary)"
-            lineHeight="var(--typography-line-height, 1.5)"
-            data-tokens="text.secondary, font.size.scale.-1"
+            lineHeight="var(--font-leading-relaxed)"
+            data-tokens="text.secondary, font.size.basic.sm, font.leading.relaxed"
           >
             This article is part of our Design System series. For more on
             typography scales, see our Type Scale Calculator. For color
