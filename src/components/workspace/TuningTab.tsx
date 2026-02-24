@@ -17,6 +17,7 @@ import {
   LuCheck,
   LuLayoutList,
   LuNewspaper,
+  LuZoomIn,
 } from "react-icons/lu";
 import { parse, converter, wcagContrast, formatHex } from "culori";
 // @ts-expect-error apca-w3 has no type declarations
@@ -430,6 +431,7 @@ export const TuningTab = ({
   const [previewMode, setPreviewMode] = useState<"ladder" | "article">(
     "ladder",
   );
+  const [uiScale, setUiScale] = useState<number>(1);
 
   const handleFontSelect = (font: (typeof FONT_ROLES)[0], family: string) => {
     const currentStack = getEffectiveValue(
@@ -479,6 +481,45 @@ export const TuningTab = ({
           );
         })}
         <Box flex={1} />
+
+        {/* UI Scale Toggle */}
+        <HStack gap={0.5} mr={2} bg="gray.50" p={0.5} borderRadius="sm">
+          <LuZoomIn
+            size={10}
+            color="var(--chakra-colors-gray-400)"
+            style={{ marginLeft: "4px", marginRight: "2px" }}
+          />
+          {[1, 1.25, 1.5].map((scale) => {
+            const labels: Record<number, string> = {
+              1: "100%",
+              1.25: "125%",
+              1.5: "150%",
+            };
+            return (
+              <Box
+                key={scale}
+                as="button"
+                px={1.5}
+                py={0.5}
+                borderRadius="sm"
+                fontSize="9px"
+                fontWeight="600"
+                fontFamily="'Space Mono', monospace"
+                color={uiScale === scale ? "blue.600" : "gray.400"}
+                bg={uiScale === scale ? "white" : "transparent"}
+                boxShadow={uiScale === scale ? "sm" : "none"}
+                cursor="pointer"
+                _hover={{ bg: uiScale === scale ? "white" : "gray.100" }}
+                transition="all 0.1s"
+                onClick={() => setUiScale(scale)}
+                title={`Scale UI by ${labels[scale]}`}
+              >
+                {labels[scale]}
+              </Box>
+            );
+          })}
+        </HStack>
+
         {hasOverrides && (
           <HStack gap={0.5}>
             <Box
@@ -507,7 +548,8 @@ export const TuningTab = ({
         )}
       </HStack>
 
-      <Box flex={1} overflowY="auto">
+      {/* Main scrollable tuning area with dynamic zoom scale */}
+      <Box flex={1} overflowY="auto" style={{ zoom: uiScale } as any}>
         {/* Color Channels */}
         {tuningSubTab === "colors" && (
           <>

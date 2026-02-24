@@ -335,7 +335,7 @@ export const WorkspaceLayout = ({
           <ResizeHandle
             side="right"
             onResize={(d) =>
-              setInspectorWidth((w) => Math.max(240, Math.min(500, w + d)))
+              setInspectorWidth((w) => Math.max(240, Math.min(800, w + d)))
             }
             onResizeEnd={saveInspectorWidth}
           />
