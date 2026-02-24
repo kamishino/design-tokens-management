@@ -1,8 +1,15 @@
-import { 
-  Box, VStack, HStack, Text, Input, 
-  Textarea, Field, Group, IconButton
+import {
+  Box,
+  VStack,
+  HStack,
+  Text,
+  Input,
+  Textarea,
+  Field,
+  Group,
+  IconButton,
 } from "@chakra-ui/react";
-import { 
+import {
   DialogBody,
   DialogCloseTrigger,
   DialogContent,
@@ -11,19 +18,15 @@ import {
   DialogRoot,
   DialogTitle,
 } from "../ui/dialog";
-import { 
-  NativeSelectRoot,
-  NativeSelectField
-} from "../ui/native-select";
-import { 
-  PopoverContent,
-  PopoverRoot,
-  PopoverTrigger,
-} from "../ui/popover";
+import { NativeSelectRoot, NativeSelectField } from "../ui/native-select";
+import { PopoverContent, PopoverRoot, PopoverTrigger } from "../ui/popover";
 import { Button } from "../ui/button";
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from "react";
 import { extractReferences } from "../../utils/token-parser";
-import { resolveTerminalValue, getPrioritizedTokenMap } from "../../utils/token-graph";
+import {
+  resolveValueWithMap,
+  getPrioritizedTokenMap,
+} from "../../utils/token-graph";
 import type { TokenDoc } from "../../utils/token-parser";
 import { ReferencePicker } from "./ReferencePicker";
 import { LuLink } from "react-icons/lu";
@@ -40,47 +43,52 @@ interface TokenEditModalProps {
 
 const TOKEN_TYPE_GROUPS = [
   {
-    label: 'Standard (W3C DTCG)',
+    label: "Standard (W3C DTCG)",
     items: [
-      { value: 'color', label: 'Color' },
-      { value: 'dimension', label: 'Dimension' },
-      { value: 'fontFamilies', label: 'Font Family' },
-      { value: 'fontWeights', label: 'Font Weight' },
-      { value: 'lineHeights', label: 'Line Height' },
-      { value: 'duration', label: 'Duration' },
-      { value: 'cubicBezier', label: 'Cubic Bezier' },
-    ]
+      { value: "color", label: "Color" },
+      { value: "dimension", label: "Dimension" },
+      { value: "fontFamilies", label: "Font Family" },
+      { value: "fontWeights", label: "Font Weight" },
+      { value: "lineHeights", label: "Line Height" },
+      { value: "duration", label: "Duration" },
+      { value: "cubicBezier", label: "Cubic Bezier" },
+    ],
   },
   {
-    label: 'Tokens Studio (Figma)',
+    label: "Tokens Studio (Figma)",
     items: [
-      { value: 'spacing', label: 'Spacing' },
-      { value: 'borderRadius', label: 'Border Radius' },
-      { value: 'borderWidth', label: 'Border Width' },
-      { value: 'opacity', label: 'Opacity' },
-      { value: 'boxShadow', label: 'Box Shadow' },
-      { value: 'fontSizes', label: 'Font Size' },
-      { value: 'letterSpacing', label: 'Letter Spacing' },
-    ]
+      { value: "spacing", label: "Spacing" },
+      { value: "borderRadius", label: "Border Radius" },
+      { value: "borderWidth", label: "Border Width" },
+      { value: "opacity", label: "Opacity" },
+      { value: "boxShadow", label: "Box Shadow" },
+      { value: "fontSizes", label: "Font Size" },
+      { value: "letterSpacing", label: "Letter Spacing" },
+    ],
   },
   {
-    label: 'Custom',
-    items: [
-      { value: 'other', label: 'Other / Raw' }
-    ]
-  }
+    label: "Custom",
+    items: [{ value: "other", label: "Other / Raw" }],
+  },
 ];
 
-export const TokenEditModal = ({ isOpen, onClose, token, targetPath, initialCategory, globalTokens }: TokenEditModalProps) => {
-  const [name, setName] = useState('');
-  const [value, setValue] = useState('');
-  const [type, setType] = useState('color');
-  const [description, setDescription] = useState('');
+export const TokenEditModal = ({
+  isOpen,
+  onClose,
+  token,
+  targetPath,
+  initialCategory,
+  globalTokens,
+}: TokenEditModalProps) => {
+  const [name, setName] = useState("");
+  const [value, setValue] = useState("");
+  const [type, setType] = useState("color");
+  const [description, setDescription] = useState("");
   const [isSyncing, setIsSyncing] = useState(false);
 
   // Reference Picker & Smart Replace State
   const [isPickerOpen, setIsPickerOpen] = useState(false);
-  const [refSearch, setRefSearch] = useState('');
+  const [refSearch, setRefSearch] = useState("");
   const [anchorRect] = useState<DOMRect | null>(null);
   const [previousLiteral, setPreviousLiteral] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -88,30 +96,46 @@ export const TokenEditModal = ({ isOpen, onClose, token, targetPath, initialCate
   useEffect(() => {
     if (token) {
       // Extract the dot-notation path from the composite ID (e.g. "file:path" -> "path")
-      const dotPath = token.id.includes(':') ? token.id.split(':')[1] : token.id;
+      const dotPath = token.id.includes(":")
+        ? token.id.split(":")[1]
+        : token.id;
       setName(dotPath);
-      setValue(typeof token.value === 'object' ? JSON.stringify(token.value) : String(token.value));
+      setValue(
+        typeof token.value === "object"
+          ? JSON.stringify(token.value)
+          : String(token.value),
+      );
       setType(token.type);
-      setDescription(token.description || '');
+      setDescription(token.description || "");
     } else {
-      setName(initialCategory ? `${initialCategory}.` : '');
-      setValue('');
-      setType('color');
-      setDescription('');
+      setName(initialCategory ? `${initialCategory}.` : "");
+      setValue("");
+      setType("color");
+      setDescription("");
     }
     setIsPickerOpen(false);
     setPreviousLiteral(null);
   }, [token, initialCategory, isOpen]);
+
+  const isFoundation = useMemo(() => {
+    if (!token) return false;
+    return (
+      token.sourceFile.includes("global/base") ||
+      token.path.some((p) => p === "base" || p === "global")
+    );
+  }, [token]);
+
+  const isSemantic = !isFoundation;
 
   const handleValueChange = (val: string) => {
     setValue(val);
     setPreviousLiteral(null); // Clear restore button if user starts typing manually
 
     // Detect { trigger
-    const lastOpenBrace = val.lastIndexOf('{');
-    const lastCloseBrace = val.lastIndexOf('}');
+    const lastOpenBrace = val.lastIndexOf("{");
+    const lastCloseBrace = val.lastIndexOf("}");
 
-    if (lastOpenBrace !== -1 && lastOpenBrace > lastCloseBrace) {
+    if (isSemantic && lastOpenBrace !== -1 && lastOpenBrace > lastCloseBrace) {
       const search = val.slice(lastOpenBrace + 1);
       setRefSearch(search);
       setIsPickerOpen(true);
@@ -122,10 +146,10 @@ export const TokenEditModal = ({ isOpen, onClose, token, targetPath, initialCate
 
   const handleSelectReference = (tokenName: string) => {
     // If current value is a literal (no braces), cache it for restoration
-    if (!value.includes('{') && value.trim() !== '') {
+    if (!value.includes("{") && value.trim() !== "") {
       setPreviousLiteral(value);
     }
-    
+
     // Total replacement with correctly formatted reference
     setValue(`{${tokenName}}`);
     setIsPickerOpen(false);
@@ -141,28 +165,28 @@ export const TokenEditModal = ({ isOpen, onClose, token, targetPath, initialCate
   const handleSave = async () => {
     setIsSyncing(true);
     try {
-      const response = await fetch('/api/save-token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/save-token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           targetPath,
           tokenPath: name,
           valueObj: {
-            "$value": value,
-            "$type": type,
-            "$description": description
+            $value: value,
+            $type: type,
+            $description: description,
           },
-          action: 'update'
-        })
+          action: "update",
+        }),
       });
 
       if (response.ok) {
         onClose(true);
       } else {
-        console.error('Failed to save token');
+        console.error("Failed to save token");
       }
     } catch (e) {
-      console.error('Error saving token', e);
+      console.error("Error saving token", e);
     } finally {
       setIsSyncing(false);
     }
@@ -172,13 +196,13 @@ export const TokenEditModal = ({ isOpen, onClose, token, targetPath, initialCate
 
   // Real-time Color Resolution & Validation
   const resolutionResult = useMemo(() => {
-    if (!value || type !== 'color') return { isValid: false, status: 'none' };
+    if (!value || type !== "color") return { isValid: false, status: "none" };
 
     const refs = extractReferences(value);
     let terminalValue = value;
-    let status = 'literal';
-    let message = '';
-    let sourceFile = '';
+    let status = "literal";
+    let message = "";
+    let sourceFile = "";
 
     if (refs.length > 0) {
       const priorityMap = getPrioritizedTokenMap(globalTokens, targetPath);
@@ -186,49 +210,67 @@ export const TokenEditModal = ({ isOpen, onClose, token, targetPath, initialCate
       const sourceToken = priorityMap.get(refTokenName);
 
       if (sourceToken) {
-        terminalValue = resolveTerminalValue(sourceToken, priorityMap);
-        status = 'reference';
-        sourceFile = sourceToken.sourceFile.split('/').pop() || '';
+        terminalValue = resolveValueWithMap(sourceToken, priorityMap);
+        status = "reference";
+        sourceFile = sourceToken.sourceFile.split("/").pop() || "";
         message = `Linked to: ${sourceFile} (${terminalValue})`;
       } else {
-        return { isValid: false, status: 'broken', message: `⚠️ Reference '${refSearch}' not found.` };
+        return {
+          isValid: false,
+          status: "broken",
+          message: `⚠️ Reference '${refSearch}' not found.`,
+        };
       }
     }
 
     // Validate if terminal value is a real color
     const parsed = parse(terminalValue);
     const isValid = parsed !== undefined;
-    
-    if (!isValid && status === 'literal' && !value.includes('{')) {
-      return { isValid: false, status: 'invalid-color', message: '⚠️ Invalid CSS color format.' };
+
+    if (!isValid && status === "literal" && !value.includes("{")) {
+      return {
+        isValid: false,
+        status: "invalid-color",
+        message: "⚠️ Invalid CSS color format.",
+      };
     }
 
-    return { 
-      isValid, 
-      value: isValid ? formatHex(parsed) : '', 
-      status, 
-      message 
+    return {
+      isValid,
+      value: isValid ? formatHex(parsed) : "",
+      status,
+      message,
     };
   }, [value, type, globalTokens, targetPath, refSearch]);
 
   return (
-    <DialogRoot open={isOpen} onOpenChange={(details: { open: boolean }) => !details.open && onClose()} size="lg">
+    <DialogRoot
+      open={isOpen}
+      onOpenChange={(details: { open: boolean }) => !details.open && onClose()}
+      size="lg"
+    >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{isNew ? 'Create New Token' : 'Edit Token'}</DialogTitle>
-          <Text fontSize="xs" color="gray.500" mt={1}>Target: {targetPath}</Text>
+          <DialogTitle>{isNew ? "Create New Token" : "Edit Token"}</DialogTitle>
+          <Text fontSize="xs" color="gray.500" mt={1}>
+            Target: {targetPath}
+          </Text>
         </DialogHeader>
         <DialogBody>
           <VStack gap={6} align="stretch" py={2}>
             <Field.Root>
-              <Field.Label fontWeight="bold">Token Name (Dot Notation)</Field.Label>
-              <Input 
-                placeholder="e.g. color.brand.primary" 
-                value={name} 
+              <Field.Label fontWeight="bold">
+                Token Name (Dot Notation)
+              </Field.Label>
+              <Input
+                placeholder="e.g. color.brand.primary"
+                value={name}
                 onChange={(e) => setName(e.target.value)}
                 disabled={!isNew}
               />
-              <Field.HelperText>Standard hierarchy: category.group.name</Field.HelperText>
+              <Field.HelperText>
+                Standard hierarchy: category.group.name
+              </Field.HelperText>
             </Field.Root>
 
             <HStack gap={6} align="flex-start">
@@ -237,7 +279,9 @@ export const TokenEditModal = ({ isOpen, onClose, token, targetPath, initialCate
                 <NativeSelectRoot>
                   <NativeSelectField
                     value={type}
-                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setType(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                      setType(e.target.value)
+                    }
                   >
                     {TOKEN_TYPE_GROUPS.map((group) => (
                       <optgroup key={group.label} label={group.label}>
@@ -255,36 +299,41 @@ export const TokenEditModal = ({ isOpen, onClose, token, targetPath, initialCate
               <Field.Root flex={2}>
                 <Field.Label fontWeight="bold">Value</Field.Label>
                 <HStack gap={3}>
-                  <PopoverRoot 
-                    open={isPickerOpen} 
+                  <PopoverRoot
+                    open={isPickerOpen}
                     onOpenChange={(e) => {
                       setIsPickerOpen(e.open);
                       // Cleanup: Remove dangling '{' if closing without selection
                       if (!e.open) {
-                        setRefSearch('');
-                        if (value.endsWith('{')) {
-                          setValue(prev => prev.slice(0, -1));
+                        setRefSearch("");
+                        if (value.endsWith("{")) {
+                          setValue((prev) => prev.slice(0, -1));
                         }
                       }
                     }}
                     autoFocus={false}
-                    positioning={{ strategy: "fixed", placement: "bottom-start" }}
+                    positioning={{
+                      strategy: "fixed",
+                      placement: "bottom-start",
+                    }}
                   >
                     <PopoverTrigger asChild>
                       <Group attached w="full">
-                        <Input 
+                        <Input
                           ref={inputRef}
-                          placeholder="e.g. #FFFFFF or {color.blue.500}" 
-                          value={value} 
+                          placeholder="e.g. #FFFFFF or {color.blue.500}"
+                          value={value}
                           onChange={(e) => handleValueChange(e.target.value)}
                         />
                         <IconButton
                           aria-label="Link reference"
                           variant="subtle"
+                          disabled={!isSemantic}
                           onClick={() => {
-                            if (!value.includes('{')) {
-                              setValue(value + '{');
-                              setRefSearch('');
+                            if (!isSemantic) return;
+                            if (!value.includes("{")) {
+                              setValue(value + "{");
+                              setRefSearch("");
                             }
                             setIsPickerOpen(true);
                           }}
@@ -293,8 +342,11 @@ export const TokenEditModal = ({ isOpen, onClose, token, targetPath, initialCate
                         </IconButton>
                       </Group>
                     </PopoverTrigger>
-                    <PopoverContent w={`${anchorRect?.width || 300}px`} zIndex={5000}>
-                      <ReferencePicker 
+                    <PopoverContent
+                      w={`${anchorRect?.width || 300}px`}
+                      zIndex={5000}
+                    >
+                      <ReferencePicker
                         tokens={globalTokens}
                         searchTerm={refSearch}
                         filterType={type}
@@ -303,33 +355,38 @@ export const TokenEditModal = ({ isOpen, onClose, token, targetPath, initialCate
                     </PopoverContent>
                   </PopoverRoot>
                   {resolutionResult.isValid && (
-                    <Box 
-                      w="40px" 
-                      h="40px" 
-                      bg={resolutionResult.value} 
-                      borderRadius="md" 
-                      border="1px solid" 
-                      borderColor="gray.200" 
-                      flexShrink={0} 
+                    <Box
+                      w="40px"
+                      h="40px"
+                      bg={resolutionResult.value}
+                      borderRadius="md"
+                      border="1px solid"
+                      borderColor="gray.200"
+                      flexShrink={0}
                     />
                   )}
                 </HStack>
                 {(resolutionResult.message || previousLiteral !== null) && (
                   <VStack align="start" gap={1} mt={2}>
                     {resolutionResult.message && (
-                      <Text 
-                        fontSize="xs" 
-                        color={resolutionResult.status.startsWith('broken') || resolutionResult.status === 'invalid-color' ? 'red.500' : 'gray.500'}
+                      <Text
+                        fontSize="xs"
+                        color={
+                          resolutionResult.status.startsWith("broken") ||
+                          resolutionResult.status === "invalid-color"
+                            ? "red.500"
+                            : "gray.500"
+                        }
                         fontWeight="medium"
                       >
                         {resolutionResult.message}
                       </Text>
                     )}
                     {previousLiteral !== null && (
-                      <Button 
-                        variant="ghost" 
-                        size="xs" 
-                        color="blue.500" 
+                      <Button
+                        variant="ghost"
+                        size="xs"
+                        color="blue.500"
                         onClick={handleRestoreValue}
                         fontWeight="bold"
                         p={0}
@@ -345,9 +402,9 @@ export const TokenEditModal = ({ isOpen, onClose, token, targetPath, initialCate
 
             <Field.Root>
               <Field.Label fontWeight="bold">Description</Field.Label>
-              <Textarea 
-                placeholder="Explain the purpose of this token..." 
-                value={description} 
+              <Textarea
+                placeholder="Explain the purpose of this token..."
+                value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
               />
@@ -355,9 +412,11 @@ export const TokenEditModal = ({ isOpen, onClose, token, targetPath, initialCate
           </VStack>
         </DialogBody>
         <DialogFooter>
-          <Button variant="ghost" onClick={() => onClose()}>Cancel</Button>
+          <Button variant="ghost" onClick={() => onClose()}>
+            Cancel
+          </Button>
           <Button colorPalette="blue" loading={isSyncing} onClick={handleSave}>
-            {isNew ? 'Create Token' : 'Save Changes'}
+            {isNew ? "Create Token" : "Save Changes"}
           </Button>
         </DialogFooter>
         <DialogCloseTrigger />

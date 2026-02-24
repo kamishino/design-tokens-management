@@ -34,6 +34,7 @@ interface InspectorPanelProps {
   canRedo: boolean;
   onDiscardOverride: (cssVar: string) => void;
   onDiscardAll: () => void;
+  refreshTokens?: () => void;
 }
 
 const tabConfig: { id: InspectorTab; label: string; icon: React.ReactNode }[] =
@@ -57,6 +58,7 @@ export const InspectorPanel = ({
   canRedo,
   onDiscardOverride,
   onDiscardAll,
+  refreshTokens,
 }: InspectorPanelProps) => {
   const [activeTab, setActiveTab] = useState<InspectorTab>("tuning");
   const pendingCount = Object.keys(overrides).length;
@@ -110,7 +112,11 @@ export const InspectorPanel = ({
       {/* Tab Content */}
       <Box flex={1} w="full" overflowY="auto" bg="white">
         {activeTab === "token" && (
-          <TokenDetailTab token={selectedToken} globalTokens={globalTokens} />
+          <TokenDetailTab
+            token={selectedToken}
+            globalTokens={globalTokens}
+            onSaveSuccess={refreshTokens}
+          />
         )}
         {activeTab === "tuning" && (
           <TuningTab
@@ -146,9 +152,11 @@ export const InspectorPanel = ({
 const TokenDetailTab = ({
   token,
   globalTokens,
+  onSaveSuccess,
 }: {
   token: TokenDoc | null;
   globalTokens: TokenDoc[];
+  onSaveSuccess?: () => void;
 }) => {
   const [editValue, setEditValue] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -218,7 +226,10 @@ const TokenDetailTab = ({
       if (!response.ok) throw new Error("Save failed");
       setSaveStatus("success");
       setEditValue(null);
-      setTimeout(() => setSaveStatus("idle"), 2000);
+      setTimeout(() => {
+        setSaveStatus("idle");
+        onSaveSuccess?.();
+      }, 500);
     } catch {
       setSaveStatus("error");
     } finally {
@@ -249,6 +260,12 @@ const TokenDetailTab = ({
     token.type === "color" ||
     (typeof token.resolvedValue === "string" &&
       /^#|^rgb|^hsl|^oklch/i.test(token.resolvedValue));
+
+  // Determine if this is a Foundation token (usually has "global/base" in path or sourceFile)
+  const isFoundation =
+    token.sourceFile.includes("global/base") ||
+    token.path.some((p) => p === "base" || p === "global");
+  const isSemantic = !isFoundation;
 
   return (
     <VStack align="stretch" gap={0} p={0}>
@@ -293,7 +310,7 @@ const TokenDetailTab = ({
                     onChange={setEditValue}
                     onKeyDown={handleKeyDown}
                     onBlur={handleSave}
-                    globalTokens={globalTokens}
+                    globalTokens={isSemantic ? globalTokens : []} // Only pass tokens for autocomplete if Semantic
                   />
                 </Box>
                 <Box

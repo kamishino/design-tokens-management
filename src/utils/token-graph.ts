@@ -52,14 +52,20 @@ export const enrichTokensWithLineage = (tokens: TokenDoc[]): TokenDoc[] => {
   tokens.forEach((token) => {
     const enrichedToken = idMap.get(token.id);
     if (enrichedToken) {
-      enrichedToken.resolvedValue = resolveTerminalValue(enrichedToken, nameMap);
+      enrichedToken.resolvedValue = resolveTerminalValue(
+        enrichedToken,
+        nameMap,
+      );
     }
   });
 
   // 5. Propagate types from parents to children if type is unknown
   tokens.forEach((token) => {
     const enrichedToken = idMap.get(token.id);
-    if (enrichedToken && (enrichedToken.type === "unknown" || !enrichedToken.type)) {
+    if (
+      enrichedToken &&
+      (enrichedToken.type === "unknown" || !enrichedToken.type)
+    ) {
       enrichedToken.type = resolveTerminalType(enrichedToken, nameMap);
     }
   });
@@ -70,22 +76,28 @@ export const enrichTokensWithLineage = (tokens: TokenDoc[]): TokenDoc[] => {
 /**
  * Recursively resolves the terminal type of a token reference chain.
  */
-export const resolveTerminalType = (token: TokenDoc, nameMap: Map<string, TokenDoc[]>, depth = 0): string => {
+export const resolveTerminalType = (
+  token: TokenDoc,
+  nameMap: Map<string, TokenDoc[]>,
+  depth = 0,
+): string => {
   if (depth > 10 || token.references.length === 0) {
     return token.type || "unknown";
   }
 
   const firstRefName = token.references[0];
   const candidates = nameMap.get(firstRefName) || [];
-  
+
   // Find valid parent: not self, and has a known type
-  const parent = candidates.find((c) => c.id !== token.id && c.type && c.type !== "unknown");
+  const parent = candidates.find(
+    (c) => c.id !== token.id && c.type && c.type !== "unknown",
+  );
 
   if (parent) {
     // If parent has a valid type, return it
     return parent.type;
   }
-  
+
   // Fallback: try finding ANY parent to recurse, even if type is unknown yet
   const fallbackParent = candidates.find((c) => c.id !== token.id);
   if (fallbackParent) {
@@ -98,7 +110,11 @@ export const resolveTerminalType = (token: TokenDoc, nameMap: Map<string, TokenD
 /**
  * Recursively resolves the terminal value of a token reference chain using a name-based map.
  */
-export const resolveTerminalValue = (token: TokenDoc, nameMap: Map<string, TokenDoc[]>, depth = 0): any => {
+export const resolveTerminalValue = (
+  token: TokenDoc,
+  nameMap: Map<string, TokenDoc[]>,
+  depth = 0,
+): any => {
   if (depth > 10 || token.references.length === 0) {
     return token.value;
   }
@@ -106,13 +122,14 @@ export const resolveTerminalValue = (token: TokenDoc, nameMap: Map<string, Token
   // References currently store raw names like "color.blue.500"
   const firstRefName = token.references[0];
   const candidates = nameMap.get(firstRefName) || [];
-  
+
   // Find the highest priority definition that isn't the current token AND has a valid value
-  const parent = candidates.find((c) => 
-    c.id !== token.id && 
-    c.value !== undefined && 
-    c.value !== null && 
-    c.value !== ""
+  const parent = candidates.find(
+    (c) =>
+      c.id !== token.id &&
+      c.value !== undefined &&
+      c.value !== null &&
+      c.value !== "",
   );
 
   if (parent) {
@@ -131,9 +148,37 @@ export const resolveTerminalValue = (token: TokenDoc, nameMap: Map<string, Token
 };
 
 /**
+ * Recursively resolves the terminal value using a single-priority map.
+ */
+export const resolveValueWithMap = (
+  token: TokenDoc,
+  tokenMap: Map<string, TokenDoc>,
+  depth = 0,
+): any => {
+  if (depth > 10 || token.references.length === 0) {
+    return token.value;
+  }
+
+  const firstRefName = token.references[0];
+  const parent = tokenMap.get(firstRefName);
+
+  if (parent && parent.id !== token.id) {
+    const result = resolveValueWithMap(parent, tokenMap, depth + 1);
+    if (result === token.value) return result;
+    return result;
+  }
+
+  return token.value;
+};
+
+/**
  * Recursively resolves the full upstream lineage of a token using name-based lookup.
  */
-export const getUpstreamLineage = (token: TokenDoc, nameMap: Map<string, TokenDoc[]>, depth = 0): TokenDoc[] => {
+export const getUpstreamLineage = (
+  token: TokenDoc,
+  nameMap: Map<string, TokenDoc[]>,
+  depth = 0,
+): TokenDoc[] => {
   if (depth > 5) return []; // Circular ref guard
 
   let lineage: TokenDoc[] = [];
@@ -155,7 +200,10 @@ export const getUpstreamLineage = (token: TokenDoc, nameMap: Map<string, TokenDo
 
  */
 
-export const findSourceFileForToken = (tokenId: string, tokens: TokenDoc[]): string | null => {
+export const findSourceFileForToken = (
+  tokenId: string,
+  tokens: TokenDoc[],
+): string | null => {
   const token = tokens.find((t) => t.id === tokenId);
 
   if (!token) return null;
@@ -171,14 +219,18 @@ export const findSourceFileForToken = (tokenId: string, tokens: TokenDoc[]): str
 
  */
 
-export const getPrioritizedTokenMap = (tokens: TokenDoc[], targetPath: string): Map<string, TokenDoc> => {
+export const getPrioritizedTokenMap = (
+  tokens: TokenDoc[],
+  targetPath: string,
+): Map<string, TokenDoc> => {
   const tokenMap = new Map<string, TokenDoc>();
 
   // Sort tokens by priority (low to high so higher ones overwrite)
 
   const sorted = [...tokens].sort((a, b) => {
     const getPriority = (path: string) => {
-      if (path.includes(targetPath.split("/projects/")[0] + "/projects/")) return 3; // Project
+      if (path.includes(targetPath.split("/projects/")[0] + "/projects/"))
+        return 3; // Project
 
       if (path.includes(targetPath.split("/projects/")[0])) return 2; // Client
 

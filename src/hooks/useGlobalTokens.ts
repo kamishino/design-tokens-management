@@ -1,12 +1,15 @@
-import { useState, useEffect } from 'react';
-import { getDynamicTokenFiles } from '../utils/fs-scanner';
-import { parseTokensToDocs } from '../utils/token-parser';
-import { enrichTokensWithLineage } from '../utils/token-graph';
-import type { TokenDoc } from '../utils/token-parser';
+import { useState, useEffect } from "react";
+import { getDynamicTokenFiles } from "../utils/fs-scanner";
+import { parseTokensToDocs } from "../utils/token-parser";
+import { enrichTokensWithLineage } from "../utils/token-graph";
+import type { TokenDoc } from "../utils/token-parser";
 
 export const useGlobalTokens = () => {
   const [globalTokens, setGlobalTokens] = useState<TokenDoc[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshSync, setRefreshSync] = useState(0);
+
+  const refresh = () => setRefreshSync((prev) => prev + 1);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -14,15 +17,16 @@ export const useGlobalTokens = () => {
         // Dynamically discover all token files across all domains
         const allFiles = getDynamicTokenFiles();
 
-        const promises = allFiles.map(file => 
-          fetch(file.path)
-            .then(res => res.json())
-            .then(json => ({ json, filename: file.path })) // Use full path as identifier
+        const promises = allFiles.map(
+          (file) =>
+            fetch(file.path)
+              .then((res) => res.json())
+              .then((json) => ({ json, filename: file.path })), // Use full path as identifier
         );
-        
+
         const results = await Promise.all(promises);
         let aggregated: TokenDoc[] = [];
-        
+
         results.forEach(({ json, filename }) => {
           aggregated = aggregated.concat(parseTokensToDocs(json, [], filename));
         });
@@ -32,14 +36,14 @@ export const useGlobalTokens = () => {
 
         setGlobalTokens(enriched);
       } catch (e) {
-        console.error('Failed to fetch global tokens', e);
+        console.error("Failed to fetch global tokens", e);
       } finally {
         setLoading(false);
       }
     };
 
     fetchAll();
-  }, []);
+  }, [refreshSync]);
 
-  return { globalTokens, loading };
+  return { globalTokens, loading, refresh };
 };

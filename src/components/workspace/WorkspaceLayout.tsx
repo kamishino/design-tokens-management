@@ -51,7 +51,7 @@ export const WorkspaceLayout = ({
   canUndo,
   canRedo,
 }: WorkspaceLayoutProps) => {
-  const { globalTokens } = useGlobalTokens();
+  const { globalTokens, refresh } = useGlobalTokens();
   const [searchTerm, setSearchTerm] = useState("");
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [sidebarVisible, setSidebarVisible] = useState(true);
@@ -158,25 +158,30 @@ export const WorkspaceLayout = ({
     setIsEditorOpen(true);
   }, []);
 
-  const handleDelete = useCallback(async (token: TokenDoc) => {
-    if (!window.confirm(`Are you sure you want to delete ${token.name}?`))
-      return;
-    const dotPath = token.id.includes(":") ? token.id.split(":")[1] : token.id;
-    try {
-      const response = await fetch("/api/save-token", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          targetPath: token.sourceFile,
-          tokenPath: dotPath,
-          action: "delete",
-        }),
-      });
-      if (response.ok) window.location.reload();
-    } catch (e) {
-      console.error("Error deleting token", e);
-    }
-  }, []);
+  const handleDelete = useCallback(
+    async (token: TokenDoc) => {
+      if (!window.confirm(`Are you sure you want to delete ${token.name}?`))
+        return;
+      const dotPath = token.id.includes(":")
+        ? token.id.split(":")[1]
+        : token.id;
+      try {
+        const response = await fetch("/api/save-token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            targetPath: token.sourceFile,
+            tokenPath: dotPath,
+            action: "delete",
+          }),
+        });
+        if (response.ok) refresh();
+      } catch (e) {
+        console.error("Error deleting token", e);
+      }
+    },
+    [refresh],
+  );
 
   const handleExport = useCallback(() => {
     setIsExportModalOpen(true);
@@ -356,8 +361,9 @@ export const WorkspaceLayout = ({
               selectedToken={selectedToken}
               overrides={overrides}
               globalTokens={globalTokens}
-              onCommitSuccess={() => window.location.reload()}
+              onCommitSuccess={refresh}
               updateOverride={updateOverride}
+              refreshTokens={refresh}
               projectPath={selectedProject}
               onReset={onReset}
               undo={undo}
@@ -376,9 +382,9 @@ export const WorkspaceLayout = ({
 
       <TokenEditModal
         isOpen={isEditorOpen}
-        onClose={(refresh) => {
+        onClose={(shouldRefresh) => {
           setIsEditorOpen(false);
-          if (refresh) window.location.reload();
+          if (shouldRefresh) refresh();
         }}
         token={editingToken}
         targetPath={selectedProject}
