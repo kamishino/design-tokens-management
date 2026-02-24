@@ -145,13 +145,14 @@ export const StudioView = ({
       })
       .map((t) => {
         const dashVar = camelToDash(t.cssVariable);
-        const val = t.resolvedValue ?? t.value;
+        // Priority: Override > Resolved Value > Raw Value
+        const val = overrides[dashVar] ?? t.resolvedValue ?? t.value;
         return `  ${dashVar}: ${val};`;
       })
       .join("\n");
 
     styleTag.innerHTML = `:root {\n${rules}\n}`;
-  }, [globalTokens]);
+  }, [globalTokens, overrides]);
 
   const mockData = useMemo(() => generateStudioMockData(), []);
 
