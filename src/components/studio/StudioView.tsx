@@ -490,7 +490,7 @@ export const StudioView = ({
         className="studio-toolbar"
         position="sticky"
         top="52px"
-        zIndex={1990}
+        zIndex={40}
         bg="rgba(250, 250, 252, 0.95)"
         backdropFilter="blur(8px)"
         borderBottom="1px solid"
@@ -547,7 +547,7 @@ export const StudioView = ({
           fontWeight="600"
           position="sticky"
           top="88px"
-          zIndex={1980}
+          zIndex={30}
         >
           <HStack gap={2}>
             <LuScanEye size={13} />
