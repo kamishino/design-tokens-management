@@ -190,9 +190,10 @@ export const WorkspaceLayout = ({
   /** Q2: 'Edit Tokens' from FileActionMenu — filter token tree to show only that file */
   const handleEditTokensByFile = useCallback(
     (filePath: string) => {
-      // filePath is a browser URL path like "/tokens/global/alias/colors.json"
-      // onProjectChange accepts this and displayCategories filters by it
-      onProjectChange(filePath);
+      // getDynamicTokenTree builds fullPath as `/${id}` where id already starts with '/'
+      // resulting in '//tokens/...' — normalize to single leading slash to match token.sourceFile
+      const normalized = filePath.replace(/^\/+/, "/");
+      onProjectChange(normalized);
     },
     [onProjectChange],
   );
