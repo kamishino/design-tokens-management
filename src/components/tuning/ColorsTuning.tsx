@@ -1,12 +1,10 @@
-import React, { useMemo, useState } from "react";
+﻿import React, { useMemo, useState } from "react";
 import {
   Box,
   VStack,
   HStack,
   Text,
   Badge,
-  Popover,
-  Portal,
 } from "@chakra-ui/react";
 import { parse, converter, wcagContrast, formatHex } from "culori";
 // @ts-expect-error apca-w3 has no type declarations
@@ -344,6 +342,104 @@ const HarmonyLabSection = ({
   );
 };
 
+// --- Swatch Grid (inline picker) ---
+const ColorSwatchGrid = ({
+  getEffectiveValue,
+  updateOverride,
+  overrides,
+}: {
+  getEffectiveValue: (cssVar: string, tokenKey: string, fallback: string) => string;
+  updateOverride: (v: Record<string, string | number>, label?: string) => void;
+  overrides: Record<string, string | number>;
+}) => {
+  const [selectedId, setSelectedId] = React.useState<string | null>(null);
+  const selectedChannel = SEMANTIC_CHANNELS.find((c) => c.id === selectedId) ?? null;
+  const selectedColor = selectedChannel
+    ? getEffectiveValue(selectedChannel.variable, selectedChannel.token, "#6366f1")
+    : null;
+  const selectedIsModified = selectedChannel ? !!overrides[selectedChannel.variable] : false;
+  return (
+    <>
+      <Box display="grid" gridTemplateColumns="repeat(2, 1fr)" gap={2} mb={2}>
+        {SEMANTIC_CHANNELS.map((channel) => {
+          const color = getEffectiveValue(channel.variable, channel.token, "#6366f1");
+          const info = getColorInfo(color);
+          const bestContrast = info.contrastW >= info.contrastB ? info.contrastW : info.contrastB;
+          const wcag = getWcagBadge(bestContrast);
+          const isActive = selectedId === channel.id;
+          const isModified = !!overrides[channel.variable];
+          return (
+            <Box
+              key={channel.id}
+              as="button"
+              w="full"
+              borderRadius="md"
+              overflow="hidden"
+              border="2px solid"
+              borderColor={isActive ? "blue.400" : isModified ? "blue.200" : "gray.150"}
+              cursor="pointer"
+              onClick={() => setSelectedId(isActive ? null : channel.id)}
+              _hover={{ borderColor: "blue.300", boxShadow: "sm" }}
+              transition="all 0.15s"
+              title={`${channel.label}: ${color}`}
+            >
+              <Box h="44px" bg={color} position="relative">
+                <Badge
+                  position="absolute" top="3px" right="3px"
+                  colorPalette={wcag.colorPalette} variant="solid"
+                  fontSize="7px" px={1} py={0} borderRadius="sm" opacity={0.85}
+                >
+                  {wcag.label}
+                </Badge>
+              </Box>
+              <Box px={2} py={1} bg="white" textAlign="left">
+                <Text fontSize="9px" fontWeight="700" color={isActive ? "blue.600" : "gray.600"} truncate>
+                  {channel.label}
+                </Text>
+                <Text fontSize="8px" color="gray.400" fontFamily="'Space Mono', monospace" truncate>
+                  {color}
+                </Text>
+              </Box>
+            </Box>
+          );
+        })}
+      </Box>
+      {selectedChannel && selectedColor && (
+        <Box mb={2} p={2} bg="gray.25" border="1px solid" borderColor="blue.100" borderRadius="lg">
+          <HStack gap={2} mb={2}>
+            <Box w="18px" h="18px" borderRadius="sm" bg={selectedColor} border="1px solid" borderColor="gray.200" flexShrink={0} />
+            <VStack gap={0} align="start" flex={1}>
+              <Text fontSize="10px" fontWeight="700" color="gray.700">{selectedChannel.label}</Text>
+              <Text fontSize="9px" color="gray.400" fontFamily="monospace">{selectedColor}</Text>
+            </VStack>
+            {selectedIsModified && (
+              <Box
+                as="button" px={1.5} py={0.5} borderRadius="sm"
+                fontSize="9px" fontWeight="600" color="orange.600"
+                bg="orange.50" border="1px solid" borderColor="orange.200" cursor="pointer"
+                _hover={{ bg: "orange.100" }}
+                onClick={(e: React.MouseEvent) => {
+                  e.stopPropagation();
+                  updateOverride(
+                    { [selectedChannel.variable]: getEffectiveValue(selectedChannel.variable, selectedChannel.token, "#6366f1") },
+                    `Reset ${selectedChannel.label}`,
+                  );
+                }}
+              >
+                 Reset
+              </Box>
+            )}
+          </HStack>
+          <StudioColorPicker
+            variant="compact" label={selectedChannel.label} color={selectedColor}
+            onChange={(c) => updateOverride({ [selectedChannel.variable]: c }, `Changed ${selectedChannel.label}`)}
+          />
+        </Box>
+      )}
+    </>
+  );
+};
+
 interface ColorsTuningProps {
   getEffectiveValue: (
     cssVar: string,
@@ -381,190 +477,11 @@ export const ColorsTuning = React.memo(
           }
         >
           <Box p={3}>
-            {/* 2-column swatch grid */}
-            <Box
-              display="grid"
-              gridTemplateColumns="repeat(2, 1fr)"
-              gap={2}
-              mb={3}
-            >
-              {SEMANTIC_CHANNELS.map((channel) => {
-                const color = getEffectiveValue(
-                  channel.variable,
-                  channel.token,
-                  "#000000",
-                );
-                const info = getColorInfo(color);
-                const bestContrast =
-                  info.contrastW >= info.contrastB
-                    ? info.contrastW
-                    : info.contrastB;
-                const wcag = getWcagBadge(bestContrast);
-                const apca = getApcaBadge(info.apcaLc);
-                const isModified = !!overrides?.[channel.variable];
-
-                return (
-                  <Box key={channel.id} position="relative">
-                    <Popover.Root positioning={{ placement: "right" }}>
-                      <Popover.Trigger asChild>
-                        <Box
-                          as="button"
-                          w="full"
-                          borderRadius="lg"
-                          overflow="hidden"
-                          border="2px solid"
-                          borderColor={isModified ? "blue.300" : "gray.150"}
-                          cursor="pointer"
-                          _hover={{
-                            borderColor: "blue.400",
-                            transform: "translateY(-1px)",
-                            boxShadow: "md",
-                          }}
-                          transition="all 0.15s"
-                          title={`${channel.label}: ${color}`}
-                        >
-                          {/* Color block */}
-                          <Box h="52px" bg={color} position="relative">
-                            {/* WCAG badge overlay */}
-                            <Badge
-                              position="absolute"
-                              top="4px"
-                              right="4px"
-                              colorPalette={wcag.colorPalette}
-                              variant="solid"
-                              fontSize="7px"
-                              px={1}
-                              py={0}
-                              borderRadius="sm"
-                              opacity={0.9}
-                            >
-                              {wcag.label}
-                            </Badge>
-                          </Box>
-
-                          {/* Label row */}
-                          <Box px={2} py={1.5} bg="white">
-                            <Text
-                              fontSize="9px"
-                              fontWeight="700"
-                              color="gray.600"
-                              truncate
-                            >
-                              {channel.label}
-                            </Text>
-                            <Text
-                              fontSize="8px"
-                              color="gray.400"
-                              fontFamily="'Space Mono', monospace"
-                              truncate
-                            >
-                              {color}
-                            </Text>
-                          </Box>
-                        </Box>
-                      </Popover.Trigger>
-
-                      <Portal>
-                        <Popover.Positioner>
-                          <Popover.Content p={3} w="220px" shadow="xl">
-                            {/* Color details */}
-                            <HStack gap={2} mb={2}>
-                              <Box
-                                w="24px"
-                                h="24px"
-                                borderRadius="md"
-                                bg={color}
-                                border="1px solid"
-                                borderColor="gray.200"
-                                flexShrink={0}
-                              />
-                              <VStack gap={0} align="start">
-                                <Text
-                                  fontSize="10px"
-                                  fontWeight="700"
-                                  color="gray.700"
-                                >
-                                  {channel.label}
-                                </Text>
-                                <Text
-                                  fontSize="9px"
-                                  color="gray.400"
-                                  fontFamily="monospace"
-                                >
-                                  L:{info.l}% C:{info.c} H:{info.h}°
-                                </Text>
-                              </VStack>
-                              <HStack gap={1} ml="auto">
-                                <Badge
-                                  colorPalette={wcag.colorPalette}
-                                  variant="subtle"
-                                  fontSize="8px"
-                                  px={1}
-                                >
-                                  {wcag.label}
-                                </Badge>
-                                <Badge
-                                  colorPalette={apca.colorPalette}
-                                  variant="subtle"
-                                  fontSize="8px"
-                                  px={1}
-                                >
-                                  {apca.label}
-                                </Badge>
-                              </HStack>
-                            </HStack>
-
-                            <StudioColorPicker
-                              variant="expanded"
-                              label={channel.label}
-                              color={color}
-                              onChange={(c) =>
-                                updateOverride(
-                                  { [channel.variable]: c },
-                                  `Changed ${channel.label}`,
-                                )
-                              }
-                            />
-
-                            {isModified && (
-                              <Box
-                                as="button"
-                                mt={2}
-                                w="full"
-                                py={1}
-                                borderRadius="md"
-                                fontSize="9px"
-                                fontWeight="600"
-                                color="orange.600"
-                                bg="orange.50"
-                                border="1px solid"
-                                borderColor="orange.200"
-                                cursor="pointer"
-                                _hover={{ bg: "orange.100" }}
-                                onClick={() =>
-                                  updateOverride(
-                                    {
-                                      [channel.variable]: getEffectiveValue(
-                                        channel.variable,
-                                        channel.token,
-                                        "#000000",
-                                      ),
-                                    },
-                                    `Reset ${channel.label}`,
-                                  )
-                                }
-                              >
-                                ↺ Reset to base
-                              </Box>
-                            )}
-                          </Popover.Content>
-                        </Popover.Positioner>
-                      </Portal>
-                    </Popover.Root>
-                  </Box>
-                );
-              })}
-            </Box>
+            <ColorSwatchGrid
+              getEffectiveValue={getEffectiveValue}
+              updateOverride={updateOverride}
+              overrides={overrides}
+            />
 
             <Box mt={3}>
               <Text
