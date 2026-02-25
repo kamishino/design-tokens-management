@@ -10,7 +10,7 @@ import {
   LuX,
 } from "react-icons/lu";
 import { StagingPanel } from "./StagingPanel";
-import { TuningTab } from "./TuningTab";
+import { TuningTab } from "../tuning/TuningTab";
 import { TokenReferenceInput } from "./TokenReferenceInput";
 import type { TokenDoc } from "../../utils/token-parser";
 import type { TokenOverrides } from "../../schemas/manifest";

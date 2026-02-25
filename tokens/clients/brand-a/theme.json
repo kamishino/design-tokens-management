@@ -4,12 +4,5 @@
       "$value": "{color.blue.500}",
       "$type": "color"
     }
-  },
-  "/tokens/clients/brand-a/theme": {
-    "json:brand": {
-      "primary": {
-        "$value": "{bg.body}"
-      }
-    }
   }
 }

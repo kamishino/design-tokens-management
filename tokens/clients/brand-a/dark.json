@@ -49,12 +49,5 @@
       "$type": "color",
       "$description": "Subtle border color for dark mode"
     }
-  },
-  "/tokens/clients/brand-a/dark": {
-    "json:bg": {
-      "body": {
-        "$value": "{"
-      }
-    }
   }
 }
