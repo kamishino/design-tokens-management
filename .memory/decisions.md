@@ -113,3 +113,17 @@
 **Decision:** Added `/api/export-figma` endpoint that walks all token JSON files and flattens to W3C DTCG flat format (`{ "brand.primary": { "$value": "#...", "$type": "color" } }`). Two delivery mechanisms: file download + clipboard copy.
 **Alternatives:** Figma REST API push (requires OAuth setup — too heavy), Tokens Studio format only (already exists in Export modal).
 **Consequences:** Designer can import directly into Figma Variables importer plugin. No API token needed.
+
+## [2026-02-25] — Performance Sweep + Typography UI Architecture
+
+**Context:** User reported lag in panel animations and color picker. Tuning tab crashed on Typography.
+
+**Decisions:**
+
+1. **CSS width transition vs DOM unmount** — Keep panels always mounted; `width: 0` + `overflow: hidden` + `will-change: width`. Smooth animation, preserves React state.
+2. **Unified ActivityBar + Sidebar container** — Single outer `Box` animates as one unit. Was: 2 separate boxes with independent animations → visually disconnected.
+3. **`isResizingLeft/Right` flags** — Set `transition: none` during drag so resize is instant; toggle animation only fires on show/hide.
+4. **Native `<select>` for Scale Ratio dropdown** — Chakra `Box as="select"` conflicts type-system (`ChangeEvent<HTMLDivElement>`). Native element used directly.
+5. **`sampleText` as local state** — Preview text in Type Scale table is UI-only, no persistence needed. Avoids prop drilling.
+6. **`useArticleContent()` hook pattern** — Encapsulates all editable text state for ArticlePreview; component stays focused on JSX rendering.
+7. **WorkspaceHeader 3-zone layout** — Left (toggle + brand) | Center (project pill, flex-centered) | Right (export + toggle). Matches VS Code / Figma layout convention.
