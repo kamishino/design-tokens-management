@@ -86,6 +86,9 @@ export const WorkspaceLayout = ({
     const saved = localStorage.getItem("ide_inspector_width");
     return saved ? Number(saved) : 300;
   });
+  const [isResizingLeft, setIsResizingLeft] = useState(false);
+  const [isResizingRight, setIsResizingRight] = useState(false);
+
   const saveSidebarWidth = useCallback(() => {
     localStorage.setItem("ide_sidebar_width", String(sidebarWidth));
   }, [sidebarWidth]);
@@ -255,105 +258,108 @@ export const WorkspaceLayout = ({
 
       {/* Main Content */}
       <HStack flex={1} gap={0} overflow="hidden" w="full">
-        {/* Activity Bar — always mounted, width collapses to 0 when hidden (Wave 1) */}
+        {/* Left Group: ActivityBar + Sidebar — one animated container so they move as one unit */}
         <Box
-          w={sidebarVisible ? "36px" : "0px"}
-          overflow="hidden"
+          display="flex"
           flexShrink={0}
-          style={{
-            willChange: "width",
-            transition: "width 240ms cubic-bezier(0.4, 0, 0.2, 1)",
-          }}
-        >
-          <ActivityBar
-            activePanel={activePanel}
-            onPanelChange={setActivePanel}
-          />
-        </Box>
-
-        {/* Left Panel — always mounted, width collapses to 0 when hidden (Wave 1) */}
-        <VStack
-          w={sidebarVisible ? `${sidebarWidth}px` : "0px"}
-          minW={sidebarVisible ? "240px" : "0px"}
-          maxW="480px"
           h="full"
-          gap={0}
-          bg="white"
-          borderRight={sidebarVisible ? "1px solid" : "none"}
-          borderColor="gray.200"
           overflow="hidden"
-          flexShrink={0}
+          w={sidebarVisible ? `${sidebarWidth + 36}px` : "0px"}
           style={{
-            willChange: "width",
-            transition: "width 260ms cubic-bezier(0.4, 0, 0.2, 1)",
+            transition: isResizingLeft
+              ? "none"
+              : "width 260ms cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         >
-          {/* File Explorer — collapsible */}
-          <Box
-            w="full"
-            borderBottom="1px solid"
-            borderColor="gray.100"
-            overflow="hidden"
-            transition="height 0.2s"
-            h={explorerCollapsed ? "28px" : "45%"}
-            flexShrink={0}
-          >
-            <HStack
-              h="28px"
-              px={3}
-              bg="gray.50"
-              cursor="pointer"
-              _hover={{ bg: "gray.100" }}
-              onClick={() => setExplorerCollapsed((v) => !v)}
-              userSelect="none"
-              borderBottom="1px solid"
-              borderColor="gray.100"
-            >
-              <Text
-                fontSize="9px"
-                fontWeight="700"
-                color="gray.400"
-                textTransform="uppercase"
-                letterSpacing="wider"
-                flex={1}
-              >
-                {explorerCollapsed ? "▶" : "▼"} Files
-              </Text>
-            </HStack>
-            {!explorerCollapsed && (
-              <Box h="calc(100% - 28px)" overflowY="auto">
-                <FileExplorer
-                  manifest={manifest}
-                  context={activePanel}
-                  activePath={selectedProject}
-                  onSelect={(_, key) => onProjectChange(key)}
-                  onEditTokens={handleEditTokensByFile}
-                />
-              </Box>
-            )}
-          </Box>
-          <Box flex={1} w="full" overflow="hidden">
-            <TokenTree
-              semanticTokens={semanticTokens}
-              foundationTokens={foundationTokens}
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
-              editMode={true}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onHover={handleHover}
+          {/* ActivityBar — fixed 36px, always visible inside the group */}
+          <Box w="36px" flexShrink={0} h="full">
+            <ActivityBar
+              activePanel={activePanel}
+              onPanelChange={setActivePanel}
             />
           </Box>
-        </VStack>
+
+          {/* Sidebar Panel */}
+          <VStack
+            flex={1}
+            h="full"
+            gap={0}
+            bg="white"
+            borderRight="1px solid"
+            borderColor="gray.200"
+            overflow="hidden"
+          >
+            {/* File Explorer — collapsible */}
+            <Box
+              w="full"
+              borderBottom="1px solid"
+              borderColor="gray.100"
+              overflow="hidden"
+              transition="height 0.2s"
+              h={explorerCollapsed ? "28px" : "45%"}
+              flexShrink={0}
+            >
+              <HStack
+                h="28px"
+                px={3}
+                bg="gray.50"
+                cursor="pointer"
+                _hover={{ bg: "gray.100" }}
+                onClick={() => setExplorerCollapsed((v) => !v)}
+                userSelect="none"
+                borderBottom="1px solid"
+                borderColor="gray.100"
+              >
+                <Text
+                  fontSize="9px"
+                  fontWeight="700"
+                  color="gray.400"
+                  textTransform="uppercase"
+                  letterSpacing="wider"
+                  flex={1}
+                >
+                  {explorerCollapsed ? "▶" : "▼"} Files
+                </Text>
+              </HStack>
+              {!explorerCollapsed && (
+                <Box h="calc(100% - 28px)" overflowY="auto">
+                  <FileExplorer
+                    manifest={manifest}
+                    context={activePanel}
+                    activePath={selectedProject}
+                    onSelect={(_, key) => onProjectChange(key)}
+                    onEditTokens={handleEditTokensByFile}
+                  />
+                </Box>
+              )}
+            </Box>
+            <Box flex={1} w="full" overflow="hidden">
+              <TokenTree
+                semanticTokens={semanticTokens}
+                foundationTokens={foundationTokens}
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                editMode={true}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onHover={handleHover}
+              />
+            </Box>
+          </VStack>
+        </Box>
 
         {/* Sidebar Resize Handle — only visible when sidebar is open */}
         {sidebarVisible && (
           <ResizeHandle
             side="left"
-            onResize={(d) =>
-              setSidebarWidth((w) => Math.max(240, Math.min(480, w + d)))
-            }
-            onResizeEnd={saveSidebarWidth}
+            onResize={(d) => {
+              setIsResizingLeft(true);
+              setSidebarWidth((w) => Math.max(240, Math.min(480, w + d)));
+            }}
+            onResizeEnd={() => {
+              setIsResizingLeft(false);
+              saveSidebarWidth();
+            }}
           />
         )}
 
@@ -381,14 +387,18 @@ export const WorkspaceLayout = ({
         {inspectorVisible && (
           <ResizeHandle
             side="right"
-            onResize={(d) =>
-              setInspectorWidth((w) => Math.max(240, Math.min(800, w + d)))
-            }
-            onResizeEnd={saveInspectorWidth}
+            onResize={(d) => {
+              setIsResizingRight(true);
+              setInspectorWidth((w) => Math.max(240, Math.min(800, w + d)));
+            }}
+            onResizeEnd={() => {
+              setIsResizingRight(false);
+              saveInspectorWidth();
+            }}
           />
         )}
 
-        {/* Right Panel — always mounted, width collapses to 0 when hidden (Wave 1) */}
+        {/* Right Panel — always mounted, width collapses to 0 when hidden */}
         <Box
           w={inspectorVisible ? `${inspectorWidth}px` : "0px"}
           minW={inspectorVisible ? "240px" : "0px"}
@@ -399,8 +409,9 @@ export const WorkspaceLayout = ({
           overflow="hidden"
           flexShrink={0}
           style={{
-            willChange: "width",
-            transition: "width 260ms cubic-bezier(0.4, 0, 0.2, 1)",
+            transition: isResizingRight
+              ? "none"
+              : "width 260ms cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         >
           <InspectorPanel
