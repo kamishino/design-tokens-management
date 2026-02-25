@@ -5,7 +5,13 @@
 ## Checkpoint — 17:05 2026-02-25
 
 **Current task:** Typography Tuning Improvements + Performance Sweep (COMPLETE)
-**Branch:** master (14 commits ahead of origin)
+**Branch:** master (16 commits ahead of origin)
+
+## Active Work
+
+- **Current Release:** v0.5.0 "Studio Evolution"
+- **Project Phase:** Discovery → moving toward v0.6 "Production Sync"
+- **Last Completed Task:** v0.5.0 release (Perf Sweep + Typography UI)
 
 ## Done This Session
 
