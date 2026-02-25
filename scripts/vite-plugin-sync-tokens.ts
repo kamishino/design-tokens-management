@@ -5,27 +5,25 @@ import type { Plugin } from "vite";
 const PROJECT_ROOT = process.cwd();
 
 /**
- * Resolves a targetPath (relative or absolute) to an absolute path,
- * ensuring it stays within the project root for security.
+ * Resolves a targetPath (browser URL path or relative) to an absolute filesystem path,
+ * ensuring it stays within the project root.
+ *
+ * sourceFile from tokens always comes as a browser URL path like:
+ *   "/tokens/global/alias/colors.json"
+ * On Windows, path.isAbsolute() returns true for these (drive-relative),
+ * so we CANNOT use path.isAbsolute() here. Always treat as URL path.
  */
 function resolveTokenPath(targetPath: string): string | null {
-  let absolutePath: string;
+  if (!targetPath) return null;
 
-  if (path.isAbsolute(targetPath)) {
-    absolutePath = targetPath;
-  } else if (
-    targetPath.startsWith("/tokens/") ||
-    targetPath.startsWith("tokens/")
-  ) {
-    // Strip leading slash for path.join
-    const relative = targetPath.replace(/^\//, "");
-    absolutePath = path.join(PROJECT_ROOT, relative);
-  } else {
-    // Treat as relative to tokens/
-    absolutePath = path.join(PROJECT_ROOT, "tokens", targetPath);
-  }
+  // Always strip leading slash (these are browser URL paths, not filesystem absolute paths)
+  // "/tokens/global/alias/colors.json" -> "tokens/global/alias/colors.json"
+  const relative = targetPath.replace(/^\//, "").replace(/\//g, path.sep);
 
-  // Security guard: resolved path must be inside the project root
+  // Join with project root
+  const absolutePath = path.join(PROJECT_ROOT, relative);
+
+  // Security: resolved path must be inside the project root
   const normalized = path.resolve(absolutePath);
   if (!normalized.startsWith(PROJECT_ROOT)) {
     return null;

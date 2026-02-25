@@ -49,10 +49,10 @@ export const StagingPanel = ({
       // Derive token path from CSS var: --brand-primary → brand.primary
       const derivedPath = cssVar.replace(/^--/, "").replace(/-/g, ".");
 
-      // Try to find matching token for extra info (original value, source file)
+      // Match by name (dot-notation) NOT by composite id ('/tokens/...:path')
+      // Also try cssVariable field as fallback
       const token = globalTokens.find((t) => {
-        const varName = `--${t.id.replace(/\./g, "-")}`;
-        return varName === cssVar || t.id === derivedPath;
+        return t.name === derivedPath || t.cssVariable === cssVar;
       });
 
       const isColor =
@@ -62,7 +62,8 @@ export const StagingPanel = ({
       changes.push({
         id: derivedPath,
         cssVar,
-        tokenPath: token?.id || derivedPath,
+        // Use name (dot-notation) not composite id for the API tokenPath
+        tokenPath: token?.name || derivedPath,
         sourceFile: token?.sourceFile || "",
         originalValue: token ? String(token.value) : "—",
         newValue: String(newValue),
