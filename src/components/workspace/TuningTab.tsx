@@ -257,6 +257,18 @@ const HarmonyLabSection = ({
     };
   }, [primaryColor]);
 
+  // Hover preview — temporarily inject CSS vars, revert on mouse-out
+  const applyPreview = (secondary: string, accent: string) => {
+    const root = document.documentElement;
+    root.style.setProperty("--brand-secondary", secondary);
+    root.style.setProperty("--brand-accent", accent);
+  };
+
+  const revertPreview = () => {
+    document.documentElement.style.removeProperty("--brand-secondary");
+    document.documentElement.style.removeProperty("--brand-accent");
+  };
+
   return (
     <VStack align="stretch" gap={2}>
       <HStack gap={1} mb={1}>
@@ -267,7 +279,7 @@ const HarmonyLabSection = ({
           bg={primaryColor}
           border="1px solid rgba(0,0,0,0.1)"
         />
-        <Text fontSize="8px" fontFamily="monospace" color="gray.400">
+        <Text fontSize="10px" fontFamily="monospace" color="gray.400">
           L:{primaryInfo.l}% C:{primaryInfo.c} H:{primaryInfo.h}°
         </Text>
       </HStack>
@@ -277,7 +289,7 @@ const HarmonyLabSection = ({
           px={2}
           py={0.5}
           borderRadius="md"
-          fontSize="9px"
+          fontSize="10px"
           fontWeight="600"
           bg={!showVariant ? "blue.500" : "gray.100"}
           color={!showVariant ? "white" : "gray.600"}
@@ -292,7 +304,7 @@ const HarmonyLabSection = ({
           px={2}
           py={0.5}
           borderRadius="md"
-          fontSize="9px"
+          fontSize="10px"
           fontWeight="600"
           bg={showVariant ? "purple.500" : "gray.100"}
           color={showVariant ? "white" : "gray.600"}
@@ -321,6 +333,8 @@ const HarmonyLabSection = ({
           borderColor={selected === i ? "blue.200" : "transparent"}
           _hover={{ bg: selected === i ? "blue.50" : "gray.50" }}
           onClick={() => setSelected(i)}
+          onMouseEnter={() => applyPreview(h.secondary, h.accent)}
+          onMouseLeave={revertPreview}
           transition="all 0.15s"
         >
           <Text
@@ -618,21 +632,21 @@ export const TuningTab = ({
                       </HStack>
                       <HStack gap={1} pl={1} flexWrap="wrap">
                         <Text
-                          fontSize="8px"
+                          fontSize="10px"
                           fontFamily="monospace"
                           color="gray.400"
                         >
                           L:{info.l}%
                         </Text>
                         <Text
-                          fontSize="8px"
+                          fontSize="10px"
                           fontFamily="monospace"
                           color="gray.400"
                         >
                           C:{info.c}
                         </Text>
                         <Text
-                          fontSize="8px"
+                          fontSize="10px"
                           fontFamily="monospace"
                           color="gray.400"
                         >
@@ -642,7 +656,7 @@ export const TuningTab = ({
                           size="xs"
                           variant="subtle"
                           colorPalette={wcag.colorPalette}
-                          fontSize="7px"
+                          fontSize="10px"
                           px={1}
                           py={0}
                         >
@@ -652,7 +666,7 @@ export const TuningTab = ({
                           size="xs"
                           variant="subtle"
                           colorPalette={apca.colorPalette}
-                          fontSize="7px"
+                          fontSize="10px"
                           px={1}
                           py={0}
                         >
@@ -723,7 +737,7 @@ export const TuningTab = ({
                 </Text>
                 <HStack
                   gap={0}
-                  h="20px"
+                  h="28px"
                   borderRadius="md"
                   overflow="hidden"
                   border="1px solid"
@@ -740,7 +754,7 @@ export const TuningTab = ({
                     position="relative"
                   >
                     <Text
-                      fontSize="7px"
+                      fontSize="10px"
                       fontWeight="700"
                       color="white"
                       position="absolute"
@@ -748,8 +762,9 @@ export const TuningTab = ({
                       top="50%"
                       transform="translate(-50%, -50%)"
                       textShadow="0 1px 2px rgba(0,0,0,0.4)"
+                      whiteSpace="nowrap"
                     >
-                      60%
+                      Primary · 60%
                     </Text>
                   </Box>
                   <Box
@@ -763,7 +778,7 @@ export const TuningTab = ({
                     position="relative"
                   >
                     <Text
-                      fontSize="7px"
+                      fontSize="10px"
                       fontWeight="700"
                       color="white"
                       position="absolute"
@@ -771,8 +786,9 @@ export const TuningTab = ({
                       top="50%"
                       transform="translate(-50%, -50%)"
                       textShadow="0 1px 2px rgba(0,0,0,0.4)"
+                      whiteSpace="nowrap"
                     >
-                      30%
+                      Secondary · 30%
                     </Text>
                   </Box>
                   <Box
@@ -784,24 +800,12 @@ export const TuningTab = ({
                       "#1F8055",
                     )}
                     position="relative"
-                  >
-                    <Text
-                      fontSize="7px"
-                      fontWeight="700"
-                      color="white"
-                      position="absolute"
-                      left="50%"
-                      top="50%"
-                      transform="translate(-50%, -50%)"
-                      textShadow="0 1px 2px rgba(0,0,0,0.4)"
-                    >
-                      10%
-                    </Text>
-                  </Box>
+                    title="Accent · 10%"
+                  />
                 </HStack>
                 <HStack gap={0} mt={1} justifyContent="space-between">
                   <Text
-                    fontSize="7px"
+                    fontSize="10px"
                     color="gray.400"
                     w="60%"
                     textAlign="center"
@@ -809,7 +813,7 @@ export const TuningTab = ({
                     Dominant
                   </Text>
                   <Text
-                    fontSize="7px"
+                    fontSize="10px"
                     color="gray.400"
                     w="30%"
                     textAlign="center"
@@ -817,7 +821,7 @@ export const TuningTab = ({
                     Supporting
                   </Text>
                   <Text
-                    fontSize="7px"
+                    fontSize="10px"
                     color="gray.400"
                     w="10%"
                     textAlign="center"

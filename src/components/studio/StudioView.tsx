@@ -10,7 +10,7 @@ import {
   Tabs,
   Badge,
 } from "@chakra-ui/react";
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { LandingPage } from "./templates/LandingPage";
 import { BlogPost } from "./templates/BlogPost";
 import { Dashboard } from "./templates/Dashboard";
@@ -27,7 +27,19 @@ import {
 } from "../ui/select";
 
 import { generateStudioMockData } from "./templates/shared/mock-data";
-import { LuScanEye, LuArrowRight, LuX } from "react-icons/lu";
+import {
+  LuScanEye,
+  LuArrowRight,
+  LuX,
+  LuFlaskConical,
+  LuLayoutTemplate,
+  LuNewspaper,
+  LuActivity,
+  LuShoppingBag,
+  LuPenLine,
+  LuPalette,
+  LuBoxes,
+} from "react-icons/lu";
 import { parse, oklch, formatHex } from "culori";
 import type { Manifest, TokenOverrides } from "../../schemas/manifest";
 import type { TokenDoc } from "../../utils/token-parser";
@@ -56,15 +68,16 @@ interface StudioViewProps {
   canRedo: boolean;
 }
 
-const templates = createListCollection({
-  items: [
-    { label: "Unified Studio", value: "unified" },
-    { label: "SaaS Landing Page", value: "landing" },
-    { label: "Admin Dashboard", value: "dashboard" },
-    { label: "E-commerce Product", value: "ecommerce" },
-    { label: "Blog Post", value: "blog" },
-  ],
-});
+// Template definitions with icons
+const TEMPLATE_TABS = [
+  { value: "unified", label: "Studio", icon: LuLayoutTemplate },
+  { value: "landing", label: "Landing", icon: LuNewspaper },
+  { value: "dashboard", label: "Dashboard", icon: LuActivity },
+  { value: "ecommerce", label: "Product", icon: LuShoppingBag },
+  { value: "blog", label: "Blog", icon: LuPenLine },
+  { value: "atlas", label: "Atlas", icon: LuPalette },
+  { value: "catalog", label: "Catalog", icon: LuBoxes },
+];
 
 export const StudioView = ({
   manifest,
@@ -156,9 +169,6 @@ export const StudioView = ({
       .join("\n");
 
     // --- 60/30/10 RULE MAPPING (Phase S) ---
-    // Inject dynamic semantic mappings for the 60/30/10 Rule
-    // 60% (Dominant) -> --bg-canvas (as a Ghost Tint @ L=98)
-    // 30% (Supporting) -> --bg-surface (as a Subtle Tint @ L=95)
     const getGhostTint = (hex: string, lightness: number) => {
       const p = parse(hex);
       if (!p) return hex;
@@ -189,7 +199,6 @@ export const StudioView = ({
     const bgCanvas = getGhostTint(primaryVal as string, 0.98);
     const bgSurface = getGhostTint(primaryVal as string, 0.95);
 
-    // Append rule overrides to the bottom of the :root block
     rules += `\n  /* 60/30/10 Rule Mapping (Phase S) */\n`;
     rules += `  --bg-canvas: ${bgCanvas};\n`;
     rules += `  --bg-surface: ${bgSurface};\n`;
@@ -200,6 +209,35 @@ export const StudioView = ({
   }, [globalTokens, overrides]);
 
   const mockData = useMemo(() => generateStudioMockData(), []);
+
+  const hasNoTokens = globalTokens.length === 0;
+
+  // Toggle inspect mode
+  const toggleInspect = useCallback(() => {
+    setIsInspectMode((prev) => {
+      if (prev) onInspectChange(undefined);
+      return !prev;
+    });
+  }, [onInspectChange]);
+
+  // Keyboard shortcut: "I" to toggle Inspect Mode
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't intercept when typing in inputs/textareas
+      const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+      if (tag === "input" || tag === "textarea" || tag === "select") return;
+      if (
+        e.key.toLowerCase() === "i" &&
+        !e.ctrlKey &&
+        !e.metaKey &&
+        !e.altKey
+      ) {
+        toggleInspect();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [toggleInspect]);
 
   // Inspector Logic
   useEffect(() => {
@@ -251,12 +289,12 @@ export const StudioView = ({
     };
 
     window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("click", handleClick, true); // Capture phase
+    window.addEventListener("click", handleClick, true);
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("click", handleClick, true);
-      setHoveredRect(null); // Clean up outline when mode exits or component unmounts
+      setHoveredRect(null);
     };
   }, [isInspectMode, onInspectChange]);
 
@@ -330,25 +368,39 @@ export const StudioView = ({
         left={0}
         right={0}
         zIndex={2000}
-        bg="rgba(255, 255, 255, 0.9)"
+        bg="rgba(255, 255, 255, 0.95)"
         backdropFilter="blur(10px)"
         borderBottom="1px solid"
         borderColor="gray.200"
-        px={8}
-        h="60px"
+        px={4}
+        h="52px"
         display="flex"
         alignItems="center"
         justifyContent="space-between"
       >
-        <HStack gap={4}>
-          <Heading size="sm">Design Studio</Heading>
-          <Box w="1px" h="20px" bg="gray.300" />
+        {/* Left: Brand + Project selector */}
+        <HStack gap={3}>
+          <Heading
+            size="xs"
+            color="gray.700"
+            letterSpacing="tight"
+            flexShrink={0}
+          >
+            Design Studio
+          </Heading>
+          <Box w="1px" h="16px" bg="gray.200" />
 
-          <HStack gap={2}>
-            <Text fontSize="xs" fontWeight="bold" color="gray.500">
-              Project:
+          <HStack gap={1.5}>
+            <Text
+              fontSize="10px"
+              fontWeight="700"
+              color="gray.400"
+              textTransform="uppercase"
+              letterSpacing="wider"
+            >
+              Project
             </Text>
-            <Box w="220px">
+            <Box w="200px">
               <AppSelectRoot
                 collection={projectCollection}
                 size="sm"
@@ -368,50 +420,127 @@ export const StudioView = ({
               </AppSelectRoot>
             </Box>
           </HStack>
-
-          <Box w="1px" h="20px" bg="gray.300" />
-
-          <HStack gap={2}>
-            <Text fontSize="xs" fontWeight="bold" color="gray.500">
-              Template:
-            </Text>
-            <Box w="180px">
-              <AppSelectRoot
-                collection={templates}
-                size="sm"
-                value={[template]}
-                onValueChange={(e) => setTemplate(e.value[0])}
-              >
-                <SelectTrigger>
-                  <SelectValueText placeholder="Select Template" />
-                </SelectTrigger>
-                <SelectContent zIndex={2001}>
-                  {templates.items.map((item) => (
-                    <SelectItem item={item} key={item.value}>
-                      {item.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </AppSelectRoot>
-            </Box>
-          </HStack>
         </HStack>
 
-        <HStack gap={3}>
+        {/* Right: Actions */}
+        <HStack gap={2}>
+          {/* Visual Lab button */}
+          <Button
+            size="xs"
+            variant="outline"
+            borderColor="purple.200"
+            color="purple.600"
+            bg="purple.50"
+            _hover={{ bg: "purple.100" }}
+            onClick={() => setActiveTool("lab")}
+            gap={1.5}
+            title="Open Visual Lab to edit tokens"
+          >
+            <LuFlaskConical size={12} />
+            Visual Lab
+          </Button>
+
+          {/* Inspect Mode button */}
           <Button
             size="xs"
             variant={isInspectMode ? "solid" : "outline"}
-            colorScheme={isInspectMode ? "blue" : "gray"}
-            onClick={() => {
-              setIsInspectMode(!isInspectMode);
-              if (isInspectMode) onInspectChange(undefined); // Clear on exit
-            }}
+            colorPalette={isInspectMode ? "blue" : "gray"}
+            onClick={toggleInspect}
+            gap={1.5}
+            title={
+              isInspectMode
+                ? "Exit Inspect Mode (I)"
+                : "Inspect tokens on canvas (I)"
+            }
           >
-            <LuScanEye size={14} style={{ marginRight: 6 }} />
-            {isInspectMode ? "Exit Inspect" : "Inspect Mode"}
+            <LuScanEye size={12} />
+            {isInspectMode ? "Exit Inspect" : "Inspect"}
           </Button>
         </HStack>
       </Box>
+
+      {/* Template Tab Bar */}
+      <Box
+        className="studio-toolbar"
+        position="sticky"
+        top="52px"
+        zIndex={1990}
+        bg="rgba(250, 250, 252, 0.95)"
+        backdropFilter="blur(8px)"
+        borderBottom="1px solid"
+        borderColor="gray.100"
+        px={4}
+        overflowX="auto"
+      >
+        <HStack gap={0} h="36px" align="stretch">
+          {TEMPLATE_TABS.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = template === tab.value;
+            return (
+              <HStack
+                key={tab.value}
+                as="button"
+                px={3}
+                gap={1.5}
+                fontSize="11px"
+                fontWeight={isActive ? "700" : "500"}
+                color={isActive ? "blue.600" : "gray.500"}
+                borderBottom="2px solid"
+                borderColor={isActive ? "blue.500" : "transparent"}
+                bg={isActive ? "blue.50" : "transparent"}
+                cursor="pointer"
+                _hover={{
+                  color: isActive ? "blue.600" : "gray.700",
+                  bg: isActive ? "blue.50" : "gray.50",
+                }}
+                transition="all 0.15s"
+                onClick={() => setTemplate(tab.value)}
+                flexShrink={0}
+                h="full"
+                align="center"
+              >
+                <Icon size={12} />
+                <Text fontSize="11px">{tab.label}</Text>
+              </HStack>
+            );
+          })}
+        </HStack>
+      </Box>
+
+      {/* Inspect Mode Active Banner */}
+      {isInspectMode && (
+        <Box
+          bg="blue.500"
+          color="white"
+          px={4}
+          py={1.5}
+          display="flex"
+          alignItems="center"
+          justifyContent="space-between"
+          fontSize="11px"
+          fontWeight="600"
+          position="sticky"
+          top="88px"
+          zIndex={1980}
+        >
+          <HStack gap={2}>
+            <LuScanEye size={13} />
+            <Text>
+              Inspect Mode Active — Hover to highlight tokens, click to open
+              Visual Lab
+            </Text>
+          </HStack>
+          <Box
+            as="button"
+            opacity={0.8}
+            _hover={{ opacity: 1 }}
+            cursor="pointer"
+            onClick={toggleInspect}
+          >
+            <LuX size={13} />
+          </Box>
+        </Box>
+      )}
 
       {/* Overlays */}
       {activeTool === "manager" && manifest && (
@@ -454,7 +583,7 @@ export const StudioView = ({
             bg="blackAlpha.500"
             onClick={() => setActiveTool(null)}
           >
-            {/* Popover Container - Placed here to avoid modal clipping */}
+            {/* Popover Container */}
             <div
               ref={popoverRef}
               style={{
@@ -491,7 +620,13 @@ export const StudioView = ({
                 borderColor="gray.100"
                 bg="gray.50"
               >
-                <Heading size="sm">Visual Lab</Heading>
+                <HStack gap={2}>
+                  <LuFlaskConical
+                    size={14}
+                    color="var(--chakra-colors-purple-500)"
+                  />
+                  <Heading size="sm">Visual Lab</Heading>
+                </HStack>
                 <IconButton
                   size="xs"
                   variant="ghost"
@@ -581,7 +716,40 @@ export const StudioView = ({
       )}
 
       {/* Template Preview Area */}
-      <Box className={isInspectMode ? "studio-inspect-mode" : ""}>
+      <Box
+        className={isInspectMode ? "studio-inspect-mode" : ""}
+        position="relative"
+      >
+        {/* Empty state when no tokens loaded */}
+        {hasNoTokens && (
+          <Box
+            position="absolute"
+            top={3}
+            right={4}
+            zIndex={100}
+            bg="orange.50"
+            border="1px solid"
+            borderColor="orange.200"
+            borderRadius="lg"
+            px={3}
+            py={1.5}
+            display="flex"
+            alignItems="center"
+            gap={2}
+          >
+            <Box
+              w="6px"
+              h="6px"
+              borderRadius="full"
+              bg="orange.400"
+              flexShrink={0}
+            />
+            <Text fontSize="11px" color="orange.700" fontWeight="600">
+              No tokens loaded — showing defaults
+            </Text>
+          </Box>
+        )}
+
         {template === "unified" && <UnifiedStudio data={mockData} />}
         {template === "catalog" && <ComponentCatalog />}
         {template === "atlas" && <StyleAtlas data={mockData} />}

@@ -44,6 +44,18 @@ const tabConfig: { id: InspectorTab; label: string; icon: React.ReactNode }[] =
     { id: "changes", label: "Changes", icon: <LuGitBranch size={12} /> },
   ];
 
+// Dirty indicator dot shown on "Tuning" tab when overrides exist
+const DirtyDot = () => (
+  <Box
+    w="5px"
+    h="5px"
+    borderRadius="full"
+    bg="orange.400"
+    flexShrink={0}
+    title="Unsaved overrides"
+  />
+);
+
 export const InspectorPanel = ({
   selectedToken,
   overrides,
@@ -94,6 +106,7 @@ export const InspectorPanel = ({
           >
             {tab.icon}
             <Text fontSize="11px">{tab.label}</Text>
+            {tab.id === "tuning" && pendingCount > 0 && <DirtyDot />}
             {tab.id === "changes" && pendingCount > 0 && (
               <Badge
                 colorPalette="orange"
