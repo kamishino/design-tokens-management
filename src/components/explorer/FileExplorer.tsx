@@ -11,6 +11,8 @@ interface FileExplorerProps {
   context: SidebarPanelId;
   activePath: string | null;
   onSelect: (path: string, key: string) => void;
+  /** Q2: Triggered when user clicks 'Edit Tokens' on a JSON file */
+  onEditTokens?: (filePath: string) => void;
 }
 
 export const FileExplorer = ({
@@ -18,6 +20,7 @@ export const FileExplorer = ({
   context,
   activePath,
   onSelect,
+  onEditTokens,
 }: FileExplorerProps) => {
   const [expandedPaths, setExpandedPaths] = useState<string[]>(() => {
     if (typeof window === "undefined") return [];
@@ -119,6 +122,7 @@ export const FileExplorer = ({
             activePath={activePath}
             onToggle={handleToggle}
             onSelect={handleSelect}
+            onEditTokens={onEditTokens}
           />
         ))}
       </Box>

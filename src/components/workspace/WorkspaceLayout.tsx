@@ -187,6 +187,16 @@ export const WorkspaceLayout = ({
     setIsExportModalOpen(true);
   }, []);
 
+  /** Q2: 'Edit Tokens' from FileActionMenu — filter token tree to show only that file */
+  const handleEditTokensByFile = useCallback(
+    (filePath: string) => {
+      // filePath is a browser URL path like "/tokens/global/alias/colors.json"
+      // onProjectChange accepts this and displayCategories filters by it
+      onProjectChange(filePath);
+    },
+    [onProjectChange],
+  );
+
   // Command palette
   const cmdPalette = useCommandPalette({
     tokens: globalTokens,
@@ -285,6 +295,7 @@ export const WorkspaceLayout = ({
                     context={activePanel}
                     activePath={selectedProject}
                     onSelect={(_, key) => onProjectChange(key)}
+                    onEditTokens={handleEditTokensByFile}
                   />
                 </Box>
               )}
@@ -295,7 +306,7 @@ export const WorkspaceLayout = ({
                 foundationTokens={foundationTokens}
                 searchTerm={searchTerm}
                 onSearchChange={setSearchTerm}
-                editMode={false}
+                editMode={true}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 onHover={handleHover}

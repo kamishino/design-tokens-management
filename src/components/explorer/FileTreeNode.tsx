@@ -1,5 +1,11 @@
 import { Box, HStack, Text, Icon } from "@chakra-ui/react";
-import { LuFolder, LuFolderOpen, LuFileJson, LuChevronRight, LuChevronDown } from "react-icons/lu";
+import {
+  LuFolder,
+  LuFolderOpen,
+  LuFileJson,
+  LuChevronRight,
+  LuChevronDown,
+} from "react-icons/lu";
 import { useState } from "react";
 import type { FileNode } from "../../utils/path-tree";
 import { FileActionMenu } from "./FileActionMenu";
@@ -11,15 +17,25 @@ interface FileTreeNodeProps {
   activePath: string | null;
   onToggle: (id: string) => void;
   onSelect: (node: FileNode) => void;
+  /** Q2: Bubble up "Edit Tokens" action for a specific file */
+  onEditTokens?: (filePath: string) => void;
 }
 
-export const FileTreeNode = ({ 
-  node, depth, expandedPaths, activePath, onToggle, onSelect 
+export const FileTreeNode = ({
+  node,
+  depth,
+  expandedPaths,
+  activePath,
+  onToggle,
+  onSelect,
+  onEditTokens,
 }: FileTreeNodeProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const isOpen = expandedPaths.includes(node.id);
-  const isActive = activePath === node.id || (node.type === 'file' && activePath === node.fullPath);
-  const isFolder = node.type === 'folder';
+  const isActive =
+    activePath === node.id ||
+    (node.type === "file" && activePath === node.fullPath);
+  const isFolder = node.type === "folder";
 
   const handleClick = () => {
     if (isFolder) {
@@ -36,7 +52,7 @@ export const FileTreeNode = ({
         px={2}
         pl={`${depth * 12 + 8}px`}
         cursor="pointer"
-        bg={isActive ? "blue.50" : (isHovered ? "gray.50" : "transparent")}
+        bg={isActive ? "blue.50" : isHovered ? "gray.50" : "transparent"}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         transition="all 0.1s"
@@ -46,29 +62,38 @@ export const FileTreeNode = ({
       >
         <HStack gap={2} flex={1} overflow="hidden" pr="32px">
           {isActive && (
-            <Box 
-              position="absolute" left={0} top={1} bottom={1} w="2px" 
-              bg="blue.500" borderRadius="full" 
+            <Box
+              position="absolute"
+              left={0}
+              top={1}
+              bottom={1}
+              w="2px"
+              bg="blue.500"
+              borderRadius="full"
             />
           )}
-          
+
           <Box color="gray.400" mr={-1}>
             {isFolder ? (
-              isOpen ? <LuChevronDown size={12} /> : <LuChevronRight size={12} />
+              isOpen ? (
+                <LuChevronDown size={12} />
+              ) : (
+                <LuChevronRight size={12} />
+              )
             ) : (
               <Box w={3} />
             )}
           </Box>
 
-          <Icon 
-            as={isFolder ? (isOpen ? LuFolderOpen : LuFolder) : LuFileJson} 
+          <Icon
+            as={isFolder ? (isOpen ? LuFolderOpen : LuFolder) : LuFileJson}
             color={isFolder ? "orange.400" : "blue.400"}
             boxSize="14px"
           />
 
-          <Text 
-            fontSize="xs" 
-            fontWeight={isActive ? "bold" : "medium"} 
+          <Text
+            fontSize="xs"
+            fontWeight={isActive ? "bold" : "medium"}
             color={isActive ? "blue.700" : "gray.700"}
             userSelect="none"
             lineClamp={1}
@@ -77,7 +102,7 @@ export const FileTreeNode = ({
           </Text>
         </HStack>
 
-        <Box 
+        <Box
           position="absolute"
           right="0"
           top="0"
@@ -85,28 +110,33 @@ export const FileTreeNode = ({
           display="flex"
           alignItems="center"
           px={2}
-          opacity={isHovered ? 1 : 0} 
+          opacity={isHovered ? 1 : 0}
           pointerEvents={isHovered ? "auto" : "none"}
           bg={isActive ? "blue.100" : "gray.50"}
           transition="all 0.1s"
           onClick={(e) => e.stopPropagation()}
           zIndex={100}
         >
-          <FileActionMenu filename={node.fullPath || node.id} displayName={node.name} />
+          <FileActionMenu
+            filename={node.fullPath || node.id}
+            displayName={node.name}
+            onEditTokens={onEditTokens}
+          />
         </Box>
       </HStack>
 
       {isFolder && isOpen && node.children && (
         <Box>
-          {node.children.map(child => (
-            <FileTreeNode 
-              key={child.id} 
-              node={child} 
+          {node.children.map((child) => (
+            <FileTreeNode
+              key={child.id}
+              node={child}
               depth={depth + 1}
               expandedPaths={expandedPaths}
               activePath={activePath}
               onToggle={onToggle}
               onSelect={onSelect}
+              onEditTokens={onEditTokens}
             />
           ))}
         </Box>
