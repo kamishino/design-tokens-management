@@ -1,11 +1,19 @@
 import React, { useMemo, useState } from "react";
-import { Box, VStack, HStack, Text, Badge } from "@chakra-ui/react";
-import { LuPalette } from "react-icons/lu";
+import {
+  Box,
+  VStack,
+  HStack,
+  Text,
+  Badge,
+  Popover,
+  Portal,
+} from "@chakra-ui/react";
 import { parse, converter, wcagContrast, formatHex } from "culori";
 // @ts-expect-error apca-w3 has no type declarations
 import { APCAcontrast, sRGBtoY } from "apca-w3";
 import { StudioColorPicker } from "../playground/panels/StudioColorPicker";
 import { ColorScalePanel } from "../workspace/ColorScalePanel";
+import { CollapsibleSection } from "./CollapsibleSection";
 
 // --- Color Science Utilities (culori + APCA) ---
 const toOklch = converter("oklch");
@@ -348,6 +356,8 @@ interface ColorsTuningProps {
   ) => void;
   getScaleSeed: (id: string, currentHex: string) => string;
   refreshScaleSeed: (id: string, hex: string) => void;
+  /** Current active overrides — used to show "modified" state on swatches */
+  overrides?: Record<string, string | number>;
 }
 
 export const ColorsTuning = React.memo(
@@ -356,238 +366,338 @@ export const ColorsTuning = React.memo(
     updateOverride,
     getScaleSeed,
     refreshScaleSeed,
+    overrides = {},
   }: ColorsTuningProps) => {
     return (
       <>
-        <Box p={3} borderBottom="1px solid" borderColor="gray.50">
-          <HStack gap={1.5} mb={3}>
-            <LuPalette size={12} color="var(--chakra-colors-gray-400)" />
-            <Text
-              fontSize="9px"
-              fontWeight="700"
-              color="gray.400"
-              textTransform="uppercase"
-              letterSpacing="wider"
+        <CollapsibleSection
+          label="Semantic Colors"
+          storageKey="colors-semantic"
+          defaultOpen={true}
+          modifiedCount={
+            SEMANTIC_CHANNELS.filter(
+              (c) => getEffectiveValue(c.variable, c.token, "") !== "",
+            ).length
+          }
+        >
+          <Box p={3}>
+            {/* 2-column swatch grid */}
+            <Box
+              display="grid"
+              gridTemplateColumns="repeat(2, 1fr)"
+              gap={2}
+              mb={3}
             >
-              Semantic Colors
-            </Text>
-          </HStack>
-          <VStack align="stretch" gap={2}>
-            {SEMANTIC_CHANNELS.map((channel) => {
-              const color = getEffectiveValue(
-                channel.variable,
-                channel.token,
-                "#000000",
-              );
-              const info = getColorInfo(color);
-              const bestContrast =
-                info.contrastW >= info.contrastB
-                  ? info.contrastW
-                  : info.contrastB;
-              const wcag = getWcagBadge(bestContrast);
-              const apca = getApcaBadge(info.apcaLc);
-              return (
-                <VStack key={channel.id} gap={0.5} align="stretch">
-                  <HStack gap={2}>
-                    <StudioColorPicker
-                      variant="button"
-                      label={channel.label}
-                      color={color}
-                      onChange={(c) =>
-                        updateOverride(
-                          { [channel.variable]: c },
-                          `Changed ${channel.label}`,
-                        )
-                      }
-                    />
-                  </HStack>
-                  <HStack gap={1} pl={1} flexWrap="wrap">
-                    <Text
-                      fontSize="10px"
-                      fontFamily="monospace"
-                      color="gray.400"
-                    >
-                      L:{info.l}%
-                    </Text>
-                    <Text
-                      fontSize="10px"
-                      fontFamily="monospace"
-                      color="gray.400"
-                    >
-                      C:{info.c}
-                    </Text>
-                    <Text
-                      fontSize="10px"
-                      fontFamily="monospace"
-                      color="gray.400"
-                    >
-                      H:{info.h}°
-                    </Text>
-                    <Badge
-                      size="xs"
-                      variant="subtle"
-                      colorPalette={wcag.colorPalette}
-                      fontSize="10px"
-                      px={1}
-                      py={0}
-                    >
-                      {wcag.label} {bestContrast}:1
-                    </Badge>
-                    <Badge
-                      size="xs"
-                      variant="subtle"
-                      colorPalette={apca.colorPalette}
-                      fontSize="10px"
-                      px={1}
-                      py={0}
-                    >
-                      APCA {apca.label}
-                    </Badge>
-                  </HStack>
-                </VStack>
-              );
-            })}
-          </VStack>
+              {SEMANTIC_CHANNELS.map((channel) => {
+                const color = getEffectiveValue(
+                  channel.variable,
+                  channel.token,
+                  "#000000",
+                );
+                const info = getColorInfo(color);
+                const bestContrast =
+                  info.contrastW >= info.contrastB
+                    ? info.contrastW
+                    : info.contrastB;
+                const wcag = getWcagBadge(bestContrast);
+                const apca = getApcaBadge(info.apcaLc);
+                const isModified = !!overrides?.[channel.variable];
 
-          <Box mt={3}>
-            <Text
-              fontSize="9px"
-              fontWeight="700"
-              color="gray.400"
-              textTransform="uppercase"
-              letterSpacing="wider"
-              mb={1.5}
-            >
-              Shade Scales
-            </Text>
-            <ColorScalePanel
-              colors={SEMANTIC_CHANNELS.filter((c) =>
-                [
-                  "--brand-primary",
-                  "--brand-secondary",
-                  "--brand-accent",
-                ].includes(c.variable),
-              ).map((c) => ({
-                id: c.id,
-                label: c.label,
-                hex: getScaleSeed(
-                  c.id,
-                  getEffectiveValue(c.variable, c.token, "#000000"),
-                ),
-                variable: c.variable,
-              }))}
-              onSelectShade={(variable, hex, label) =>
-                updateOverride({ [variable]: hex }, label)
-              }
-              onRefreshScale={(id: string) => {
-                const channel = SEMANTIC_CHANNELS.find((c) => c.id === id);
-                if (channel) {
-                  const currentHex = getEffectiveValue(
-                    channel.variable,
-                    channel.token,
-                    "#000000",
-                  );
-                  refreshScaleSeed(id, currentHex);
+                return (
+                  <Box key={channel.id} position="relative">
+                    <Popover.Root positioning={{ placement: "right" }}>
+                      <Popover.Trigger asChild>
+                        <Box
+                          as="button"
+                          w="full"
+                          borderRadius="lg"
+                          overflow="hidden"
+                          border="2px solid"
+                          borderColor={isModified ? "blue.300" : "gray.150"}
+                          cursor="pointer"
+                          _hover={{
+                            borderColor: "blue.400",
+                            transform: "translateY(-1px)",
+                            boxShadow: "md",
+                          }}
+                          transition="all 0.15s"
+                          title={`${channel.label}: ${color}`}
+                        >
+                          {/* Color block */}
+                          <Box h="52px" bg={color} position="relative">
+                            {/* WCAG badge overlay */}
+                            <Badge
+                              position="absolute"
+                              top="4px"
+                              right="4px"
+                              colorPalette={wcag.colorPalette}
+                              variant="solid"
+                              fontSize="7px"
+                              px={1}
+                              py={0}
+                              borderRadius="sm"
+                              opacity={0.9}
+                            >
+                              {wcag.label}
+                            </Badge>
+                          </Box>
+
+                          {/* Label row */}
+                          <Box px={2} py={1.5} bg="white">
+                            <Text
+                              fontSize="9px"
+                              fontWeight="700"
+                              color="gray.600"
+                              truncate
+                            >
+                              {channel.label}
+                            </Text>
+                            <Text
+                              fontSize="8px"
+                              color="gray.400"
+                              fontFamily="'Space Mono', monospace"
+                              truncate
+                            >
+                              {color}
+                            </Text>
+                          </Box>
+                        </Box>
+                      </Popover.Trigger>
+
+                      <Portal>
+                        <Popover.Positioner>
+                          <Popover.Content p={3} w="220px" shadow="xl">
+                            {/* Color details */}
+                            <HStack gap={2} mb={2}>
+                              <Box
+                                w="24px"
+                                h="24px"
+                                borderRadius="md"
+                                bg={color}
+                                border="1px solid"
+                                borderColor="gray.200"
+                                flexShrink={0}
+                              />
+                              <VStack gap={0} align="start">
+                                <Text
+                                  fontSize="10px"
+                                  fontWeight="700"
+                                  color="gray.700"
+                                >
+                                  {channel.label}
+                                </Text>
+                                <Text
+                                  fontSize="9px"
+                                  color="gray.400"
+                                  fontFamily="monospace"
+                                >
+                                  L:{info.l}% C:{info.c} H:{info.h}°
+                                </Text>
+                              </VStack>
+                              <HStack gap={1} ml="auto">
+                                <Badge
+                                  colorPalette={wcag.colorPalette}
+                                  variant="subtle"
+                                  fontSize="8px"
+                                  px={1}
+                                >
+                                  {wcag.label}
+                                </Badge>
+                                <Badge
+                                  colorPalette={apca.colorPalette}
+                                  variant="subtle"
+                                  fontSize="8px"
+                                  px={1}
+                                >
+                                  {apca.label}
+                                </Badge>
+                              </HStack>
+                            </HStack>
+
+                            <StudioColorPicker
+                              variant="expanded"
+                              label={channel.label}
+                              color={color}
+                              onChange={(c) =>
+                                updateOverride(
+                                  { [channel.variable]: c },
+                                  `Changed ${channel.label}`,
+                                )
+                              }
+                            />
+
+                            {isModified && (
+                              <Box
+                                as="button"
+                                mt={2}
+                                w="full"
+                                py={1}
+                                borderRadius="md"
+                                fontSize="9px"
+                                fontWeight="600"
+                                color="orange.600"
+                                bg="orange.50"
+                                border="1px solid"
+                                borderColor="orange.200"
+                                cursor="pointer"
+                                _hover={{ bg: "orange.100" }}
+                                onClick={() =>
+                                  updateOverride(
+                                    {
+                                      [channel.variable]: getEffectiveValue(
+                                        channel.variable,
+                                        channel.token,
+                                        "#000000",
+                                      ),
+                                    },
+                                    `Reset ${channel.label}`,
+                                  )
+                                }
+                              >
+                                ↺ Reset to base
+                              </Box>
+                            )}
+                          </Popover.Content>
+                        </Popover.Positioner>
+                      </Portal>
+                    </Popover.Root>
+                  </Box>
+                );
+              })}
+            </Box>
+
+            <Box mt={3}>
+              <Text
+                fontSize="9px"
+                fontWeight="700"
+                color="gray.400"
+                textTransform="uppercase"
+                letterSpacing="wider"
+                mb={1.5}
+              >
+                Shade Scales
+              </Text>
+              <ColorScalePanel
+                colors={SEMANTIC_CHANNELS.filter((c) =>
+                  [
+                    "--brand-primary",
+                    "--brand-secondary",
+                    "--brand-accent",
+                  ].includes(c.variable),
+                ).map((c) => ({
+                  id: c.id,
+                  label: c.label,
+                  hex: getScaleSeed(
+                    c.id,
+                    getEffectiveValue(c.variable, c.token, "#000000"),
+                  ),
+                  variable: c.variable,
+                }))}
+                onSelectShade={(variable, hex, label) =>
+                  updateOverride({ [variable]: hex }, label)
                 }
-              }}
-            />
-          </Box>
-
-          <Box mt={3}>
-            <Text
-              fontSize="9px"
-              fontWeight="700"
-              color="gray.400"
-              textTransform="uppercase"
-              letterSpacing="wider"
-              mb={1.5}
-            >
-              60 / 30 / 10 Rule
-            </Text>
-            <HStack
-              gap={0}
-              h="28px"
-              borderRadius="md"
-              overflow="hidden"
-              border="1px solid"
-              borderColor="gray.200"
-            >
-              <Box
-                w="60%"
-                h="full"
-                bg={getEffectiveValue(
-                  "--brand-primary",
-                  "brand.primary",
-                  "#2B4D86",
-                )}
-                position="relative"
-              >
-                <Text
-                  fontSize="10px"
-                  fontWeight="700"
-                  color="white"
-                  position="absolute"
-                  left="50%"
-                  top="50%"
-                  transform="translate(-50%, -50%)"
-                  textShadow="0 1px 2px rgba(0,0,0,0.4)"
-                  whiteSpace="nowrap"
-                >
-                  Primary · 60%
-                </Text>
-              </Box>
-              <Box
-                w="30%"
-                h="full"
-                bg={getEffectiveValue(
-                  "--brand-secondary",
-                  "brand.secondary",
-                  "#4A6DA7",
-                )}
-                position="relative"
-              >
-                <Text
-                  fontSize="10px"
-                  fontWeight="700"
-                  color="white"
-                  position="absolute"
-                  left="50%"
-                  top="50%"
-                  transform="translate(-50%, -50%)"
-                  textShadow="0 1px 2px rgba(0,0,0,0.4)"
-                  whiteSpace="nowrap"
-                >
-                  Secondary · 30%
-                </Text>
-              </Box>
-              <Box
-                w="10%"
-                h="full"
-                bg={getEffectiveValue(
-                  "--brand-accent",
-                  "brand.accent",
-                  "#1F8055",
-                )}
-                position="relative"
-                title="Accent · 10%"
+                onRefreshScale={(id: string) => {
+                  const channel = SEMANTIC_CHANNELS.find((c) => c.id === id);
+                  if (channel) {
+                    const currentHex = getEffectiveValue(
+                      channel.variable,
+                      channel.token,
+                      "#000000",
+                    );
+                    refreshScaleSeed(id, currentHex);
+                  }
+                }}
               />
-            </HStack>
-          </Box>
-        </Box>
+            </Box>
 
-        <Box p={3} borderBottom="1px solid" borderColor="gray.50">
-          <HStack gap={1.5} mb={3}>
-            <LuPalette size={12} color="var(--chakra-colors-gray-400)" />
-            <Text
-              fontSize="9px"
-              fontWeight="700"
-              color="gray.400"
-              textTransform="uppercase"
-              letterSpacing="wider"
-            >
-              🎨 Harmony Lab
-            </Text>
-          </HStack>
+            <Box mt={3}>
+              <Text
+                fontSize="9px"
+                fontWeight="700"
+                color="gray.400"
+                textTransform="uppercase"
+                letterSpacing="wider"
+                mb={1.5}
+              >
+                60 / 30 / 10 Rule
+              </Text>
+              <HStack
+                gap={0}
+                h="28px"
+                borderRadius="md"
+                overflow="hidden"
+                border="1px solid"
+                borderColor="gray.200"
+              >
+                <Box
+                  w="60%"
+                  h="full"
+                  bg={getEffectiveValue(
+                    "--brand-primary",
+                    "brand.primary",
+                    "#2B4D86",
+                  )}
+                  position="relative"
+                >
+                  <Text
+                    fontSize="10px"
+                    fontWeight="700"
+                    color="white"
+                    position="absolute"
+                    left="50%"
+                    top="50%"
+                    transform="translate(-50%, -50%)"
+                    textShadow="0 1px 2px rgba(0,0,0,0.4)"
+                    whiteSpace="nowrap"
+                  >
+                    Primary · 60%
+                  </Text>
+                </Box>
+                <Box
+                  w="30%"
+                  h="full"
+                  bg={getEffectiveValue(
+                    "--brand-secondary",
+                    "brand.secondary",
+                    "#4A6DA7",
+                  )}
+                  position="relative"
+                >
+                  <Text
+                    fontSize="10px"
+                    fontWeight="700"
+                    color="white"
+                    position="absolute"
+                    left="50%"
+                    top="50%"
+                    transform="translate(-50%, -50%)"
+                    textShadow="0 1px 2px rgba(0,0,0,0.4)"
+                    whiteSpace="nowrap"
+                  >
+                    Secondary · 30%
+                  </Text>
+                </Box>
+                <Box
+                  w="10%"
+                  h="full"
+                  bg={getEffectiveValue(
+                    "--brand-accent",
+                    "brand.accent",
+                    "#1F8055",
+                  )}
+                  position="relative"
+                  title="Accent · 10%"
+                />
+              </HStack>
+            </Box>
+          </Box>
+        </CollapsibleSection>
+
+        <CollapsibleSection
+          label="Harmony Lab"
+          storageKey="colors-harmony"
+          defaultOpen={true}
+        >
           <HarmonyLabSection
             primaryColor={getEffectiveValue(
               "--brand-primary",
@@ -601,7 +711,7 @@ export const ColorsTuning = React.memo(
               )
             }
           />
-        </Box>
+        </CollapsibleSection>
       </>
     );
   },

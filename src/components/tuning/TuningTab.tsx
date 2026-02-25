@@ -222,6 +222,7 @@ export const TuningTab = ({
             updateOverride={handleUpdateOverride}
             getScaleSeed={getScaleSeed}
             refreshScaleSeed={refreshScaleSeed}
+            overrides={overrides}
           />
         )}
         {tuningSubTab === "typography" && (
