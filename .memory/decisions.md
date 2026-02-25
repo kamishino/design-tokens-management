@@ -92,3 +92,24 @@
 **Decision:** Added 3 controls per font role card: weight chip selector (300-900), LH number input, LS number input (em). CSS vars: `--font-weight-{role}`, `--line-height-{role}`, `--letter-spacing-{role}`.
 **Alternatives:** Shared controls only (less precise), full typescale.com clone (responsive breakpoints — overkill).
 **Consequences:** ArticlePreview reflects per-role values. Heading defaults differ from body (weight 700 vs 400, LH 1.2 vs 1.5).
+
+## [2026-02-25] — Path Resolve Security Guard for save-token API
+
+**Context:** save-token API used a brittle substring check (`/tokens/`) causing silent 403 errors when sourceFile was formatted differently (e.g. Windows paths, no leading slash).
+**Decision:** Replaced with `path.resolve()` + `normalized.startsWith(PROJECT_ROOT)` guard. Returns structured `{ error, code }` JSON on failure.
+**Alternatives:** Stricter path normalization at write time (too fragile), no guard (security risk).
+**Consequences:** All token files within project root are writable; cross-platform compatible. Broke the "silent failure" behavior — errors now surface.
+
+## [2026-02-25] — InlineTokenEditor: Edit Tokens Directly on Studio Canvas
+
+**Context:** Clicking a token element in Inspect Mode opened the full Visual Lab modal — too many steps for a simple value change.
+**Decision:** Capture `getBoundingClientRect()` on click, render a small `InlineTokenEditor` popover anchored to the element. Applies live override immediately, persists via `/api/save-token`.
+**Alternatives:** Open full modal (too heavy), edit only in Tuning panel (far from context).
+**Consequences:** Designer never leaves canvas context. Works for any token type; color tokens show a swatch preview.
+
+## [2026-02-25] — Figma Variables Export (W3C DTCG Format)
+
+**Context:** Solo designer workflow needs tokens in Figma. Manual copy-paste was the only path.
+**Decision:** Added `/api/export-figma` endpoint that walks all token JSON files and flattens to W3C DTCG flat format (`{ "brand.primary": { "$value": "#...", "$type": "color" } }`). Two delivery mechanisms: file download + clipboard copy.
+**Alternatives:** Figma REST API push (requires OAuth setup — too heavy), Tokens Studio format only (already exists in Export modal).
+**Consequences:** Designer can import directly into Figma Variables importer plugin. No API token needed.

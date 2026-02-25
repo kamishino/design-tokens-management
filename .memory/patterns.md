@@ -59,3 +59,18 @@
 - **Pattern:** Per-role typography card with inline controls (Weight chips, LH input, LS input).
 - **Example:** Heading card: `[Font ▾] Weight:[700] LH:[1.2] LS:[0em]`
 - **When to use:** Any font role that needs independent weight, line-height, and letter-spacing.
+
+## API Patterns
+
+- **Pattern:** Vite plugin middleware for local file I/O — all server-side token operations go through `configureServer` middlewares in `vite-plugin-sync-tokens.ts`.
+- **When to use:** Any new backend operation (file read, file write, token aggregation). Add as a new `req.url === '/api/...'` branch.
+- **Note:** Security guard: `path.resolve(target).startsWith(PROJECT_ROOT)` before any write.
+
+- **Pattern:** Structured API errors `{ error: string, code: string }` from all API routes.
+- **When to use:** All failure cases in Vite plugin middlewares must return JSON with `error` + `code` fields.
+
+## Canvas Interaction Patterns
+
+- **Pattern:** `getBoundingClientRect()` + fixed-position overlay anchored to DOM element.
+- **Example:** `InlineTokenEditor` anchored to clicked `[data-tokens]` element in Inspect Mode.
+- **When to use:** Any contextual popover that must appear adjacent to a specific element on the Studio canvas without escaping into a Portal.
