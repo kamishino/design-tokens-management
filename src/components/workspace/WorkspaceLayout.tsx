@@ -1,5 +1,12 @@
 import { Box, HStack, VStack, Text } from "@chakra-ui/react";
-import { useState, useMemo, useCallback, useEffect } from "react";
+import {
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  lazy,
+  Suspense,
+} from "react";
 import { useGlobalTokens } from "../../hooks/useGlobalTokens";
 import { useCommandPalette } from "../../hooks/useCommandPalette";
 import { groupTokensByFile } from "../../utils/token-grouping";
@@ -8,12 +15,24 @@ import { ResizeHandle } from "./ResizeHandle";
 import { ActivityBar } from "../explorer/ActivityBar";
 import { FileExplorer } from "../explorer/FileExplorer";
 import { TokenTree } from "../explorer/TokenTree";
-import { TokenEditModal } from "../explorer/TokenEditModal";
 import { InspectorOverlay } from "../explorer/InspectorOverlay";
-import { ExportModal } from "../export/ExportModal";
-import { CommandPalette } from "../command/CommandPalette";
 import { StudioView } from "../studio/StudioView";
 import { InspectorPanel } from "./InspectorPanel";
+
+// Wave 3: Lazy-load heavy modals — parsed only when first opened, not on boot
+const TokenEditModal = lazy(() =>
+  import("../explorer/TokenEditModal").then((m) => ({
+    default: m.TokenEditModal,
+  })),
+);
+const ExportModal = lazy(() =>
+  import("../export/ExportModal").then((m) => ({ default: m.ExportModal })),
+);
+const CommandPalette = lazy(() =>
+  import("../command/CommandPalette").then((m) => ({
+    default: m.CommandPalette,
+  })),
+);
 import type {
   Manifest,
   TokenOverrides,
@@ -236,87 +255,98 @@ export const WorkspaceLayout = ({
 
       {/* Main Content */}
       <HStack flex={1} gap={0} overflow="hidden" w="full">
-        {/* Activity Bar */}
-        {sidebarVisible && (
+        {/* Activity Bar — always mounted, width collapses to 0 when hidden (Wave 1) */}
+        <Box
+          w={sidebarVisible ? "36px" : "0px"}
+          overflow="hidden"
+          flexShrink={0}
+          style={{
+            willChange: "width",
+            transition: "width 240ms cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+        >
           <ActivityBar
             activePanel={activePanel}
             onPanelChange={setActivePanel}
           />
-        )}
+        </Box>
 
-        {/* Left Panel: File Explorer + Token Tree */}
-        {sidebarVisible && (
-          <VStack
-            w={`${sidebarWidth}px`}
-            minW="240px"
-            maxW="480px"
-            h="full"
-            gap={0}
-            bg="white"
-            borderRight="1px solid"
-            borderColor="gray.200"
+        {/* Left Panel — always mounted, width collapses to 0 when hidden (Wave 1) */}
+        <VStack
+          w={sidebarVisible ? `${sidebarWidth}px` : "0px"}
+          minW={sidebarVisible ? "240px" : "0px"}
+          maxW="480px"
+          h="full"
+          gap={0}
+          bg="white"
+          borderRight={sidebarVisible ? "1px solid" : "none"}
+          borderColor="gray.200"
+          overflow="hidden"
+          flexShrink={0}
+          style={{
+            willChange: "width",
+            transition: "width 260ms cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+        >
+          {/* File Explorer — collapsible */}
+          <Box
+            w="full"
+            borderBottom="1px solid"
+            borderColor="gray.100"
             overflow="hidden"
+            transition="height 0.2s"
+            h={explorerCollapsed ? "28px" : "45%"}
+            flexShrink={0}
           >
-            {/* File Explorer — collapsible */}
-            <Box
-              w="full"
+            <HStack
+              h="28px"
+              px={3}
+              bg="gray.50"
+              cursor="pointer"
+              _hover={{ bg: "gray.100" }}
+              onClick={() => setExplorerCollapsed((v) => !v)}
+              userSelect="none"
               borderBottom="1px solid"
               borderColor="gray.100"
-              overflow="hidden"
-              transition="height 0.2s"
-              h={explorerCollapsed ? "28px" : "45%"}
-              flexShrink={0}
             >
-              <HStack
-                h="28px"
-                px={3}
-                bg="gray.50"
-                cursor="pointer"
-                _hover={{ bg: "gray.100" }}
-                onClick={() => setExplorerCollapsed((v) => !v)}
-                userSelect="none"
-                borderBottom="1px solid"
-                borderColor="gray.100"
+              <Text
+                fontSize="9px"
+                fontWeight="700"
+                color="gray.400"
+                textTransform="uppercase"
+                letterSpacing="wider"
+                flex={1}
               >
-                <Text
-                  fontSize="9px"
-                  fontWeight="700"
-                  color="gray.400"
-                  textTransform="uppercase"
-                  letterSpacing="wider"
-                  flex={1}
-                >
-                  {explorerCollapsed ? "▶" : "▼"} Files
-                </Text>
-              </HStack>
-              {!explorerCollapsed && (
-                <Box h="calc(100% - 28px)" overflowY="auto">
-                  <FileExplorer
-                    manifest={manifest}
-                    context={activePanel}
-                    activePath={selectedProject}
-                    onSelect={(_, key) => onProjectChange(key)}
-                    onEditTokens={handleEditTokensByFile}
-                  />
-                </Box>
-              )}
-            </Box>
-            <Box flex={1} w="full" overflow="hidden">
-              <TokenTree
-                semanticTokens={semanticTokens}
-                foundationTokens={foundationTokens}
-                searchTerm={searchTerm}
-                onSearchChange={setSearchTerm}
-                editMode={true}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onHover={handleHover}
-              />
-            </Box>
-          </VStack>
-        )}
+                {explorerCollapsed ? "▶" : "▼"} Files
+              </Text>
+            </HStack>
+            {!explorerCollapsed && (
+              <Box h="calc(100% - 28px)" overflowY="auto">
+                <FileExplorer
+                  manifest={manifest}
+                  context={activePanel}
+                  activePath={selectedProject}
+                  onSelect={(_, key) => onProjectChange(key)}
+                  onEditTokens={handleEditTokensByFile}
+                />
+              </Box>
+            )}
+          </Box>
+          <Box flex={1} w="full" overflow="hidden">
+            <TokenTree
+              semanticTokens={semanticTokens}
+              foundationTokens={foundationTokens}
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              editMode={true}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onHover={handleHover}
+            />
+          </Box>
+        </VStack>
 
-        {/* Sidebar Resize Handle */}
+        {/* Sidebar Resize Handle — only visible when sidebar is open */}
         {sidebarVisible && (
           <ResizeHandle
             side="left"
@@ -358,69 +388,79 @@ export const WorkspaceLayout = ({
           />
         )}
 
-        {/* Right: Inspector Panel */}
-        {inspectorVisible && (
-          <Box
-            w={`${inspectorWidth}px`}
-            minW="240px"
-            h="full"
-            bg="white"
-            borderLeft="1px solid"
-            borderColor="gray.200"
-            overflow="hidden"
-          >
-            <InspectorPanel
-              selectedToken={selectedToken}
-              overrides={overrides}
-              globalTokens={globalTokens}
-              onCommitSuccess={refresh}
-              updateOverride={updateOverride}
-              refreshTokens={refresh}
-              projectPath={selectedProject}
-              onReset={onReset}
-              undo={undo}
-              redo={redo}
-              canUndo={canUndo}
-              canRedo={canRedo}
-              onDiscardOverride={discardOverride}
-              onDiscardAll={onReset}
-            />
-          </Box>
-        )}
+        {/* Right Panel — always mounted, width collapses to 0 when hidden (Wave 1) */}
+        <Box
+          w={inspectorVisible ? `${inspectorWidth}px` : "0px"}
+          minW={inspectorVisible ? "240px" : "0px"}
+          h="full"
+          bg="white"
+          borderLeft={inspectorVisible ? "1px solid" : "none"}
+          borderColor="gray.200"
+          overflow="hidden"
+          flexShrink={0}
+          style={{
+            willChange: "width",
+            transition: "width 260ms cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+        >
+          <InspectorPanel
+            selectedToken={selectedToken}
+            overrides={overrides}
+            globalTokens={globalTokens}
+            onCommitSuccess={refresh}
+            updateOverride={updateOverride}
+            refreshTokens={refresh}
+            projectPath={selectedProject}
+            onReset={onReset}
+            undo={undo}
+            redo={redo}
+            canUndo={canUndo}
+            canRedo={canRedo}
+            onDiscardOverride={discardOverride}
+            onDiscardAll={onReset}
+          />
+        </Box>
       </HStack>
 
-      {/* Overlays */}
+      {/* Overlays — always in DOM, lightweight */}
       <InspectorOverlay token={hoveredToken.token} pos={hoveredToken.pos} />
 
-      <TokenEditModal
-        isOpen={isEditorOpen}
-        onClose={(shouldRefresh) => {
-          setIsEditorOpen(false);
-          if (shouldRefresh) refresh();
-        }}
-        token={editingToken}
-        targetPath={selectedProject}
-        globalTokens={globalTokens}
-      />
+      {/* Wave 3: Lazy-loaded modals — parsed only when first opened */}
+      <Suspense fallback={null}>
+        <TokenEditModal
+          isOpen={isEditorOpen}
+          onClose={(shouldRefresh) => {
+            setIsEditorOpen(false);
+            if (shouldRefresh) refresh();
+          }}
+          token={editingToken}
+          targetPath={selectedProject}
+          globalTokens={globalTokens}
+        />
+      </Suspense>
 
-      <ExportModal
-        isOpen={isExportModalOpen}
-        onClose={() => setIsExportModalOpen(false)}
-        manifest={manifest}
-        globalTokens={globalTokens}
-        overrides={overrides}
-      />
+      <Suspense fallback={null}>
+        <ExportModal
+          isOpen={isExportModalOpen}
+          onClose={() => setIsExportModalOpen(false)}
+          manifest={manifest}
+          globalTokens={globalTokens}
+          overrides={overrides}
+        />
+      </Suspense>
 
-      <CommandPalette
-        isOpen={cmdPalette.isOpen}
-        query={cmdPalette.query}
-        onQueryChange={cmdPalette.setQuery}
-        results={cmdPalette.results}
-        selectedIndex={cmdPalette.selectedIndex}
-        onClose={cmdPalette.close}
-        onExecute={cmdPalette.executeSelected}
-        onMoveSelection={cmdPalette.moveSelection}
-      />
+      <Suspense fallback={null}>
+        <CommandPalette
+          isOpen={cmdPalette.isOpen}
+          query={cmdPalette.query}
+          onQueryChange={cmdPalette.setQuery}
+          results={cmdPalette.results}
+          selectedIndex={cmdPalette.selectedIndex}
+          onClose={cmdPalette.close}
+          onExecute={cmdPalette.executeSelected}
+          onMoveSelection={cmdPalette.moveSelection}
+        />
+      </Suspense>
     </VStack>
   );
 };

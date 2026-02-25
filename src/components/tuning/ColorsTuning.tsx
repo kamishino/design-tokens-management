@@ -1,45 +1,15 @@
-import React from "react";
-import {
-  Box,
-  VStack,
-  HStack,
-  Text,
-  Popover,
-  Portal,
-  Input,
-  Badge,
-} from "@chakra-ui/react";
-import { useCallback, useMemo, useState } from "react";
-import {
-  LuPalette,
-  LuType,
-  LuUndo2,
-  LuRedo2,
-  LuCheck,
-  LuLayoutList,
-  LuNewspaper,
-  LuZoomIn,
-} from "react-icons/lu";
+import React, { useMemo, useState } from "react";
+import { Box, VStack, HStack, Text, Badge } from "@chakra-ui/react";
+import { LuPalette } from "react-icons/lu";
 import { parse, converter, wcagContrast, formatHex } from "culori";
 // @ts-expect-error apca-w3 has no type declarations
 import { APCAcontrast, sRGBtoY } from "apca-w3";
 import { StudioColorPicker } from "../playground/panels/StudioColorPicker";
-import { getPrioritizedTokenMap } from "../../utils/token-graph";
-import { prependFont } from "../../utils/fonts";
-import { Button } from "../ui/button";
-import type { TokenDoc } from "../../utils/token-parser";
-import type { TokenOverrides } from "../../schemas/manifest";
-import { ColorScalePanel } from "./ColorScalePanel";
-import { SmartTipsPanel } from "../workspace/SmartTipsPanel";
-import type { AnalysisContext } from "../../utils/design-rules";
+import { ColorScalePanel } from "../workspace/ColorScalePanel";
 
 // --- Color Science Utilities (culori + APCA) ---
 const toOklch = converter("oklch");
 const toRgb = converter("rgb");
-
-import { StudioColorPicker } from "../studio/StudioColorPicker";
-import { ColorScalePanel } from "../workspace/ColorScalePanel";
-
 const getColorInfo = (hex: string) => {
   const parsed = parse(hex);
   if (!parsed)
@@ -378,7 +348,6 @@ interface ColorsTuningProps {
   ) => void;
   getScaleSeed: (id: string, currentHex: string) => string;
   refreshScaleSeed: (id: string, hex: string) => void;
-  overrides: Record<string, string | number>;
 }
 
 export const ColorsTuning = React.memo(
@@ -387,7 +356,6 @@ export const ColorsTuning = React.memo(
     updateOverride,
     getScaleSeed,
     refreshScaleSeed,
-    overrides,
   }: ColorsTuningProps) => {
     return (
       <>
@@ -636,12 +604,5 @@ export const ColorsTuning = React.memo(
         </Box>
       </>
     );
-  },
-  (prev, next) => {
-    // Only re-render if the returned values of getEffectiveValue for colors might have changed
-    // This is a complex check to implement purely, so we compare the object reference of `overrides`
-    // Wait, if we use a deep comparison or just let React.memo handle it when parents pass stable props.
-    // Actually, passing `overrides` strictly for the subset is better.
-    return prev === next; // Temporary placeholder
   },
 );

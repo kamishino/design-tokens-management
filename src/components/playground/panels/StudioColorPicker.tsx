@@ -13,7 +13,18 @@ import {
   Portal,
   Center,
 } from "@chakra-ui/react";
-import { useState, useMemo, memo, useEffect, type RefObject } from "react";
+import {
+  useState,
+  useMemo,
+  memo,
+  useEffect,
+  useCallback,
+  type RefObject,
+} from "react";
+import {
+  useRafCallback,
+  useDebounceCallback,
+} from "../../../hooks/useRafCallback";
 import { isOutofGamut, getContrastMetrics } from "../../../utils/colors";
 import baseColors from "../../../../tokens/global/base/colors.json";
 import { PrecisionSlider } from "../../ui/precision-slider";
@@ -115,27 +126,43 @@ export const StudioColorPicker = memo(
       return flat;
     }, []);
 
-    const filteredSwatches = swatches.filter(
-      (s) =>
-        s.id.toLowerCase().includes(search.toLowerCase()) ||
-        s.hex.toLowerCase().includes(search.toLowerCase()),
+    const filteredSwatches = useMemo(
+      () =>
+        swatches.filter(
+          (s) =>
+            s.id.toLowerCase().includes(search.toLowerCase()) ||
+            s.hex.toLowerCase().includes(search.toLowerCase()),
+        ),
+      [swatches, search],
     );
 
-    const handleHexChange = (val: string) => {
-      setHexInput(val);
-      const hex = val.startsWith("#") ? val : `#${val}`;
-      if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
-        updateFromHex(hex);
-        onChange(hex);
-        addColor(hex);
-      }
-    };
+    // Debounce the expensive global state write (updateOverride) to 80ms idle
+    const debouncedOnChange = useDebounceCallback(onChange, 80);
 
-    const handleColorChange = (hex: string) => {
-      updateFromHex(hex);
-      onChange(hex);
-      addColor(hex);
-    };
+    const handleHexChange = useCallback(
+      (val: string) => {
+        setHexInput(val);
+        const hex = val.startsWith("#") ? val : `#${val}`;
+        if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
+          updateFromHex(hex);
+          onChange(hex); // hex input is discrete, fire immediately
+          addColor(hex);
+        }
+      },
+      [updateFromHex, onChange, addColor],
+    );
+
+    // rAF-throttle the visual coord update (runs during mousemove at 60fps)
+    const rafUpdateFromHex = useRafCallback(updateFromHex);
+
+    const handleColorChange = useCallback(
+      (hex: string) => {
+        rafUpdateFromHex(hex); // paint coords instantly, frame-capped
+        debouncedOnChange(hex); // flush to global state after 80ms idle
+        addColor(hex);
+      },
+      [rafUpdateFromHex, debouncedOnChange, addColor],
+    );
 
     const isExpanded = variant === "expanded";
 
