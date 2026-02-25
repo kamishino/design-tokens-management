@@ -46,6 +46,7 @@ import type { TokenDoc } from "../../utils/token-parser";
 import { TokenViewer } from "../TokenViewer";
 import { FloatingLab } from "../playground/FloatingLab";
 import { CommitCenter } from "../playground/panels/CommitCenter";
+import { InlineTokenEditor } from "./InlineTokenEditor";
 
 interface StudioViewProps {
   manifest: Manifest | null;
@@ -104,6 +105,10 @@ export const StudioView = ({
     width: number;
     height: number;
     tokens?: string[];
+  } | null>(null);
+  const [inlineEditor, setInlineEditor] = useState<{
+    anchorRect: DOMRect;
+    tokenNames: string[];
   } | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -282,8 +287,15 @@ export const StudioView = ({
             ?.split(",")
             .map((t) => t.trim()) || [];
         onInspectChange(tokens.length > 0 ? tokens : undefined);
-        if (tokens.length > 0) setActiveTool("lab");
+        if (tokens.length > 0) {
+          // Show inline editor anchored to the clicked element
+          setInlineEditor({
+            anchorRect: inspectable.getBoundingClientRect(),
+            tokenNames: tokens,
+          });
+        }
       } else {
+        setInlineEditor(null);
         onInspectChange(undefined);
       }
     };
@@ -304,6 +316,7 @@ export const StudioView = ({
       bg="white"
       minH="100%"
       cursor={isInspectMode ? "crosshair" : "default"}
+      onClick={() => setInlineEditor(null)}
     >
       {/* Inspector Overlay */}
       {isInspectMode && hoveredRect && (
@@ -358,6 +371,19 @@ export const StudioView = ({
             </Box>
           )}
         </Box>
+      )}
+
+      {/* Inline Token Editor (click-to-edit in Inspect Mode) */}
+      {inlineEditor && (
+        <InlineTokenEditor
+          anchorRect={inlineEditor.anchorRect}
+          tokenNames={inlineEditor.tokenNames}
+          globalTokens={globalTokens}
+          onApplyOverride={(cssVar, value) =>
+            updateOverride({ [cssVar]: value }, `Inline edit: ${cssVar}`)
+          }
+          onClose={() => setInlineEditor(null)}
+        />
       )}
 
       {/* Studio Toolbar */}

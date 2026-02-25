@@ -22,6 +22,7 @@ import { NativeSelectRoot, NativeSelectField } from "../ui/native-select";
 import { PopoverContent, PopoverRoot, PopoverTrigger } from "../ui/popover";
 import { Button } from "../ui/button";
 import { useState, useEffect, useRef, useMemo } from "react";
+import { toaster } from "../ui/toaster";
 import { extractReferences } from "../../utils/token-parser";
 import {
   resolveValueWithMap,
@@ -85,6 +86,7 @@ export const TokenEditModal = ({
   const [type, setType] = useState("color");
   const [description, setDescription] = useState("");
   const [isSyncing, setIsSyncing] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Reference Picker & Smart Replace State
   const [isPickerOpen, setIsPickerOpen] = useState(false);
@@ -115,6 +117,7 @@ export const TokenEditModal = ({
     }
     setIsPickerOpen(false);
     setPreviousLiteral(null);
+    setSaveError(null);
   }, [token, initialCategory, isOpen]);
 
   const isFoundation = useMemo(() => {
@@ -164,6 +167,7 @@ export const TokenEditModal = ({
 
   const handleSave = async () => {
     setIsSyncing(true);
+    setSaveError(null);
     try {
       const response = await fetch("/api/save-token", {
         method: "POST",
@@ -180,13 +184,31 @@ export const TokenEditModal = ({
         }),
       });
 
+      const json = await response.json().catch(() => ({}));
+
       if (response.ok) {
+        toaster.success({
+          title: isNew ? "Token Created" : "Token Saved",
+          description: `"${name}" was written to disk successfully.`,
+        });
         onClose(true);
       } else {
-        console.error("Failed to save token");
+        const msg =
+          (json as { error?: string }).error ||
+          `Server responded with ${response.status}`;
+        setSaveError(msg);
+        toaster.error({
+          title: "Save Failed",
+          description: msg,
+        });
       }
     } catch (e) {
-      console.error("Error saving token", e);
+      const msg =
+        e instanceof Error
+          ? e.message
+          : "Network error — is the dev server running?";
+      setSaveError(msg);
+      toaster.error({ title: "Save Failed", description: msg });
     } finally {
       setIsSyncing(false);
     }
@@ -258,6 +280,20 @@ export const TokenEditModal = ({
         </DialogHeader>
         <DialogBody>
           <VStack gap={6} align="stretch" py={2}>
+            {saveError && (
+              <Box
+                bg="red.50"
+                border="1px solid"
+                borderColor="red.200"
+                borderRadius="md"
+                px={4}
+                py={3}
+              >
+                <Text fontSize="sm" color="red.700" fontWeight="medium">
+                  ⚠️ {saveError}
+                </Text>
+              </Box>
+            )}
             <Field.Root>
               <Field.Label fontWeight="bold">
                 Token Name (Dot Notation)

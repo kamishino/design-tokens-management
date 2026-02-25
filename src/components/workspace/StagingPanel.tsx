@@ -1,5 +1,5 @@
 import { VStack, HStack, Text, Circle, Checkbox } from "@chakra-ui/react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   LuArrowRight,
   LuRefreshCw,
@@ -73,8 +73,8 @@ export const StagingPanel = ({
     return changes;
   }, [overrides, globalTokens]);
 
-  // Auto-stage new changes
-  useMemo(() => {
+  // Auto-stage new changes (useEffect to avoid illegal side-effect in useMemo)
+  useEffect(() => {
     const currentKeys = new Set(pendingChanges.map((c) => c.cssVar));
     setStaged((prev) => {
       const next = new Set<string>();
