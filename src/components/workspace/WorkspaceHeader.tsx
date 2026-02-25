@@ -14,6 +14,7 @@ import {
   LuPanelLeftClose,
   LuPanelRight,
   LuPanelRightClose,
+  LuLayers,
 } from "react-icons/lu";
 import { Button } from "../ui/button";
 import type { Manifest } from "../../schemas/manifest";
@@ -49,138 +50,147 @@ export const WorkspaceHeader = ({
 
   return (
     <HStack
-      h="44px"
-      minH="44px"
-      px={4}
-      gap={3}
+      w="full"
+      h="40px"
+      minH="40px"
+      px={3}
+      gap={0}
       bg="white"
       borderBottom="1px solid"
-      borderColor="gray.200"
+      borderColor="gray.100"
       flexShrink={0}
     >
-      {/* Brand */}
-      <HStack gap={2} minW="max-content">
-        <Heading
-          size="sm"
-          letterSpacing="tight"
-          fontWeight="800"
-          color="gray.800"
-        >
-          DTM
-        </Heading>
-        {hasOverrides && (
-          <Badge
-            colorPalette="orange"
-            variant="solid"
-            fontSize="8px"
-            px={1.5}
-            borderRadius="full"
-          >
-            Live
-          </Badge>
-        )}
-      </HStack>
-
-      {/* Active Project Label (read-only — project selector lives in StudioToolbar) */}
-      <HStack
-        gap={1.5}
-        px={2}
-        py={0.5}
-        borderRadius="md"
-        bg="gray.50"
-        border="1px solid"
-        borderColor="gray.100"
-      >
-        <LuEye size={11} color="var(--chakra-colors-gray-400)" />
-        <Text
-          fontSize="11px"
-          fontWeight="600"
-          color="blue.600"
-          fontFamily="'Space Mono', monospace"
-          maxW="180px"
-          truncate
-        >
-          {selectedLabel}
-        </Text>
-      </HStack>
-
-      {/* Spacer */}
-      <Box flex={1} />
-
-      {/* Actions */}
-      <HStack gap={1}>
-        <Button
-          variant="ghost"
-          size="xs"
-          onClick={onOpenPalette}
-          gap={1.5}
-          color="gray.500"
-          _hover={{ color: "gray.700" }}
-          px={2}
-        >
-          <LuCommand size={12} />
-          <Text fontSize="10px">Cmd+K</Text>
-        </Button>
-        <Button
-          variant="ghost"
-          size="xs"
-          onClick={onOpenExport}
-          gap={1.5}
-          color="gray.500"
-          _hover={{ color: "gray.700" }}
-        >
-          <LuDownload size={13} />
-          <Text fontSize="11px">Export</Text>
-        </Button>
-      </HStack>
-
-      {/* Layout Toggle Group (VSCode-style, grouped together at right) */}
-      <HStack
-        gap={0}
-        border="1px solid"
-        borderColor="gray.200"
-        borderRadius="md"
-        overflow="hidden"
-      >
+      {/* ── LEFT ZONE: sidebar toggle + brand ── */}
+      <HStack gap={1} flexShrink={0} mr={3}>
+        {/* Sidebar toggle — VS Code convention: topmost left */}
         <IconButton
           aria-label="Toggle sidebar"
           variant="ghost"
           size="xs"
-          borderRadius="0"
-          color={sidebarVisible ? "gray.600" : "gray.300"}
+          color={sidebarVisible ? "blue.500" : "gray.300"}
           onClick={onToggleSidebar}
-          _hover={{ bg: "gray.100", color: "blue.500" }}
+          _hover={{ bg: "gray.100", color: "blue.600" }}
           title={
             sidebarVisible ? "Hide Sidebar (Ctrl+B)" : "Show Sidebar (Ctrl+B)"
           }
+          h="28px"
           minW="28px"
-          h="26px"
         >
           {sidebarVisible ? (
-            <LuPanelLeftClose size={14} />
+            <LuPanelLeftClose size={15} />
           ) : (
-            <LuPanelLeft size={14} />
+            <LuPanelLeft size={15} />
           )}
         </IconButton>
-        <Box w="1px" h="16px" bg="gray.200" />
+
+        {/* Brand */}
+        <HStack gap={1.5} pl={1}>
+          <LuLayers size={14} color="var(--chakra-colors-blue-500)" />
+          <Heading
+            size="sm"
+            letterSpacing="tight"
+            fontWeight="800"
+            color="gray.800"
+          >
+            DTM
+          </Heading>
+          {hasOverrides && (
+            <Badge
+              colorPalette="orange"
+              variant="solid"
+              fontSize="8px"
+              px={1.5}
+              borderRadius="full"
+            >
+              Live
+            </Badge>
+          )}
+        </HStack>
+      </HStack>
+
+      {/* ── CENTER ZONE: active project breadcrumb ── */}
+      <Box flex={1} display="flex" justifyContent="center">
+        <HStack
+          gap={1.5}
+          px={3}
+          py={0.5}
+          borderRadius="full"
+          bg="gray.50"
+          border="1px solid"
+          borderColor="gray.100"
+          _hover={{ borderColor: "gray.200", bg: "gray.100" }}
+          transition="all 0.15s"
+          maxW="320px"
+          w="full"
+          justifyContent="center"
+        >
+          <LuEye size={11} color="var(--chakra-colors-gray-400)" />
+          <Text
+            fontSize="11px"
+            fontWeight="600"
+            color="blue.600"
+            fontFamily="'Space Mono', monospace"
+            maxW="240px"
+            truncate
+          >
+            {selectedLabel}
+          </Text>
+        </HStack>
+      </Box>
+
+      {/* ── RIGHT ZONE: actions + inspector toggle ── */}
+      <HStack gap={1} flexShrink={0} ml={3}>
+        {/* Cmd+K shortcut hint */}
+        <Button
+          variant="ghost"
+          size="xs"
+          onClick={onOpenPalette}
+          gap={1}
+          color="gray.400"
+          _hover={{ color: "gray.700", bg: "gray.50" }}
+          px={2}
+          h="28px"
+        >
+          <LuCommand size={12} />
+          <Text fontSize="10px">K</Text>
+        </Button>
+
+        {/* Export */}
+        <Button
+          variant="solid"
+          size="xs"
+          onClick={onOpenExport}
+          gap={1.5}
+          colorPalette="blue"
+          h="28px"
+          px={3}
+          fontSize="11px"
+        >
+          <LuDownload size={12} />
+          Export
+        </Button>
+
+        {/* Divider */}
+        <Box w="1px" h="20px" bg="gray.100" mx={1} />
+
+        {/* Inspector toggle */}
         <IconButton
           aria-label="Toggle inspector"
           variant="ghost"
           size="xs"
-          borderRadius="0"
-          color={inspectorVisible ? "gray.600" : "gray.300"}
+          color={inspectorVisible ? "blue.500" : "gray.300"}
           onClick={onToggleInspector}
-          _hover={{ bg: "gray.100", color: "blue.500" }}
+          _hover={{ bg: "gray.100", color: "blue.600" }}
           title={
             inspectorVisible ? "Hide Panel (Ctrl+J)" : "Show Panel (Ctrl+J)"
           }
+          h="28px"
           minW="28px"
-          h="26px"
         >
           {inspectorVisible ? (
-            <LuPanelRightClose size={14} />
+            <LuPanelRightClose size={15} />
           ) : (
-            <LuPanelRight size={14} />
+            <LuPanelRight size={15} />
           )}
         </IconButton>
       </HStack>
