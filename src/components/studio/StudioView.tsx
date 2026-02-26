@@ -210,6 +210,20 @@ export const StudioView = ({
     rules += `  --brand-primary: ${primaryVal};\n`;
     rules += `  --brand-secondary: ${secondaryVal};`;
 
+    // ── Direct override pass ──────────────────────────────────────────────────
+    // Inject ALL active overrides directly as CSS vars. This ensures vars that
+    // are NOT backed by a globalToken (e.g. --font-family-heading, which has no
+    // token in the JSON files) still reach the Studio canvas. Without this pass,
+    // handleFontSelect writes to overrides["--font-family-heading"] but the token
+    // loop above silently skips it because no matching TokenDoc exists.
+    const overrideRules = Object.entries(overrides)
+      .map(([cssVar, val]) => `  ${cssVar}: ${val};`)
+      .join("\n");
+
+    if (overrideRules) {
+      rules += `\n  /* Direct overrides */\n${overrideRules}`;
+    }
+
     styleTag.innerHTML = `:root {\n${rules}\n}`;
   }, [globalTokens, overrides]);
 
