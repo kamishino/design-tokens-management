@@ -6,6 +6,7 @@ import { APCAcontrast, sRGBtoY } from "apca-w3";
 import { StudioColorPicker } from "../playground/panels/StudioColorPicker";
 import { ColorScalePanel } from "../workspace/ColorScalePanel";
 import { CollapsibleSection } from "./CollapsibleSection";
+import type { Suggestion } from "../../utils/design-rules";
 
 // --- Color Science Utilities (culori + APCA) ---
 const toOklch = converter("oklch");
@@ -341,6 +342,7 @@ const ColorSwatchGrid = ({
   getEffectiveValue,
   updateOverride,
   overrides,
+  violationsByVar = new Map(),
 }: {
   getEffectiveValue: (
     cssVar: string,
@@ -349,6 +351,8 @@ const ColorSwatchGrid = ({
   ) => string;
   updateOverride: (v: Record<string, string | number>, label?: string) => void;
   overrides: Record<string, string | number>;
+  /** Map from CSS var name to its violations — powers inline dot indicators */
+  violationsByVar?: Map<string, Suggestion[]>;
 }) => {
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const selectedChannel =
@@ -410,6 +414,37 @@ const ColorSwatchGrid = ({
                 >
                   {wcag.label}
                 </Badge>
+
+                {/* Inline lint dot indicator */}
+                {violationsByVar.has(channel.variable) &&
+                  (() => {
+                    const vios = violationsByVar.get(channel.variable)!;
+                    const worst = vios.some((v) => v.severity === "error")
+                      ? "error"
+                      : vios.some((v) => v.severity === "warning")
+                        ? "warning"
+                        : "info";
+                    const dotColor = {
+                      error: "#ef4444",
+                      warning: "#f97316",
+                      info: "#60a5fa",
+                    }[worst];
+                    const title = vios.map((v) => v.title).join(" · ");
+                    return (
+                      <Box
+                        position="absolute"
+                        top="4px"
+                        left="4px"
+                        w="7px"
+                        h="7px"
+                        borderRadius="full"
+                        bg={dotColor}
+                        border="1.5px solid white"
+                        title={title}
+                        style={{ boxShadow: "0 0 0 1px rgba(0,0,0,0.15)" }}
+                      />
+                    );
+                  })()}
               </Box>
               <Box px={2} py={1} bg="white" textAlign="left">
                 <Text
@@ -523,6 +558,8 @@ interface ColorsTuningProps {
   refreshScaleSeed: (id: string, hex: string) => void;
   /** Current active overrides — used to show "modified" state on swatches */
   overrides?: Record<string, string | number>;
+  /** Violation map from useDesignAnalysis — powers inline lint dots */
+  violationsByVar?: Map<string, Suggestion[]>;
 }
 
 export const ColorsTuning = React.memo(
@@ -532,6 +569,7 @@ export const ColorsTuning = React.memo(
     getScaleSeed,
     refreshScaleSeed,
     overrides = {},
+    violationsByVar,
   }: ColorsTuningProps) => {
     return (
       <>
@@ -550,6 +588,7 @@ export const ColorsTuning = React.memo(
               getEffectiveValue={getEffectiveValue}
               updateOverride={updateOverride}
               overrides={overrides}
+              violationsByVar={violationsByVar}
             />
 
             <Box mt={3}>

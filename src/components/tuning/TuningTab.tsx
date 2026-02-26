@@ -13,6 +13,8 @@ import { prependFont } from "../../utils/fonts";
 import { type AnalysisContext } from "../../utils/design-rules";
 import { Button } from "../ui/button";
 import { SaveToProjectButton } from "./SaveToProjectButton";
+import { HealthScoreBadge } from "./HealthScoreBadge";
+import { useDesignAnalysis } from "../../hooks/useDesignAnalysis";
 
 interface TuningTabProps {
   overrides: Record<string, string | number>;
@@ -109,6 +111,8 @@ export const TuningTab = ({
     [getEffectiveValue, handleUpdateOverride],
   );
 
+  const analysis = useDesignAnalysis({ overrides, getEffectiveValue });
+
   return (
     <VStack align="stretch" gap={0} h="full" overflow="hidden">
       <HStack
@@ -146,6 +150,16 @@ export const TuningTab = ({
           );
         })}
         <Box flex={1} />
+
+        {/* Health Score Badge - always visible */}
+        <HealthScoreBadge
+          score={analysis.score}
+          label={analysis.scoreLabel}
+          color={analysis.scoreColor}
+          criticalCount={analysis.criticalCount}
+          warningCount={analysis.warningCount}
+          onClick={() => setTuningSubTab("tips")}
+        />
 
         <HStack gap={0.5} mr={2} bg="gray.50" p={0.5} borderRadius="sm">
           <LuZoomIn
@@ -226,6 +240,7 @@ export const TuningTab = ({
             getScaleSeed={getScaleSeed}
             refreshScaleSeed={refreshScaleSeed}
             overrides={overrides}
+            violationsByVar={analysis.violationsByVar}
           />
         )}
         {tuningSubTab === "typography" && (

@@ -10,7 +10,11 @@ const toOklch = converter("oklch");
 
 // ─── Types ───────────────────────────────────────────────────
 
-export type RuleCategory = "color" | "typography" | "accessibility";
+export type RuleCategory =
+  | "color"
+  | "typography"
+  | "accessibility"
+  | "consistency";
 export type Severity = "error" | "warning" | "info";
 
 export interface Suggestion {
@@ -21,6 +25,8 @@ export interface Suggestion {
   severity: Severity;
   /** If present, user can 1-click apply this fix */
   fix?: { variable: string; value: string };
+  /** Link to WCAG/MDN/type scale docs for expanded learning */
+  learnMoreUrl?: string;
 }
 
 export interface AnalysisContext {
@@ -75,11 +81,13 @@ const contrastRules: DesignRule[] = [
   {
     id: "contrast-text-on-bg",
     name: "Text on Background",
-    category: "color",
+    category: "accessibility",
     analyze: (ctx) => {
       const suggestions: Suggestion[] = [];
-      const bg = findByVar(ctx.colors, "--bg-body") ??
-        findByVar(ctx.colors, "--bg-canvas") ?? "#ffffff";
+      const bg =
+        findByVar(ctx.colors, "--bg-body") ??
+        findByVar(ctx.colors, "--bg-canvas") ??
+        "#ffffff";
       const textHex = findByVar(ctx.colors, "--text-primary") ?? "#000000";
       const ratio = wcagContrast(textHex, bg);
 
@@ -88,9 +96,11 @@ const contrastRules: DesignRule[] = [
           ruleId: "contrast-text-on-bg",
           title: "Text contrast too low",
           description: `Text on background has ${ratio.toFixed(1)}:1 contrast (need ≥ 4.5:1 for WCAG AA).`,
-          category: "color",
+          category: "accessibility",
           severity: "error",
           fix: { variable: "--text-primary", value: "#1a1a1a" },
+          learnMoreUrl:
+            "https://www.w3.org/WAI/WCAG21/Understanding/contrast-minimum.html",
         });
       }
       return suggestions;
@@ -99,25 +109,28 @@ const contrastRules: DesignRule[] = [
   {
     id: "contrast-primary-on-bg",
     name: "Primary on Background",
-    category: "color",
+    category: "accessibility",
     analyze: (ctx) => {
       const suggestions: Suggestion[] = [];
-      const bg = findByVar(ctx.colors, "--bg-body") ??
-        findByVar(ctx.colors, "--bg-canvas") ?? "#ffffff";
+      const bg =
+        findByVar(ctx.colors, "--bg-body") ??
+        findByVar(ctx.colors, "--bg-canvas") ??
+        "#ffffff";
       const primary = findByVar(ctx.colors, "--brand-primary");
       if (!primary) return suggestions;
 
       const ratio = wcagContrast(primary, bg);
       if (ratio < 3.0) {
-        // Suggest a darker shade
         const oklch = getOklch(primary);
         if (oklch) {
           suggestions.push({
             ruleId: "contrast-primary-on-bg",
             title: "Primary color low contrast",
             description: `Primary on background has ${ratio.toFixed(1)}:1 (need ≥ 3:1 for large text). Consider a darker shade.`,
-            category: "color",
+            category: "accessibility",
             severity: "warning",
+            learnMoreUrl:
+              "https://www.w3.org/WAI/WCAG21/Understanding/contrast-enhanced.html",
           });
         }
       }
@@ -127,11 +140,13 @@ const contrastRules: DesignRule[] = [
   {
     id: "contrast-accent-on-bg",
     name: "Accent on Background",
-    category: "color",
+    category: "accessibility",
     analyze: (ctx) => {
       const suggestions: Suggestion[] = [];
-      const bg = findByVar(ctx.colors, "--bg-body") ??
-        findByVar(ctx.colors, "--bg-canvas") ?? "#ffffff";
+      const bg =
+        findByVar(ctx.colors, "--bg-body") ??
+        findByVar(ctx.colors, "--bg-canvas") ??
+        "#ffffff";
       const accent = findByVar(ctx.colors, "--brand-accent");
       if (!accent) return suggestions;
 
@@ -141,8 +156,10 @@ const contrastRules: DesignRule[] = [
           ruleId: "contrast-accent-on-bg",
           title: "Accent color low contrast",
           description: `Accent on background has ${ratio.toFixed(1)}:1 (need ≥ 3:1). May be invisible as CTA text.`,
-          category: "color",
+          category: "accessibility",
           severity: "warning",
+          learnMoreUrl:
+            "https://www.w3.org/WAI/WCAG21/Understanding/contrast-minimum.html",
         });
       }
       return suggestions;
@@ -250,7 +267,12 @@ const typographyRules: DesignRule[] = [
           category: "typography",
           severity: "info",
           ...(suggestion
-            ? { fix: { variable: "--font-family-base", value: `${suggestion}, sans-serif` } }
+            ? {
+                fix: {
+                  variable: "--font-family-base",
+                  value: `${suggestion}, sans-serif`,
+                },
+              }
             : {}),
         });
       }
@@ -336,12 +358,8 @@ const harmonyRules: DesignRule[] = [
         .map((c) => ({ ...c, oklch: getOklch(c.hex) }))
         .filter((c) => c.oklch != null);
 
-      const allDark = oklchValues.every(
-        (c) => (c.oklch?.l ?? 0) < 0.35,
-      );
-      const allLight = oklchValues.every(
-        (c) => (c.oklch?.l ?? 0) > 0.75,
-      );
+      const allDark = oklchValues.every((c) => (c.oklch?.l ?? 0) < 0.35);
+      const allLight = oklchValues.every((c) => (c.oklch?.l ?? 0) > 0.75);
 
       if (allDark && oklchValues.length >= 2) {
         suggestions.push({
@@ -386,12 +404,109 @@ export const FONT_PAIRINGS: Record<string, string[]> = {
   "JetBrains Mono": ["Inter", "DM Sans", "Space Grotesk"],
 };
 
+// L4: Named Scale Detector
+const consistencyRules: DesignRule[] = [
+  {
+    id: "spacing-modular-scale",
+    name: "Modular Type Scale",
+    category: "consistency",
+    analyze: (ctx) => {
+      const suggestions: Suggestion[] = [];
+      const ratio = ctx.typography.scaleRatio;
+      const NAMED_SCALES = [
+        { name: "Minor Second", value: 1.067 },
+        { name: "Major Second", value: 1.125 },
+        { name: "Minor Third", value: 1.2 },
+        { name: "Major Third", value: 1.25 },
+        { name: "Perfect Fourth", value: 1.333 },
+        { name: "Augmented Fourth", value: 1.414 },
+        { name: "Perfect Fifth", value: 1.5 },
+        { name: "Golden Ratio", value: 1.618 },
+      ];
+      const closest = NAMED_SCALES.reduce((best, scale) =>
+        Math.abs(scale.value - ratio) < Math.abs(best.value - ratio)
+          ? scale
+          : best,
+      );
+      const delta = Math.abs(closest.value - ratio);
+      if (delta > 0.01 && delta < 0.15) {
+        suggestions.push({
+          ruleId: "spacing-modular-scale",
+          title: `Scale ratio close to ${closest.name}`,
+          description: `Your ratio ${ratio} is ${(delta * 1000).toFixed(0)}‰ off from ${closest.name} (${closest.value}). Snapping to a named scale is easier to communicate to engineers.`,
+          category: "consistency",
+          severity: "info",
+          fix: {
+            variable: "--typography-config-scale-ratio",
+            value: String(closest.value),
+          },
+          learnMoreUrl: "https://typescale.com",
+        });
+      }
+      return suggestions;
+    },
+  },
+  {
+    id: "color-bg-too-saturated",
+    name: "Background Chroma Check",
+    category: "consistency",
+    analyze: (ctx) => {
+      const suggestions: Suggestion[] = [];
+      const bg = findByVar(ctx.colors, "--bg-canvas");
+      if (!bg) return suggestions;
+      const oklch = getOklch(bg);
+      if (!oklch) return suggestions;
+      const chroma = oklch.c ?? 0;
+      if (chroma > 0.03) {
+        suggestions.push({
+          ruleId: "color-bg-too-saturated",
+          title: "Background has visible color tint",
+          description: `Background chroma is ${(chroma * 100).toFixed(1)} (threshold: 3). A tinted background can cause reading fatigue on long-form content.`,
+          category: "consistency",
+          severity: "info",
+          fix: { variable: "--bg-canvas", value: "#ffffff" },
+        });
+      }
+      return suggestions;
+    },
+  },
+  {
+    id: "font-mono-missing",
+    name: "Monospace Font Customization",
+    category: "typography",
+    analyze: (ctx) => {
+      const suggestions: Suggestion[] = [];
+      const isGeneric =
+        !ctx.typography.codeFont ||
+        ["monospace", "courier", "courier new"].includes(
+          ctx.typography.codeFont.toLowerCase(),
+        );
+      if (isGeneric) {
+        suggestions.push({
+          ruleId: "font-mono-missing",
+          title: "No custom monospace font set",
+          description: `Using the browser default monospace font. Setting a custom mono font (e.g. JetBrains Mono, Fira Code) improves code readability.`,
+          category: "typography",
+          severity: "info",
+          fix: {
+            variable: "--font-family-mono",
+            value: "'JetBrains Mono', monospace",
+          },
+          learnMoreUrl: "https://fonts.google.com/?category=Monospace",
+        });
+      }
+      return suggestions;
+    },
+  },
+];
+
 // ─── Rule Registry ────────────────────────────────────────────
 
 const ALL_RULES: DesignRule[] = [
   ...contrastRules,
   ...typographyRules,
   ...harmonyRules,
+  ...consistencyRules,
 ];
 
 // ─── Public API ───────────────────────────────────────────────
