@@ -1,11 +1,5 @@
 ﻿import React, { useMemo, useState } from "react";
-import {
-  Box,
-  VStack,
-  HStack,
-  Text,
-  Badge,
-} from "@chakra-ui/react";
+import { Box, VStack, HStack, Text, Badge } from "@chakra-ui/react";
 import { parse, converter, wcagContrast, formatHex } from "culori";
 // @ts-expect-error apca-w3 has no type declarations
 import { APCAcontrast, sRGBtoY } from "apca-w3";
@@ -348,23 +342,39 @@ const ColorSwatchGrid = ({
   updateOverride,
   overrides,
 }: {
-  getEffectiveValue: (cssVar: string, tokenKey: string, fallback: string) => string;
+  getEffectiveValue: (
+    cssVar: string,
+    tokenKey: string,
+    fallback: string,
+  ) => string;
   updateOverride: (v: Record<string, string | number>, label?: string) => void;
   overrides: Record<string, string | number>;
 }) => {
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
-  const selectedChannel = SEMANTIC_CHANNELS.find((c) => c.id === selectedId) ?? null;
+  const selectedChannel =
+    SEMANTIC_CHANNELS.find((c) => c.id === selectedId) ?? null;
   const selectedColor = selectedChannel
-    ? getEffectiveValue(selectedChannel.variable, selectedChannel.token, "#6366f1")
+    ? getEffectiveValue(
+        selectedChannel.variable,
+        selectedChannel.token,
+        "#6366f1",
+      )
     : null;
-  const selectedIsModified = selectedChannel ? !!overrides[selectedChannel.variable] : false;
+  const selectedIsModified = selectedChannel
+    ? !!overrides[selectedChannel.variable]
+    : false;
   return (
     <>
       <Box display="grid" gridTemplateColumns="repeat(2, 1fr)" gap={2} mb={2}>
         {SEMANTIC_CHANNELS.map((channel) => {
-          const color = getEffectiveValue(channel.variable, channel.token, "#6366f1");
+          const color = getEffectiveValue(
+            channel.variable,
+            channel.token,
+            "#6366f1",
+          );
           const info = getColorInfo(color);
-          const bestContrast = info.contrastW >= info.contrastB ? info.contrastW : info.contrastB;
+          const bestContrast =
+            info.contrastW >= info.contrastB ? info.contrastW : info.contrastB;
           const wcag = getWcagBadge(bestContrast);
           const isActive = selectedId === channel.id;
           const isModified = !!overrides[channel.variable];
@@ -376,7 +386,9 @@ const ColorSwatchGrid = ({
               borderRadius="md"
               overflow="hidden"
               border="2px solid"
-              borderColor={isActive ? "blue.400" : isModified ? "blue.200" : "gray.150"}
+              borderColor={
+                isActive ? "blue.400" : isModified ? "blue.200" : "gray.150"
+              }
               cursor="pointer"
               onClick={() => setSelectedId(isActive ? null : channel.id)}
               _hover={{ borderColor: "blue.300", boxShadow: "sm" }}
@@ -385,18 +397,35 @@ const ColorSwatchGrid = ({
             >
               <Box h="44px" bg={color} position="relative">
                 <Badge
-                  position="absolute" top="3px" right="3px"
-                  colorPalette={wcag.colorPalette} variant="solid"
-                  fontSize="7px" px={1} py={0} borderRadius="sm" opacity={0.85}
+                  position="absolute"
+                  top="3px"
+                  right="3px"
+                  colorPalette={wcag.colorPalette}
+                  variant="solid"
+                  fontSize="7px"
+                  px={1}
+                  py={0}
+                  borderRadius="sm"
+                  opacity={0.85}
                 >
                   {wcag.label}
                 </Badge>
               </Box>
               <Box px={2} py={1} bg="white" textAlign="left">
-                <Text fontSize="9px" fontWeight="700" color={isActive ? "blue.600" : "gray.600"} truncate>
+                <Text
+                  fontSize="9px"
+                  fontWeight="700"
+                  color={isActive ? "blue.600" : "gray.600"}
+                  truncate
+                >
                   {channel.label}
                 </Text>
-                <Text fontSize="8px" color="gray.400" fontFamily="'Space Mono', monospace" truncate>
+                <Text
+                  fontSize="8px"
+                  color="gray.400"
+                  fontFamily="'Space Mono', monospace"
+                  truncate
+                >
                   {color}
                 </Text>
               </Box>
@@ -405,34 +434,74 @@ const ColorSwatchGrid = ({
         })}
       </Box>
       {selectedChannel && selectedColor && (
-        <Box mb={2} p={2} bg="gray.25" border="1px solid" borderColor="blue.100" borderRadius="lg">
+        <Box
+          mb={2}
+          p={2}
+          bg="gray.25"
+          border="1px solid"
+          borderColor="blue.100"
+          borderRadius="lg"
+        >
           <HStack gap={2} mb={2}>
-            <Box w="18px" h="18px" borderRadius="sm" bg={selectedColor} border="1px solid" borderColor="gray.200" flexShrink={0} />
+            <Box
+              w="18px"
+              h="18px"
+              borderRadius="sm"
+              bg={selectedColor}
+              border="1px solid"
+              borderColor="gray.200"
+              flexShrink={0}
+            />
             <VStack gap={0} align="start" flex={1}>
-              <Text fontSize="10px" fontWeight="700" color="gray.700">{selectedChannel.label}</Text>
-              <Text fontSize="9px" color="gray.400" fontFamily="monospace">{selectedColor}</Text>
+              <Text fontSize="10px" fontWeight="700" color="gray.700">
+                {selectedChannel.label}
+              </Text>
+              <Text fontSize="9px" color="gray.400" fontFamily="monospace">
+                {selectedColor}
+              </Text>
             </VStack>
             {selectedIsModified && (
               <Box
-                as="button" px={1.5} py={0.5} borderRadius="sm"
-                fontSize="9px" fontWeight="600" color="orange.600"
-                bg="orange.50" border="1px solid" borderColor="orange.200" cursor="pointer"
+                as="button"
+                px={1.5}
+                py={0.5}
+                borderRadius="sm"
+                fontSize="9px"
+                fontWeight="600"
+                color="orange.600"
+                bg="orange.50"
+                border="1px solid"
+                borderColor="orange.200"
+                cursor="pointer"
                 _hover={{ bg: "orange.100" }}
                 onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
                   updateOverride(
-                    { [selectedChannel.variable]: getEffectiveValue(selectedChannel.variable, selectedChannel.token, "#6366f1") },
+                    {
+                      [selectedChannel.variable]: getEffectiveValue(
+                        selectedChannel.variable,
+                        selectedChannel.token,
+                        "#6366f1",
+                      ),
+                    },
                     `Reset ${selectedChannel.label}`,
                   );
                 }}
               >
-                 Reset
+                Reset
               </Box>
             )}
           </HStack>
           <StudioColorPicker
-            variant="compact" label={selectedChannel.label} color={selectedColor}
-            onChange={(c) => updateOverride({ [selectedChannel.variable]: c }, `Changed ${selectedChannel.label}`)}
+            variant="compact"
+            label={selectedChannel.label}
+            color={selectedColor}
+            onChange={(c) =>
+              updateOverride(
+                { [selectedChannel.variable]: c },
+                `Changed ${selectedChannel.label}`,
+              )
+            }
           />
         </Box>
       )}
@@ -615,19 +684,21 @@ export const ColorsTuning = React.memo(
           storageKey="colors-harmony"
           defaultOpen={true}
         >
-          <HarmonyLabSection
-            primaryColor={getEffectiveValue(
-              "--brand-primary",
-              "brand.primary",
-              "#4A6DA7",
-            )}
-            onApply={(secondary, accent) =>
-              updateOverride(
-                { "--brand-secondary": secondary, "--brand-accent": accent },
-                `Harmony palette applied`,
-              )
-            }
-          />
+          <Box px={3} py={2}>
+            <HarmonyLabSection
+              primaryColor={getEffectiveValue(
+                "--brand-primary",
+                "brand.primary",
+                "#4A6DA7",
+              )}
+              onApply={(secondary, accent) =>
+                updateOverride(
+                  { "--brand-secondary": secondary, "--brand-accent": accent },
+                  `Harmony palette applied`,
+                )
+              }
+            />
+          </Box>
         </CollapsibleSection>
       </>
     );

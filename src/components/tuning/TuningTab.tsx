@@ -363,7 +363,6 @@ export const TuningTab = ({
         <Box p={3}>
           <SaveToProjectButton
             overrides={overrides}
-            manifest={{ projects: [] } as any}
             projectPath={projectPath}
             onSaveSuccess={onTokensRefresh}
           />

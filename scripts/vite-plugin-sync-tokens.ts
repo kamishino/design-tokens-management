@@ -230,6 +230,8 @@ export function syncTokensPlugin(): Plugin {
                   value: string | number;
                   tokenPath: string;
                   file: string;
+                  /** W3C DTCG $type — used when creating new nodes */
+                  type?: string;
                 }>;
               };
 
@@ -247,14 +249,22 @@ export function syncTokensPlugin(): Plugin {
               // Group entries by target file to minimise file reads
               const byFile = new Map<
                 string,
-                Array<{ tokenPath: string; value: string | number }>
+                Array<{
+                  tokenPath: string;
+                  value: string | number;
+                  type?: string;
+                }>
               >();
               for (const entry of entries) {
                 if (!entry.file || !entry.tokenPath) continue;
                 if (!byFile.has(entry.file)) byFile.set(entry.file, []);
                 byFile
                   .get(entry.file)!
-                  .push({ tokenPath: entry.tokenPath, value: entry.value });
+                  .push({
+                    tokenPath: entry.tokenPath,
+                    value: entry.value,
+                    type: entry.type,
+                  });
               }
 
               const results: Array<{ file: string; saved: number }> = [];
@@ -282,7 +292,7 @@ export function syncTokensPlugin(): Plugin {
                 }
 
                 // For each write, navigate the dot-path and set $value
-                for (const { tokenPath, value } of writes) {
+                for (const { tokenPath, value, type } of writes) {
                   const keys = tokenPath.split(".");
                   let node = currentJson as Record<string, unknown>;
                   for (let i = 0; i < keys.length - 1; i++) {
@@ -291,7 +301,7 @@ export function syncTokensPlugin(): Plugin {
                     node = node[k] as Record<string, unknown>;
                   }
                   const leafKey = keys[keys.length - 1];
-                  // If the leaf already has a $type-bearing object, preserve it
+                  // If the leaf already has a $type-bearing object, only update $value
                   const existing = node[leafKey] as
                     | Record<string, unknown>
                     | undefined;
@@ -302,7 +312,8 @@ export function syncTokensPlugin(): Plugin {
                   ) {
                     (existing as Record<string, unknown>)["$value"] = value;
                   } else {
-                    node[leafKey] = { $value: value, $type: "color" };
+                    // Create a new token node with the correct $type
+                    node[leafKey] = { $value: value, $type: type ?? "color" };
                   }
                 }
 

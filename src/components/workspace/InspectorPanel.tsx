@@ -133,7 +133,7 @@ export const InspectorPanel = ({
         )}
         {activeTab === "tuning" && (
           <TuningTab
-            overrides={overrides}
+            overrides={overrides as Record<string, string | number>}
             updateOverride={updateOverride}
             globalTokens={globalTokens}
             projectPath={projectPath}

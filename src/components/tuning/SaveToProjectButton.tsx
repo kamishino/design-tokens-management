@@ -1,7 +1,6 @@
 import { useState, useCallback } from "react";
 import { Box, HStack, VStack, Text } from "@chakra-ui/react";
 import { LuSave, LuCheck, LuX, LuChevronDown } from "react-icons/lu";
-import type { Manifest } from "../../schemas/manifest";
 import { resolveMapping } from "../../utils/varToTokenKey";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -15,7 +14,6 @@ type SaveStatus = "idle" | "confirm" | "saving" | "success" | "error";
 
 interface SaveToProjectButtonProps {
   overrides: Record<string, string | number>;
-  manifest: Manifest;
   /** Currently active project file path (e.g. /tokens/clients/brand-a/theme.json) */
   projectPath: string;
   onSaveSuccess: () => void;
@@ -33,6 +31,7 @@ function buildEntries(
     value: string | number;
     tokenPath: string;
     file: string;
+    type: string;
   }> = [];
 
   for (const [cssVar, value] of Object.entries(overrides)) {
@@ -43,6 +42,7 @@ function buildEntries(
       value,
       tokenPath: mapping.tokenPath,
       file: mapping.file,
+      type: mapping.type,
     });
   }
   return entries;
@@ -56,6 +56,7 @@ export const SaveToProjectButton = ({
   onSaveSuccess,
 }: SaveToProjectButtonProps) => {
   const [status, setStatus] = useState<SaveStatus>("idle");
+  const [isSaving, setIsSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [results, setResults] = useState<SaveResult[]>([]);
   const [showDetails, setShowDetails] = useState(false);
@@ -67,7 +68,7 @@ export const SaveToProjectButton = ({
 
   const handleConfirm = useCallback(async () => {
     if (entries.length === 0) return;
-    setStatus("saving");
+    setIsSaving(true);
     try {
       const response = await fetch("/api/save-tuning", {
         method: "POST",
@@ -92,6 +93,8 @@ export const SaveToProjectButton = ({
       setErrorMsg(err instanceof Error ? err.message : "Unknown error");
       setStatus("error");
       setTimeout(() => setStatus("idle"), 4000);
+    } finally {
+      setIsSaving(false);
     }
   }, [entries, onSaveSuccess]);
 
@@ -248,7 +251,7 @@ export const SaveToProjectButton = ({
             transition="all 0.1s"
             onClick={handleConfirm}
           >
-            {status === "saving" ? "Saving…" : "Confirm Save"}
+            {isSaving ? "Saving…" : "Confirm Save"}
           </Box>
           <Box
             as="button"
