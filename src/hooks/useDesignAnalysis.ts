@@ -71,6 +71,11 @@ interface UseDesignAnalysisOptions {
     tokenKey: string,
     fallback: string,
   ) => string;
+  /**
+   * Opaque key that triggers a re-analysis when it changes.
+   * Pass projectPath so switching projects immediately re-runs rules.
+   */
+  refreshKey?: unknown;
   /** Delay in ms before re-running analysis after changes (default 300) */
   debounceMs?: number;
 }
@@ -78,11 +83,13 @@ interface UseDesignAnalysisOptions {
 export function useDesignAnalysis({
   overrides,
   getEffectiveValue,
+  refreshKey,
   debounceMs = 300,
 }: UseDesignAnalysisOptions): DesignAnalysisResult {
-  const [result, setResult] = useState<DesignAnalysisResult>(() =>
-    compute(buildContext(overrides, getEffectiveValue)),
-  );
+  // Start with an empty/clean result — never run synchronously during render
+  // because getEffectiveValue may depend on a token map that is not yet loaded.
+  // The debounce effect below will fire the real analysis immediately after mount.
+  const [result, setResult] = useState<DesignAnalysisResult>(emptyResult);
 
   // Keep a ref to the latest getEffectiveValue to avoid stale closures
   const getEffRef = useRef(getEffectiveValue);
@@ -94,10 +101,14 @@ export function useDesignAnalysis({
     getEffRef.current = getEffectiveValue;
   });
 
+  // runAnalysis is memoized on overrides + refreshKey.
+  // refreshKey changes whenever the project switches (pass projectPath from parent),
+  // which causes this callback to get a new identity → triggers the debounce effect.
   const runAnalysis = useCallback(() => {
     const ctx = buildContext(overrides, getEffRef.current);
     setResult(compute(ctx));
-  }, [overrides]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [overrides, refreshKey]);
 
   useEffect(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -109,6 +120,19 @@ export function useDesignAnalysis({
 
   return result;
 }
+
+// ─── Empty / loading placeholder ─────────────────────────────────────────────
+
+const emptyResult: DesignAnalysisResult = {
+  suggestions: [],
+  score: 100,
+  scoreLabel: "Loading…",
+  scoreColor: "gray",
+  violationsByVar: new Map(),
+  criticalCount: 0,
+  warningCount: 0,
+  infoCount: 0,
+};
 
 // ─── Internal helpers ─────────────────────────────────────────────────────────
 

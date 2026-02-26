@@ -111,7 +111,11 @@ export const TuningTab = ({
     [getEffectiveValue, handleUpdateOverride],
   );
 
-  const analysis = useDesignAnalysis({ overrides, getEffectiveValue });
+  const analysis = useDesignAnalysis({
+    overrides,
+    getEffectiveValue,
+    refreshKey: projectPath,
+  });
 
   return (
     <VStack align="stretch" gap={0} h="full" overflow="hidden">
