@@ -142,6 +142,7 @@ export const InspectorPanel = ({
             redo={redo}
             canUndo={canUndo}
             canRedo={canRedo}
+            onTokensRefresh={refreshTokens ?? (() => {})}
           />
         )}
         {activeTab === "changes" && (

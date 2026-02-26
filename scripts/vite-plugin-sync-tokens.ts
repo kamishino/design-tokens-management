@@ -205,6 +205,130 @@ export function syncTokensPlugin(): Plugin {
               );
             }
           });
+        } else if (req.url === "/api/save-tuning" && req.method === "POST") {
+          // ── Route: Save Tuning Overrides ──────────────────────────────────
+          let body = "";
+          req.on("data", (chunk) => {
+            body += chunk.toString();
+          });
+          req.on("end", async () => {
+            try {
+              /**
+               * Expected body shape:
+               * {
+               *   entries: Array<{
+               *     cssVar:      string;   // "--brand-primary"
+               *     value:       string | number;
+               *     tokenPath:   string;   // "brand.primary"
+               *     file:        string;   // "/tokens/global/alias/colors.json"
+               *   }>;
+               * }
+               */
+              const { entries } = JSON.parse(body) as {
+                entries: Array<{
+                  cssVar: string;
+                  value: string | number;
+                  tokenPath: string;
+                  file: string;
+                }>;
+              };
+
+              if (!Array.isArray(entries) || entries.length === 0) {
+                res.statusCode = 400;
+                res.setHeader("Content-Type", "application/json");
+                return res.end(
+                  JSON.stringify({
+                    error: "entries must be a non-empty array",
+                    code: "BAD_ENTRIES",
+                  }),
+                );
+              }
+
+              // Group entries by target file to minimise file reads
+              const byFile = new Map<
+                string,
+                Array<{ tokenPath: string; value: string | number }>
+              >();
+              for (const entry of entries) {
+                if (!entry.file || !entry.tokenPath) continue;
+                if (!byFile.has(entry.file)) byFile.set(entry.file, []);
+                byFile
+                  .get(entry.file)!
+                  .push({ tokenPath: entry.tokenPath, value: entry.value });
+              }
+
+              const results: Array<{ file: string; saved: number }> = [];
+
+              for (const [fileUrlPath, writes] of byFile.entries()) {
+                const absoluteFilePath = resolveTokenPath(fileUrlPath);
+                if (!absoluteFilePath) {
+                  console.warn(
+                    `⚠️  [TUNING] Skipping unsafe path: ${fileUrlPath}`,
+                  );
+                  continue;
+                }
+
+                // Read existing JSON (or start fresh)
+                let currentJson: Record<string, unknown> = {};
+                if (fs.existsSync(absoluteFilePath)) {
+                  currentJson = JSON.parse(
+                    fs.readFileSync(absoluteFilePath, "utf8"),
+                  );
+                } else {
+                  // Ensure parent directory exists
+                  const dir = path.dirname(absoluteFilePath);
+                  if (!fs.existsSync(dir))
+                    fs.mkdirSync(dir, { recursive: true });
+                }
+
+                // For each write, navigate the dot-path and set $value
+                for (const { tokenPath, value } of writes) {
+                  const keys = tokenPath.split(".");
+                  let node = currentJson as Record<string, unknown>;
+                  for (let i = 0; i < keys.length - 1; i++) {
+                    const k = keys[i];
+                    if (!node[k] || typeof node[k] !== "object") node[k] = {};
+                    node = node[k] as Record<string, unknown>;
+                  }
+                  const leafKey = keys[keys.length - 1];
+                  // If the leaf already has a $type-bearing object, preserve it
+                  const existing = node[leafKey] as
+                    | Record<string, unknown>
+                    | undefined;
+                  if (
+                    existing &&
+                    typeof existing === "object" &&
+                    "$type" in existing
+                  ) {
+                    (existing as Record<string, unknown>)["$value"] = value;
+                  } else {
+                    node[leafKey] = { $value: value, $type: "color" };
+                  }
+                }
+
+                fs.writeFileSync(
+                  absoluteFilePath,
+                  JSON.stringify(currentJson, null, 2),
+                );
+                console.log(
+                  `💾 [TUNING] Saved ${writes.length} token(s) → ${absoluteFilePath}`,
+                );
+                results.push({ file: fileUrlPath, saved: writes.length });
+              }
+
+              res.setHeader("Content-Type", "application/json");
+              res.end(JSON.stringify({ success: true, results }));
+            } catch (error: unknown) {
+              const message =
+                error instanceof Error ? error.message : "Unknown error";
+              console.error("❌ [TUNING] Save error:", message);
+              res.statusCode = 500;
+              res.setHeader("Content-Type", "application/json");
+              res.end(
+                JSON.stringify({ error: message, code: "INTERNAL_ERROR" }),
+              );
+            }
+          });
 
           // ── Route: Figma Export ─────────────────────────────────────────────
         } else if (req.url === "/api/export-figma" && req.method === "GET") {

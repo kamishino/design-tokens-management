@@ -2,7 +2,6 @@ import { Box, VStack, HStack, Text } from "@chakra-ui/react";
 import { useCallback, useMemo, useState, useTransition } from "react";
 import { LuUndo2, LuRedo2, LuZoomIn } from "react-icons/lu";
 
-import type { TokenOverrides } from "../../schemas/manifest";
 import type { TokenDoc } from "../../utils/token-parser";
 import { getPrioritizedTokenMap } from "../../utils/token-graph";
 
@@ -13,9 +12,10 @@ import { SmartTipsPanel } from "../workspace/SmartTipsPanel";
 import { prependFont } from "../../utils/fonts";
 import { type AnalysisContext } from "../../utils/design-rules";
 import { Button } from "../ui/button";
+import { SaveToProjectButton } from "./SaveToProjectButton";
 
 interface TuningTabProps {
-  overrides: Record<string, string | number | any>;
+  overrides: Record<string, string | number>;
   updateOverride: (
     newValues: Record<string, string | number>,
     label?: string,
@@ -27,6 +27,8 @@ interface TuningTabProps {
   redo: () => void;
   canUndo: boolean;
   canRedo: boolean;
+  /** Needed by SaveToProjectButton */
+  onTokensRefresh: () => void;
 }
 
 export const TuningTab = ({
@@ -39,6 +41,7 @@ export const TuningTab = ({
   redo,
   canUndo,
   canRedo,
+  onTokensRefresh,
 }: TuningTabProps) => {
   const [isPending, startTransition] = useTransition();
 
@@ -358,7 +361,13 @@ export const TuningTab = ({
 
       {hasOverrides && (
         <Box p={3}>
-          <HStack gap={2} mb={2}>
+          <SaveToProjectButton
+            overrides={overrides}
+            manifest={{ projects: [] } as any}
+            projectPath={projectPath}
+            onSaveSuccess={onTokensRefresh}
+          />
+          <HStack gap={2} mb={2} mt={2}>
             <Button
               size="xs"
               variant="ghost"
