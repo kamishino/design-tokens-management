@@ -62,6 +62,11 @@ Before marking a task complete, agents must do all of the following:
   - commit hash
   - remaining open items
 
+Automation commands:
+- `npm run task:verify` checks tracker + optional KamiFlow artifacts.
+- `npm run task:close` runs test, build, then verification.
+- Optional: `npm run task:verify -- --task=<ID>` enforces S1-S4 artifacts for a task ID.
+
 ## Commit Convention
 
 Preferred format:
