@@ -55,6 +55,17 @@ interface WorkspacePreset {
   sidebarVisible: boolean;
   inspectorVisible: boolean;
   explorerCollapsed: boolean;
+  sidebarRatio: number;
+  inspectorRatio: number;
+  sidebarPriority: "primary" | "secondary";
+  inspectorPriority: "primary" | "secondary";
+}
+
+interface ResolvedWorkspacePreset {
+  id: WorkspacePresetId;
+  sidebarVisible: boolean;
+  inspectorVisible: boolean;
+  explorerCollapsed: boolean;
   sidebarWidth: number;
   inspectorWidth: number;
 }
@@ -69,8 +80,10 @@ const WORKSPACE_PRESETS: WorkspacePreset[] = [
     sidebarVisible: true,
     inspectorVisible: true,
     explorerCollapsed: false,
-    sidebarWidth: 300,
-    inspectorWidth: 320,
+    sidebarRatio: 0.24,
+    inspectorRatio: 0.25,
+    sidebarPriority: "primary",
+    inspectorPriority: "secondary",
   },
   {
     id: "focus-canvas",
@@ -79,8 +92,10 @@ const WORKSPACE_PRESETS: WorkspacePreset[] = [
     sidebarVisible: false,
     inspectorVisible: true,
     explorerCollapsed: false,
-    sidebarWidth: 280,
-    inspectorWidth: 280,
+    sidebarRatio: 0.2,
+    inspectorRatio: 0.24,
+    sidebarPriority: "secondary",
+    inspectorPriority: "primary",
   },
   {
     id: "inspect-deep-dive",
@@ -89,8 +104,10 @@ const WORKSPACE_PRESETS: WorkspacePreset[] = [
     sidebarVisible: true,
     inspectorVisible: true,
     explorerCollapsed: true,
-    sidebarWidth: 260,
-    inspectorWidth: 420,
+    sidebarRatio: 0.2,
+    inspectorRatio: 0.33,
+    sidebarPriority: "secondary",
+    inspectorPriority: "primary",
   },
   {
     id: "minimal",
@@ -99,12 +116,19 @@ const WORKSPACE_PRESETS: WorkspacePreset[] = [
     sidebarVisible: true,
     inspectorVisible: false,
     explorerCollapsed: false,
-    sidebarWidth: 260,
-    inspectorWidth: 300,
+    sidebarRatio: 0.22,
+    inspectorRatio: 0.22,
+    sidebarPriority: "primary",
+    inspectorPriority: "secondary",
   },
 ];
 
 const DEFAULT_WORKSPACE_PRESET_ID: WorkspacePresetId = "balanced";
+const SIDEBAR_ACTIVITY_WIDTH = 36;
+const MIN_PANE_WIDTH = 240;
+const MIN_CENTER_WIDTH = 420;
+const MAX_SIDEBAR_WIDTH = 480;
+const MAX_INSPECTOR_WIDTH = 800;
 
 function isWorkspacePresetId(value: string): value is WorkspacePresetId {
   return WORKSPACE_PRESETS.some((preset) => preset.id === value);
@@ -130,6 +154,102 @@ function getWorkspacePresetById(presetId: WorkspacePresetId): WorkspacePreset {
     WORKSPACE_PRESETS.find((preset) => preset.id === presetId) ||
     WORKSPACE_PRESETS[0]
   );
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function getViewportWidth() {
+  if (typeof window === "undefined") return 1440;
+  return window.innerWidth;
+}
+
+function resolvePresetForViewport(preset: WorkspacePreset): ResolvedWorkspacePreset {
+  const viewportWidth = getViewportWidth();
+
+  let sidebarVisible = preset.sidebarVisible;
+  let inspectorVisible = preset.inspectorVisible;
+  const explorerCollapsed = preset.explorerCollapsed;
+
+  const maxSidebarByViewport = Math.max(
+    MIN_PANE_WIDTH,
+    Math.floor(viewportWidth * 0.34),
+  );
+  const maxInspectorByViewport = Math.max(
+    MIN_PANE_WIDTH,
+    Math.floor(viewportWidth * 0.42),
+  );
+
+  let sidebarWidth = clamp(
+    Math.round(viewportWidth * preset.sidebarRatio),
+    MIN_PANE_WIDTH,
+    Math.min(MAX_SIDEBAR_WIDTH, maxSidebarByViewport),
+  );
+  let inspectorWidth = clamp(
+    Math.round(viewportWidth * preset.inspectorRatio),
+    MIN_PANE_WIDTH,
+    Math.min(MAX_INSPECTOR_WIDTH, maxInspectorByViewport),
+  );
+
+  const availableAuxWidth = Math.max(
+    0,
+    viewportWidth - MIN_CENTER_WIDTH - SIDEBAR_ACTIVITY_WIDTH,
+  );
+
+  if (sidebarVisible && inspectorVisible) {
+    if (availableAuxWidth < MIN_PANE_WIDTH * 2) {
+      if (preset.sidebarPriority === "primary") {
+        inspectorVisible = false;
+      } else {
+        sidebarVisible = false;
+      }
+    } else {
+      const combined = sidebarWidth + inspectorWidth;
+      if (combined > availableAuxWidth) {
+        const scale = availableAuxWidth / combined;
+        sidebarWidth = Math.max(MIN_PANE_WIDTH, Math.floor(sidebarWidth * scale));
+        inspectorWidth = Math.max(
+          MIN_PANE_WIDTH,
+          Math.floor(inspectorWidth * scale),
+        );
+
+        if (sidebarWidth + inspectorWidth > availableAuxWidth) {
+          const overflow = sidebarWidth + inspectorWidth - availableAuxWidth;
+          if (preset.inspectorPriority === "primary") {
+            sidebarWidth = Math.max(MIN_PANE_WIDTH, sidebarWidth - overflow);
+          } else {
+            inspectorWidth = Math.max(MIN_PANE_WIDTH, inspectorWidth - overflow);
+          }
+        }
+      }
+    }
+  }
+
+  if (sidebarVisible && !inspectorVisible) {
+    sidebarWidth = clamp(
+      sidebarWidth,
+      MIN_PANE_WIDTH,
+      Math.min(MAX_SIDEBAR_WIDTH, availableAuxWidth),
+    );
+  }
+
+  if (!sidebarVisible && inspectorVisible) {
+    inspectorWidth = clamp(
+      inspectorWidth,
+      MIN_PANE_WIDTH,
+      Math.min(MAX_INSPECTOR_WIDTH, availableAuxWidth),
+    );
+  }
+
+  return {
+    id: preset.id,
+    sidebarVisible,
+    inspectorVisible,
+    explorerCollapsed,
+    sidebarWidth,
+    inspectorWidth,
+  };
 }
 
 interface WorkspaceLayoutProps {
@@ -165,7 +285,9 @@ export const WorkspaceLayout = ({
   canRedo,
 }: WorkspaceLayoutProps) => {
   const initialPresetId = getStoredWorkspacePresetId();
-  const initialPreset = getWorkspacePresetById(initialPresetId);
+  const initialPreset = resolvePresetForViewport(
+    getWorkspacePresetById(initialPresetId),
+  );
 
   const { globalTokens, refresh } = useGlobalTokens();
   const [searchTerm, setSearchTerm] = useState("");
@@ -184,7 +306,7 @@ export const WorkspaceLayout = ({
   const [sidebarWidth, setSidebarWidth] = useState(() => {
     const saved = localStorage.getItem("ide_sidebar_width");
     const parsed = saved ? Number(saved) : Number.NaN;
-    if (Number.isFinite(parsed) && parsed > 0) {
+    if (Number.isFinite(parsed) && parsed >= MIN_PANE_WIDTH) {
       return parsed;
     }
     return initialPreset.sidebarWidth;
@@ -192,7 +314,7 @@ export const WorkspaceLayout = ({
   const [inspectorWidth, setInspectorWidth] = useState(() => {
     const saved = localStorage.getItem("ide_inspector_width");
     const parsed = saved ? Number(saved) : Number.NaN;
-    if (Number.isFinite(parsed) && parsed > 0) {
+    if (Number.isFinite(parsed) && parsed >= MIN_PANE_WIDTH) {
       return parsed;
     }
     return initialPreset.inspectorWidth;
@@ -349,7 +471,7 @@ export const WorkspaceLayout = ({
   }, []);
 
   const applyWorkspacePreset = useCallback((presetId: WorkspacePresetId) => {
-    const preset = getWorkspacePresetById(presetId);
+    const preset = resolvePresetForViewport(getWorkspacePresetById(presetId));
 
     setWorkspacePreset(preset.id);
     setSidebarVisible(preset.sidebarVisible);
@@ -358,9 +480,11 @@ export const WorkspaceLayout = ({
     setSidebarWidth(preset.sidebarWidth);
     setInspectorWidth(preset.inspectorWidth);
 
-    localStorage.setItem(WORKSPACE_PRESET_STORAGE_KEY, preset.id);
-    localStorage.setItem("ide_sidebar_width", String(preset.sidebarWidth));
-    localStorage.setItem("ide_inspector_width", String(preset.inspectorWidth));
+    if (typeof window !== "undefined") {
+      localStorage.setItem(WORKSPACE_PRESET_STORAGE_KEY, preset.id);
+      localStorage.setItem("ide_sidebar_width", String(preset.sidebarWidth));
+      localStorage.setItem("ide_inspector_width", String(preset.inspectorWidth));
+    }
   }, []);
 
   /** Q2: 'Edit Tokens' from FileActionMenu — filter token tree to show only that file */
@@ -526,7 +650,9 @@ export const WorkspaceLayout = ({
             side="left"
             onResize={(d) => {
               setIsResizingLeft(true);
-              setSidebarWidth((w) => Math.max(240, Math.min(480, w + d)));
+              setSidebarWidth((w: number) =>
+                Math.max(MIN_PANE_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, w + d)),
+              );
             }}
             onResizeEnd={() => {
               setIsResizingLeft(false);
@@ -561,7 +687,9 @@ export const WorkspaceLayout = ({
             side="right"
             onResize={(d) => {
               setIsResizingRight(true);
-              setInspectorWidth((w) => Math.max(240, Math.min(800, w + d)));
+              setInspectorWidth((w: number) =>
+                Math.max(MIN_PANE_WIDTH, Math.min(MAX_INSPECTOR_WIDTH, w + d)),
+              );
             }}
             onResizeEnd={() => {
               setIsResizingRight(false);
