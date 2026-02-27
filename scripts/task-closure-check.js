@@ -18,10 +18,24 @@ function ok(message) {
   console.log(`✓ ${message}`);
 }
 
+function warn(message) {
+  console.warn(`! ${message}`);
+}
+
 function getTaskIdArg() {
   const taskFlag = process.argv.find((arg) => arg.startsWith("--task="));
   if (!taskFlag) return "";
   return taskFlag.split("=")[1]?.trim() ?? "";
+}
+
+function hasFlag(flag) {
+  return process.argv.includes(flag);
+}
+
+function isStrictMode(taskId) {
+  if (hasFlag("--no-strict")) return false;
+  if (hasFlag("--strict")) return true;
+  return Boolean(taskId);
 }
 
 function validateTodoFile() {
@@ -83,6 +97,7 @@ function parseAgentConfig() {
 
   ok("agent config guardRails/workflows are valid");
   return {
+    guardRails,
     guardRailStems: guardRails.map((name) => name.replace(/\.md$/i, "")),
   };
 }
@@ -108,7 +123,145 @@ function findTaskArtifactFile(files, phasePrefix) {
   return matches[matches.length - 1];
 }
 
-function validateTaskArtifacts(taskId, guardRailStems) {
+function assertSection(content, checks, sectionLabel, artifactName) {
+  const passed = checks.some((check) => check.test(content));
+  if (!passed) {
+    fail(`Missing required section in ${artifactName}: ${sectionLabel}`);
+  }
+}
+
+function validateRulesApplied(content, artifactName, guardRailStems, strictMode) {
+  if (!content.includes("## Rules Applied")) {
+    if (strictMode) {
+      fail(
+        `Task artifact missing required section '## Rules Applied': ${artifactName}`,
+      );
+    }
+    warn(
+      `Task artifact missing '## Rules Applied' in compat mode: ${artifactName}`,
+    );
+    return;
+  }
+
+  if (!strictMode) return;
+
+  const lowered = content.toLowerCase();
+  for (const stem of guardRailStems) {
+    if (!lowered.includes(stem.toLowerCase())) {
+      fail(
+        `Task artifact ${artifactName} must reference guardRail: ${stem}`,
+      );
+    }
+  }
+}
+
+function validateS1(content, artifactName) {
+  assertSection(content, [/^##\s*(Goal|Objective)\b/im], "S1 objective", artifactName);
+  assertSection(content, [/^##\s*Constraints\b/im], "S1 constraints", artifactName);
+  assertSection(content, [/^##\s*Risks?\b/im], "S1 risks", artifactName);
+  assertSection(
+    content,
+    [/^##\s*(Scope|MVP Scope)\b/im],
+    "S1 scope",
+    artifactName,
+  );
+  assertSection(
+    content,
+    [/^##\s*Success Criteria\b/im, /^##\s*Acceptance Criteria\b/im],
+    "S1 success criteria",
+    artifactName,
+  );
+}
+
+function validateS2(content, artifactName) {
+  assertSection(
+    content,
+    [/^##\s*(Implementation Plan|Technical Blueprint)\b/im],
+    "S2 implementation plan",
+    artifactName,
+  );
+  assertSection(
+    content,
+    [/^##\s*Files( Touched| Changed)?\b/im],
+    "S2 files touched",
+    artifactName,
+  );
+  assertSection(
+    content,
+    [/^##\s*Test Plan\b/im, /^##\s*Validation Plan\b/im],
+    "S2 test plan",
+    artifactName,
+  );
+  assertSection(content, [/^##\s*Rollback Plan\b/im], "S2 rollback plan", artifactName);
+}
+
+function validateS3(content, artifactName) {
+  assertSection(
+    content,
+    [/^##\s*(Task Breakdown|Implementation Steps|Changes Implemented)\b/im],
+    "S3 task breakdown",
+    artifactName,
+  );
+  assertSection(
+    content,
+    [/^##\s*(Validation|Validation Evidence|Validation Results)\b/im],
+    "S3 validation evidence",
+    artifactName,
+  );
+}
+
+function validateS4(content, artifactName) {
+  assertSection(
+    content,
+    [/^##\s*(Delivered|What Shipped|Shipped)\b/im],
+    "S4 delivered",
+    artifactName,
+  );
+  assertSection(
+    content,
+    [/^##\s*Files( Changed| Touched)?\b/im],
+    "S4 files changed",
+    artifactName,
+  );
+  assertSection(
+    content,
+    [/^##\s*(Validation|Validation Evidence|Tests\/Build Results)\b/im],
+    "S4 validation evidence",
+    artifactName,
+  );
+  assertSection(
+    content,
+    [/^##\s*Commit Hash\b/im, /Commit:\s*`?[0-9a-f]{7,40}`?/im],
+    "S4 commit hash",
+    artifactName,
+  );
+  assertSection(
+    content,
+    [/^##\s*Remaining Open Items\b/im, /^##\s*Residual Risk\b/im],
+    "S4 remaining open items or residual risk",
+    artifactName,
+  );
+}
+
+function validateStrictStructure(content, phase, artifactName) {
+  if (phase === "S1") {
+    validateS1(content, artifactName);
+    return;
+  }
+  if (phase === "S2") {
+    validateS2(content, artifactName);
+    return;
+  }
+  if (phase === "S3") {
+    validateS3(content, artifactName);
+    return;
+  }
+  if (phase === "S4") {
+    validateS4(content, artifactName);
+  }
+}
+
+function validateTaskArtifacts(taskId, guardRailStems, strictMode) {
   if (!taskId) {
     ok("task artifact check skipped (no --task=ID provided)");
     return;
@@ -119,52 +272,62 @@ function validateTaskArtifacts(taskId, guardRailStems) {
   }
 
   const files = fs.readdirSync(tasksDir);
-  const phasePrefixes = [
-    `${taskId}-S1-IDEA-`,
-    `${taskId}-S2-SPEC-`,
-    `${taskId}-S3-BUILD-`,
-    `${taskId}-S4-HANDOFF-`,
+  const phaseDescriptors = [
+    { phase: "S1", prefix: `${taskId}-S1-IDEA-` },
+    { phase: "S2", prefix: `${taskId}-S2-SPEC-` },
+    { phase: "S3", prefix: `${taskId}-S3-BUILD-` },
+    { phase: "S4", prefix: `${taskId}-S4-HANDOFF-` },
   ];
   const artifacts = [];
 
-  for (const phasePrefix of phasePrefixes) {
-    const artifactFile = findTaskArtifactFile(files, phasePrefix);
+  for (const descriptor of phaseDescriptors) {
+    const artifactFile = findTaskArtifactFile(files, descriptor.prefix);
     if (!artifactFile) {
-      fail(`Missing KamiFlow artifact for phase prefix: ${phasePrefix}`);
+      fail(`Missing KamiFlow artifact for phase prefix: ${descriptor.prefix}`);
     }
-    artifacts.push(path.join(tasksDir, artifactFile));
+    artifacts.push({
+      phase: descriptor.phase,
+      path: path.join(tasksDir, artifactFile),
+    });
   }
 
-  for (const artifactPath of artifacts) {
+  for (const artifact of artifacts) {
+    const artifactPath = artifact.path;
+    const artifactName = path.basename(artifactPath);
     const content = fs.readFileSync(artifactPath, "utf8");
-    if (!content.includes("## Rules Applied")) {
-      fail(
-        `Task artifact missing required section '## Rules Applied': ${path.basename(artifactPath)}`,
-      );
+
+    validateRulesApplied(content, artifactName, guardRailStems, strictMode);
+
+    if (strictMode) {
+      validateStrictStructure(content, artifact.phase, artifactName);
     }
   }
 
-  const combined = artifacts
-    .map((filePath) => fs.readFileSync(filePath, "utf8").toLowerCase())
-    .join("\n");
+  if (strictMode) {
+    const combined = artifacts
+      .map((artifact) => fs.readFileSync(artifact.path, "utf8").toLowerCase())
+      .join("\n");
 
-  for (const stem of guardRailStems) {
-    if (!combined.includes(stem.toLowerCase())) {
-      fail(
-        `Task artifacts for ${taskId} do not reference guardRail: ${stem}`,
-      );
+    for (const stem of guardRailStems) {
+      if (!combined.includes(stem.toLowerCase())) {
+        fail(
+          `Task artifacts for ${taskId} do not reference guardRail: ${stem}`,
+        );
+      }
     }
   }
 
-  ok(`kamiflow artifacts found for task ${taskId}`);
+  const strictLabel = strictMode ? "strict" : "compat";
+  ok(`kamiflow artifacts found for task ${taskId} (${strictLabel} mode)`);
 }
 
 function main() {
   const taskId = getTaskIdArg();
+  const strictMode = isStrictMode(taskId);
   validateTodoFile();
   const { guardRailStems } = parseAgentConfig();
   validateAgentsGuideMentionsRules();
-  validateTaskArtifacts(taskId, guardRailStems);
+  validateTaskArtifacts(taskId, guardRailStems, strictMode);
   ok("task closure checks passed");
 }
 

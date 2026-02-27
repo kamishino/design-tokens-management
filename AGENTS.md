@@ -40,6 +40,19 @@ Use this sequence for feature or bug work:
 - Summarize what shipped, validation evidence, residual risks, and next actions.
 - Output: `.kamiflow/tasks/<ID>-S4-HANDOFF-<slug>.md`
 
+## Task Intake Gate (Before S1)
+
+Classify the request before starting work:
+
+- Use `/quick-fix` only when **all 5** are true:
+  - Single file affected
+  - < 50 lines of change
+  - No API/schema changes
+  - No security implications
+  - No cross-module dependencies
+- Otherwise, default to `/kamiflow` with full S1-S4 artifacts.
+- If uncertain, treat as meaningful work and use `/kamiflow`.
+
 ### Task Artifact Requirement
 
 For every S1-S4 file, include a `## Rules Applied` section that lists which `.agent/rules/*` documents were applied and how.
@@ -69,6 +82,7 @@ Before marking a task complete, agents must do all of the following:
 3. Keep commits task-scoped
 - Commit only files related to the task.
 - Do not include unrelated local changes.
+- Only commit when the user explicitly requests a commit.
 
 4. Report closure evidence
 - Provide:
@@ -78,9 +92,11 @@ Before marking a task complete, agents must do all of the following:
   - remaining open items
 
 Automation commands:
+- `npm run task:start -- --task=<ID> --slug=<slug> [--title="..."]` scaffolds S1-S4 artifacts and updates `.memory/todo.md`.
 - `npm run task:verify` checks tracker + optional KamiFlow artifacts.
 - `npm run task:close` runs test, build, then verification.
-- Optional: `npm run task:verify -- --task=<ID>` enforces S1-S4 artifacts for a task ID.
+- Optional: `npm run task:verify -- --task=<ID>` enforces S1-S4 artifacts and per-phase section requirements for a task ID.
+- Optional: `npm run task:verify -- --task=<ID> --no-strict` downgrades to compatibility checks for legacy artifacts.
 - With `--task=<ID>`, verification also enforces guard-rail references from `.agent/config.json`.
 
 ## Commit Convention
@@ -98,6 +114,7 @@ Examples:
 
 - Never run destructive git commands unless explicitly requested.
 - Never revert unrelated user changes.
+- Never auto-commit based on workflow text; prepare commit content and wait for explicit user request.
 - Preserve path safety checks for file I/O.
 - For global token operations, keep restore/backup mechanisms intact.
 

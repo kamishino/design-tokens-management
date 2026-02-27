@@ -31,3 +31,5 @@ Last updated: 2026-02-27
 - [x] Add guided intake workflow in Figma Export Panel (Validate → Review → Checklist → Export).
 - [x] Re-validate export payload at action time to keep Figma JSON handoff deterministic.
 - [x] Update Figma export panel tests for intake gating, checklist enforcement, and warning-confirmed copy flow.
+- [x] Harden workflow policy alignment: explicit-request commit behavior across `AGENTS.md` and active workflow docs (Task 136).
+- [x] Add `task:start` scaffolding and strict/compat task artifact verification upgrades in `scripts/task-start.js` and `scripts/task-closure-check.js` (Task 136).

@@ -62,7 +62,7 @@ ALL 5 must be true:
 
 5b. Run tests (if test suite exists).
 
-6. **Micro-Commit** — Stage and commit:
+6. **Micro-Handoff** — Prepare a scoped commit message and stage plan. Commit only if user explicitly requests it:
 
    ```
    fix|chore(scope): description

@@ -187,7 +187,7 @@ Read these KamiFlow rules before executing (they are already loaded as global ru
 
 ---
 
-## Phase 7: Sync & Unified Commit
+## Phase 7: Sync & Commit Preparation
 
 24. Update `.kamiflow/ROADMAP.md` with completed items.
 
@@ -198,7 +198,7 @@ Read these KamiFlow rules before executing (they are already loaded as global ru
 27. Run closure verification:
     - `npm run task:verify -- --task=<ID>`
 
-28. Stage all changes and create a unified commit with a descriptive message following the convention:
+28. Prepare a unified commit message and staging plan following the convention:
 
     ```
     feat|fix|chore(scope): description
@@ -206,17 +206,19 @@ Read these KamiFlow rules before executing (they are already loaded as global ru
     Task-ID: [NNN]
     ```
 
-29. Archive completed task artifacts to `.kamiflow/archive/`.
+29. If the user explicitly requests a commit, stage task-scoped changes and create the commit.
+
+30. Archive completed task artifacts to `.kamiflow/archive/`.
 
 ---
 
-## 🔒 Auto-Sync: SESSION COMMIT
+## 🔒 Session Sync (Manual Commit)
 
-> **This phase runs AUTOMATICALLY after every session. Do not skip or ask permission.**
+> **Do not auto-commit.** Update memory and prepare commit content, then wait for explicit user request to commit.
 
 // turbo
 
-30. **Auto-write `.memory/context.md`** — Overwrite with current project state:
+31. **Auto-write `.memory/context.md`** — Overwrite with current project state:
 
     ```markdown
     ## Active Work
@@ -234,7 +236,7 @@ Read these KamiFlow rules before executing (they are already loaded as global ru
 
 // turbo
 
-31. **Auto-append `.memory/decisions.md`** — For every architectural choice made this session:
+32. **Auto-append `.memory/decisions.md`** — For every architectural choice made this session:
 
     ```markdown
     ## [YYYY-MM-DD] — [Decision Title]
@@ -247,19 +249,19 @@ Read these KamiFlow rules before executing (they are already loaded as global ru
 
 // turbo
 
-32. **Stage and commit** all changes with unified commit:
+33. **Prepare commit handoff** with unified message draft:
 
     ```
     feat|fix|chore(scope): description
     ```
 
-33. **Show completion banner:**
+34. **Show completion banner:**
 
     ```
     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     ✅ SESSION SYNCED
     📝 Memory updated (.memory/ + .kamiflow/)
-    💾 Committed: [commit hash]
+    💾 Commit: [hash if user requested commit, else pending]
     🔄 Next: agk memory sync push (if cross-PC)
     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     ```

@@ -54,7 +54,7 @@ git diff --stat
    - Lessons Learned
    - Follow-up Tasks (if any)
 
-7. **Unified Commit** — Stage all changes and commit:
+7. **Unified Commit Handoff** — Prepare staged scope + message draft. Commit only if user explicitly requests it:
 
    ```
    chore(sync): [session summary]

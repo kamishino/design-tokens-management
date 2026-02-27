@@ -1,6 +1,7 @@
 {
   "installedAt": "2026-02-23T04:53:58.575Z",
   "workflows": [
+    "kamiflow.md",
     "develop.md",
     "quick-fix.md",
     "review.md",

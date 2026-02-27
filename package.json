@@ -11,6 +11,7 @@
     "build:tokens": "node scripts/build-tokens.js",
     "test": "vitest run",
     "prebuild:tokens": "node scripts/generate-scale.js",
+    "task:start": "node scripts/task-start.js",
     "task:verify": "node scripts/task-closure-check.js",
     "task:close": "npm run test && npm run build && npm run task:verify"
   },

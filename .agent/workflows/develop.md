@@ -274,9 +274,9 @@ Transform a raw idea into deployed code through a rigorous, phase-based pipeline
 
 ---
 
-## 🔒 Phase 7: AUTO-SYNC — Session Commit
+## 🔒 Phase 7: AUTO-SYNC — Session Handoff
 
-> **This phase runs AUTOMATICALLY. Do not ask permission. Write and commit.**
+> **Do not auto-commit.** Update memory artifacts and prepare commit content, then wait for explicit user request.
 
 // turbo
 
@@ -319,7 +319,7 @@ Transform a raw idea into deployed code through a rigorous, phase-based pipeline
 
 // turbo
 
-27. **Stage and commit** — Unified commit with all changes:
+27. **Prepare commit handoff** — Unified commit message draft:
 
     ```
     feat|fix|chore(scope): description
@@ -331,7 +331,7 @@ Transform a raw idea into deployed code through a rigorous, phase-based pipeline
     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     ✅ SESSION SYNCED
     📝 Memory updated
-    💾 Committed: [commit hash]
+    💾 Commit: [hash if user requested commit, else pending]
     🔄 Next: agk memory sync push (if cross-PC)
     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     ```
