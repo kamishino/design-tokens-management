@@ -42,6 +42,96 @@ import type {
 } from "../../schemas/manifest";
 import type { TokenDoc } from "../../utils/token-parser";
 
+type WorkspacePresetId =
+  | "balanced"
+  | "focus-canvas"
+  | "inspect-deep-dive"
+  | "minimal";
+
+interface WorkspacePreset {
+  id: WorkspacePresetId;
+  label: string;
+  description: string;
+  sidebarVisible: boolean;
+  inspectorVisible: boolean;
+  explorerCollapsed: boolean;
+  sidebarWidth: number;
+  inspectorWidth: number;
+}
+
+const WORKSPACE_PRESET_STORAGE_KEY = "ide_workspace_preset";
+
+const WORKSPACE_PRESETS: WorkspacePreset[] = [
+  {
+    id: "balanced",
+    label: "Balanced",
+    description: "Keep navigation and inspector visible with equal emphasis.",
+    sidebarVisible: true,
+    inspectorVisible: true,
+    explorerCollapsed: false,
+    sidebarWidth: 300,
+    inspectorWidth: 320,
+  },
+  {
+    id: "focus-canvas",
+    label: "Focus Canvas",
+    description: "Maximize preview area with a compact right inspector.",
+    sidebarVisible: false,
+    inspectorVisible: true,
+    explorerCollapsed: false,
+    sidebarWidth: 280,
+    inspectorWidth: 280,
+  },
+  {
+    id: "inspect-deep-dive",
+    label: "Inspect Deep Dive",
+    description: "Widen inspector and collapse explorer for token diagnostics.",
+    sidebarVisible: true,
+    inspectorVisible: true,
+    explorerCollapsed: true,
+    sidebarWidth: 260,
+    inspectorWidth: 420,
+  },
+  {
+    id: "minimal",
+    label: "Minimal",
+    description: "Hide inspector and keep a slim sidebar for quick editing.",
+    sidebarVisible: true,
+    inspectorVisible: false,
+    explorerCollapsed: false,
+    sidebarWidth: 260,
+    inspectorWidth: 300,
+  },
+];
+
+const DEFAULT_WORKSPACE_PRESET_ID: WorkspacePresetId = "balanced";
+
+function isWorkspacePresetId(value: string): value is WorkspacePresetId {
+  return WORKSPACE_PRESETS.some((preset) => preset.id === value);
+}
+
+function getStoredWorkspacePresetId(): WorkspacePresetId {
+  if (typeof window === "undefined") {
+    return DEFAULT_WORKSPACE_PRESET_ID;
+  }
+
+  const saved = localStorage.getItem(WORKSPACE_PRESET_STORAGE_KEY);
+  if (!saved) {
+    return DEFAULT_WORKSPACE_PRESET_ID;
+  }
+
+  return isWorkspacePresetId(saved)
+    ? saved
+    : DEFAULT_WORKSPACE_PRESET_ID;
+}
+
+function getWorkspacePresetById(presetId: WorkspacePresetId): WorkspacePreset {
+  return (
+    WORKSPACE_PRESETS.find((preset) => preset.id === presetId) ||
+    WORKSPACE_PRESETS[0]
+  );
+}
+
 interface WorkspaceLayoutProps {
   manifest: Manifest;
   selectedProject: string;
@@ -74,21 +164,38 @@ export const WorkspaceLayout = ({
   canUndo,
   canRedo,
 }: WorkspaceLayoutProps) => {
+  const initialPresetId = getStoredWorkspacePresetId();
+  const initialPreset = getWorkspacePresetById(initialPresetId);
+
   const { globalTokens, refresh } = useGlobalTokens();
   const [searchTerm, setSearchTerm] = useState("");
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [sidebarVisible, setSidebarVisible] = useState(true);
-  const [inspectorVisible, setInspectorVisible] = useState(true);
-  const [explorerCollapsed, setExplorerCollapsed] = useState(false);
+  const [workspacePreset, setWorkspacePreset] =
+    useState<WorkspacePresetId>(initialPresetId);
+  const [sidebarVisible, setSidebarVisible] =
+    useState(initialPreset.sidebarVisible);
+  const [inspectorVisible, setInspectorVisible] =
+    useState(initialPreset.inspectorVisible);
+  const [explorerCollapsed, setExplorerCollapsed] = useState(
+    initialPreset.explorerCollapsed,
+  );
 
   // Resizable panel widths (K1)
   const [sidebarWidth, setSidebarWidth] = useState(() => {
     const saved = localStorage.getItem("ide_sidebar_width");
-    return saved ? Number(saved) : 280;
+    const parsed = saved ? Number(saved) : Number.NaN;
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed;
+    }
+    return initialPreset.sidebarWidth;
   });
   const [inspectorWidth, setInspectorWidth] = useState(() => {
     const saved = localStorage.getItem("ide_inspector_width");
-    return saved ? Number(saved) : 300;
+    const parsed = saved ? Number(saved) : Number.NaN;
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed;
+    }
+    return initialPreset.inspectorWidth;
   });
   const [isResizingLeft, setIsResizingLeft] = useState(false);
   const [isResizingRight, setIsResizingRight] = useState(false);
@@ -241,6 +348,21 @@ export const WorkspaceLayout = ({
     setIsExportModalOpen(true);
   }, []);
 
+  const applyWorkspacePreset = useCallback((presetId: WorkspacePresetId) => {
+    const preset = getWorkspacePresetById(presetId);
+
+    setWorkspacePreset(preset.id);
+    setSidebarVisible(preset.sidebarVisible);
+    setInspectorVisible(preset.inspectorVisible);
+    setExplorerCollapsed(preset.explorerCollapsed);
+    setSidebarWidth(preset.sidebarWidth);
+    setInspectorWidth(preset.inspectorWidth);
+
+    localStorage.setItem(WORKSPACE_PRESET_STORAGE_KEY, preset.id);
+    localStorage.setItem("ide_sidebar_width", String(preset.sidebarWidth));
+    localStorage.setItem("ide_inspector_width", String(preset.inspectorWidth));
+  }, []);
+
   /** Q2: 'Edit Tokens' from FileActionMenu — filter token tree to show only that file */
   const handleEditTokensByFile = useCallback(
     (filePath: string) => {
@@ -282,6 +404,17 @@ export const WorkspaceLayout = ({
         hasOverrides={hasOverrides}
         onOpenExport={handleExport}
         onOpenPalette={cmdPalette.open}
+        arrangePresets={WORKSPACE_PRESETS.map(({ id, label, description }) => ({
+          id,
+          label,
+          description,
+        }))}
+        activeArrangePreset={workspacePreset}
+        onApplyArrangePreset={(presetId: string) => {
+          if (isWorkspacePresetId(presetId)) {
+            applyWorkspacePreset(presetId);
+          }
+        }}
         sidebarVisible={sidebarVisible}
         inspectorVisible={inspectorVisible}
         onToggleSidebar={() => setSidebarVisible((v) => !v)}

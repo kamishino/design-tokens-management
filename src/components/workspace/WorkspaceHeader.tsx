@@ -2,10 +2,14 @@ import {
   Box,
   Text,
   HStack,
+  VStack,
   Heading,
   Badge,
   IconButton,
+  Popover,
+  Portal,
 } from "@chakra-ui/react";
+import { useState } from "react";
 import {
   LuDownload,
   LuCommand,
@@ -16,9 +20,17 @@ import {
   LuPanelRightClose,
   LuLayers,
   LuShieldCheck,
+  LuLayoutTemplate,
+  LuChevronDown,
 } from "react-icons/lu";
 import { Button } from "../ui/button";
 import type { Manifest } from "../../schemas/manifest";
+
+interface WorkspaceArrangePreset {
+  id: string;
+  label: string;
+  description: string;
+}
 
 interface WorkspaceHeaderProps {
   manifest: Manifest;
@@ -26,6 +38,9 @@ interface WorkspaceHeaderProps {
   hasOverrides: boolean;
   onOpenExport: () => void;
   onOpenPalette: () => void;
+  arrangePresets: WorkspaceArrangePreset[];
+  activeArrangePreset: string;
+  onApplyArrangePreset: (presetId: string) => void;
   sidebarVisible: boolean;
   inspectorVisible: boolean;
   onToggleSidebar: () => void;
@@ -39,12 +54,17 @@ export const WorkspaceHeader = ({
   hasOverrides,
   onOpenExport,
   onOpenPalette,
+  arrangePresets,
+  activeArrangePreset,
+  onApplyArrangePreset,
   sidebarVisible,
   inspectorVisible,
   onToggleSidebar,
   onToggleInspector,
   onOpenGlobalBackups,
 }: WorkspaceHeaderProps) => {
+  const [isArrangeOpen, setIsArrangeOpen] = useState(false);
+
   const selectedProjectEntry = selectedProject
     ? manifest.projects[selectedProject]
     : undefined;
@@ -67,6 +87,11 @@ export const WorkspaceHeader = ({
         }`
       : selectedProject
     : "All files";
+
+  const handleApplyPreset = (presetId: string) => {
+    onApplyArrangePreset(presetId);
+    setIsArrangeOpen(false);
+  };
 
   return (
     <HStack
@@ -174,6 +199,104 @@ export const WorkspaceHeader = ({
           <LuCommand size={12} />
           <Text fontSize="10px">K</Text>
         </Button>
+
+        <Popover.Root
+          open={isArrangeOpen}
+          onOpenChange={(details: { open: boolean }) =>
+            setIsArrangeOpen(details.open)
+          }
+          positioning={{ placement: "bottom-end", gutter: 8 }}
+          lazyMount
+          unmountOnExit
+        >
+          <Popover.Trigger asChild>
+            <Button
+              variant="ghost"
+              size="xs"
+              gap={1}
+              color="gray.500"
+              _hover={{ color: "blue.700", bg: "blue.50" }}
+              px={2}
+              h="28px"
+              title="Arrange workspace presets"
+            >
+              <LuLayoutTemplate size={12} />
+              <Text fontSize="10px">Arrange</Text>
+              <LuChevronDown size={10} />
+            </Button>
+          </Popover.Trigger>
+
+          <Portal>
+            <Popover.Positioner>
+              <Popover.Content
+                w="260px"
+                border="1px solid"
+                borderColor="gray.200"
+                boxShadow="lg"
+                borderRadius="md"
+              >
+                <Popover.Body p={2}>
+                  <VStack align="stretch" gap={1}>
+                    <Text
+                      fontSize="9px"
+                      fontWeight="700"
+                      color="gray.500"
+                      textTransform="uppercase"
+                      letterSpacing="widest"
+                      px={2}
+                      py={1}
+                    >
+                      Arrange Workspace
+                    </Text>
+
+                    {arrangePresets.map((preset) => {
+                      const isActive = preset.id === activeArrangePreset;
+                      return (
+                        <Button
+                          key={preset.id}
+                          justifyContent="flex-start"
+                          h="auto"
+                          px={2.5}
+                          py={2}
+                          variant={isActive ? "subtle" : "ghost"}
+                          colorPalette={isActive ? "blue" : "gray"}
+                          onClick={() => handleApplyPreset(preset.id)}
+                        >
+                          <VStack align="start" gap={0}>
+                            <HStack gap={1.5}>
+                              <Text fontSize="11px" fontWeight="700" color="gray.800">
+                                {preset.label}
+                              </Text>
+                              {isActive && (
+                                <Badge
+                                  colorPalette="blue"
+                                  variant="subtle"
+                                  fontSize="8px"
+                                  px={1.5}
+                                  borderRadius="full"
+                                >
+                                  Active
+                                </Badge>
+                              )}
+                            </HStack>
+                            <Text
+                              fontSize="10px"
+                              color="gray.500"
+                              textAlign="left"
+                              lineHeight="short"
+                            >
+                              {preset.description}
+                            </Text>
+                          </VStack>
+                        </Button>
+                      );
+                    })}
+                  </VStack>
+                </Popover.Body>
+              </Popover.Content>
+            </Popover.Positioner>
+          </Portal>
+        </Popover.Root>
 
         {/* Export */}
         <Button
