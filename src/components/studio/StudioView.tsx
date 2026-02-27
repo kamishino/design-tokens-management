@@ -118,11 +118,37 @@ export const StudioView = ({
       return createListCollection<{ label: string; value: string }>({
         items: [],
       });
+
+    const items = Object.entries(manifest.projects)
+      .map(([key, p]) => {
+        const maybeBrand =
+          p.metadata && typeof p.metadata === "object"
+            ? (p.metadata as Record<string, unknown>).brand
+            : undefined;
+        const brand =
+          typeof maybeBrand === "string" && maybeBrand.trim()
+            ? maybeBrand
+            : "core";
+
+        return {
+          label: `${p.client} / ${brand} / ${p.project}`,
+          value: key,
+          client: p.client,
+          brand,
+          project: p.project,
+        };
+      })
+      .sort((a, b) => {
+        const clientSort = a.client.localeCompare(b.client);
+        if (clientSort !== 0) return clientSort;
+        const brandSort = a.brand.localeCompare(b.brand);
+        if (brandSort !== 0) return brandSort;
+        return a.project.localeCompare(b.project);
+      })
+      .map(({ label, value }) => ({ label, value }));
+
     return createListCollection({
-      items: Object.entries(manifest.projects).map(([key, p]) => ({
-        label: `${p.client} - ${p.project}`,
-        value: key,
-      })),
+      items,
     });
   }, [manifest]);
 

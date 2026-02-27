@@ -4,6 +4,7 @@ import type { FileNode } from "../../utils/path-tree";
 import { mapManifestToTree } from "../../utils/path-tree";
 import { getDynamicTokenTree } from "../../utils/fs-scanner";
 import { FileTreeNode } from "./FileTreeNode";
+import { ClientProjectManager } from "../workspace/ClientProjectManager";
 import type { Manifest, SidebarPanelId } from "../../schemas/manifest";
 
 interface FileExplorerProps {
@@ -13,6 +14,7 @@ interface FileExplorerProps {
   onSelect: (path: string, key: string) => void;
   /** Q2: Triggered when user clicks 'Edit Tokens' on a JSON file */
   onEditTokens?: (filePath: string) => void;
+  onProjectCreated?: (projectKey: string) => Promise<void> | void;
 }
 
 export const FileExplorer = ({
@@ -21,6 +23,7 @@ export const FileExplorer = ({
   activePath,
   onSelect,
   onEditTokens,
+  onProjectCreated,
 }: FileExplorerProps) => {
   const [expandedPaths, setExpandedPaths] = useState<string[]>(() => {
     if (typeof window === "undefined") return [];
@@ -111,6 +114,17 @@ export const FileExplorer = ({
           {headerTitle}
         </Text>
       </Box>
+
+      {context === "explorer" && (
+        <Box px={3} pb={3}>
+          <ClientProjectManager
+            manifest={manifest}
+            selectedProject={activePath}
+            onSelectProject={(projectKey) => onSelect(projectKey, projectKey)}
+            onProjectCreated={onProjectCreated}
+          />
+        </Box>
+      )}
 
       <Box flex={1} overflowY="auto" p={2}>
         {tree.map((node) => (

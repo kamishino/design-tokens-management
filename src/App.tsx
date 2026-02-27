@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Spinner, Center } from "@chakra-ui/react";
+import { useState, useEffect, useCallback } from "react";
+import { Spinner, Center, Text } from "@chakra-ui/react";
 import type { Manifest } from "./schemas/manifest";
 import { useTokenLoader } from "./hooks/useTokenLoader";
 import { usePersistentPlayground } from "./hooks/usePersistentPlayground";
@@ -51,18 +51,20 @@ function App() {
   }, [undo, redo]);
 
   // Fetch manifest
-  useEffect(() => {
-    fetch("/tokens/manifest.json")
-      .then((res) => res.json())
-      .then((data) => {
-        setManifest(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Failed to load manifest:", err);
-        setLoading(false);
-      });
+  const loadManifest = useCallback(async () => {
+    try {
+      const response = await fetch("/tokens/manifest.json");
+      const data = (await response.json()) as Manifest;
+      setManifest(data);
+    } catch (error) {
+      console.error("Failed to load manifest:", error);
+    }
   }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    loadManifest().finally(() => setLoading(false));
+  }, [loadManifest]);
 
   const currentPath = manifest?.projects[selectedProject]?.path;
   useTokenLoader(currentPath);
@@ -74,11 +76,22 @@ function App() {
       </Center>
     );
 
+  if (!manifest)
+    return (
+      <Center h="100vh" p={6}>
+        <Text color="red.500" fontSize="sm" textAlign="center">
+          Failed to load token manifest. Check `public/tokens/manifest.json` and
+          retry.
+        </Text>
+      </Center>
+    );
+
   return (
     <WorkspaceLayout
-      manifest={manifest!}
+      manifest={manifest}
       selectedProject={selectedProject}
       onProjectChange={handleProjectChange}
+      onManifestRefresh={loadManifest}
       overrides={overrides}
       updateOverride={updateOverride}
       discardOverride={discardOverride}

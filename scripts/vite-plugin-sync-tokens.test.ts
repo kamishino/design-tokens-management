@@ -30,18 +30,38 @@ const PROJECT_ROOT = process.cwd();
 const TEST_DIR = path.join(PROJECT_ROOT, "tokens", "global", "__guard-tests__");
 const BACKUP_ROOT = path.join(PROJECT_ROOT, ".memory", "global-backups");
 const BACKUP_INDEX = path.join(BACKUP_ROOT, "index.json");
+const MANIFEST_PATH = path.join(PROJECT_ROOT, "public", "tokens", "manifest.json");
+const MANIFEST_SNAPSHOT = fs.existsSync(MANIFEST_PATH)
+  ? fs.readFileSync(MANIFEST_PATH)
+  : null;
+const WORKSPACE_TEST_CLIENT = "dtm-workspace-test";
 
 function getMiddleware(): Middleware {
   const plugin = syncTokensPlugin();
   let handler: Middleware | null = null;
 
-  plugin.configureServer?.({
+  const serverMock = {
     middlewares: {
       use(fn: Middleware) {
         handler = fn;
       },
     },
-  } as never);
+  } as never;
+
+  const configureServer = plugin.configureServer as
+    | ((server: unknown) => unknown)
+    | { handler?: (server: unknown) => unknown }
+    | undefined;
+  if (typeof configureServer === "function") {
+    configureServer.call({} as unknown, serverMock);
+  } else if (
+    configureServer &&
+    typeof configureServer === "object" &&
+    "handler" in configureServer &&
+    typeof configureServer.handler === "function"
+  ) {
+    configureServer.handler.call({} as unknown, serverMock);
+  }
 
   if (!handler) {
     throw new Error("Failed to initialize sync token middleware");
@@ -180,8 +200,25 @@ function cleanupTestArtifacts() {
   fs.writeFileSync(BACKUP_INDEX, JSON.stringify(keep, null, 2));
 }
 
+function cleanupWorkspaceArtifacts() {
+  const clientDir = path.join(
+    PROJECT_ROOT,
+    "tokens",
+    "clients",
+    WORKSPACE_TEST_CLIENT,
+  );
+  if (fs.existsSync(clientDir)) {
+    fs.rmSync(clientDir, { recursive: true, force: true });
+  }
+
+  if (MANIFEST_SNAPSHOT) {
+    fs.writeFileSync(MANIFEST_PATH, MANIFEST_SNAPSHOT);
+  }
+}
+
 afterEach(() => {
   cleanupTestArtifacts();
+  cleanupWorkspaceArtifacts();
 });
 
 describe("vite-plugin-sync-tokens global guard", () => {
@@ -341,5 +378,85 @@ describe("vite-plugin-sync-tokens global guard", () => {
     expect(errors.some((item) => item.code === "FIGMA_REFERENCE_NOT_FOUND")).toBe(
       true,
     );
+  });
+
+  it("creates a client/brand/project workspace scaffold", async () => {
+    const middleware = getMiddleware();
+
+    const response = await sendRequest(middleware, {
+      method: "POST",
+      url: "/api/workspace/create-project",
+      body: {
+        clientId: WORKSPACE_TEST_CLIENT,
+        brandId: "marketing",
+        projectId: "campaign-kit",
+        template: "product-ui",
+      },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json.success).toBe(true);
+    expect(response.json.projectKey).toBe(
+      `${WORKSPACE_TEST_CLIENT}/campaign-kit`,
+    );
+
+    const projectRoot = path.join(
+      PROJECT_ROOT,
+      "tokens",
+      "clients",
+      WORKSPACE_TEST_CLIENT,
+      "projects",
+      "campaign-kit",
+    );
+    expect(fs.existsSync(path.join(projectRoot, "colors.json"))).toBe(true);
+    expect(fs.existsSync(path.join(projectRoot, "typography.json"))).toBe(true);
+    expect(fs.existsSync(path.join(projectRoot, "spacing.json"))).toBe(true);
+
+    const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, "utf8")) as {
+      projects: Record<
+        string,
+        {
+          metadata?: {
+            brand?: string;
+            template?: string;
+          };
+        }
+      >;
+    };
+
+    const project = manifest.projects[`${WORKSPACE_TEST_CLIENT}/campaign-kit`];
+    expect(project).toBeTruthy();
+    expect(project.metadata?.brand).toBe("marketing");
+    expect(project.metadata?.template).toBe("product-ui");
+  });
+
+  it("rejects duplicate workspace creation with structured error", async () => {
+    const middleware = getMiddleware();
+
+    const first = await sendRequest(middleware, {
+      method: "POST",
+      url: "/api/workspace/create-project",
+      body: {
+        clientId: WORKSPACE_TEST_CLIENT,
+        brandId: "core",
+        projectId: "portal",
+        template: "minimal",
+      },
+    });
+    expect(first.statusCode).toBe(200);
+
+    const duplicate = await sendRequest(middleware, {
+      method: "POST",
+      url: "/api/workspace/create-project",
+      body: {
+        clientId: WORKSPACE_TEST_CLIENT,
+        brandId: "core",
+        projectId: "portal",
+        template: "minimal",
+      },
+    });
+
+    expect(duplicate.statusCode).toBe(409);
+    expect(duplicate.json.code).toBe("PROJECT_EXISTS");
   });
 });

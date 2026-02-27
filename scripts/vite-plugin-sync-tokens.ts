@@ -6,7 +6,38 @@ const PROJECT_ROOT = process.cwd();
 const GLOBAL_TOKENS_ROOT = path.join(PROJECT_ROOT, "tokens", "global");
 const GLOBAL_BACKUP_ROOT = path.join(PROJECT_ROOT, ".memory", "global-backups");
 const GLOBAL_BACKUP_INDEX_PATH = path.join(GLOBAL_BACKUP_ROOT, "index.json");
+const MANIFEST_FILE_PATH = path.join(
+  PROJECT_ROOT,
+  "public",
+  "tokens",
+  "manifest.json",
+);
 const MAX_GLOBAL_BACKUPS = 200;
+
+type WorkspaceTemplate = "minimal" | "product-ui" | "editorial";
+
+interface ApiErrorShape {
+  statusCode: number;
+  error: string;
+  code: string;
+}
+
+interface WorkspaceManifestProject {
+  name: string;
+  client: string;
+  project: string;
+  path: string;
+  files: string[];
+  lastBuild: string;
+  metadata?: Record<string, unknown>;
+}
+
+interface WorkspaceManifest {
+  version: string;
+  lastUpdated: string;
+  clients?: Record<string, { id: string; name: string; [key: string]: unknown }>;
+  projects: Record<string, WorkspaceManifestProject>;
+}
 
 interface GlobalBackupEntry {
   id: string;
@@ -181,6 +212,313 @@ function resolveTokenPath(targetPath: string): string | null {
   }
 
   return normalized;
+}
+
+function isApiErrorShape(value: unknown): value is ApiErrorShape {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Partial<ApiErrorShape>;
+  return (
+    typeof candidate.statusCode === "number" &&
+    typeof candidate.error === "string" &&
+    typeof candidate.code === "string"
+  );
+}
+
+function normalizeWorkspaceSegment(value: unknown): string {
+  if (typeof value !== "string") return "";
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function toWorkspaceTemplate(value: unknown): WorkspaceTemplate {
+  if (value === "minimal" || value === "product-ui" || value === "editorial") {
+    return value;
+  }
+  return "product-ui";
+}
+
+function readWorkspaceManifest(): WorkspaceManifest {
+  if (!fs.existsSync(MANIFEST_FILE_PATH)) {
+    return {
+      version: "1.0.0",
+      lastUpdated: new Date().toISOString(),
+      projects: {},
+    };
+  }
+
+  try {
+    const raw = fs.readFileSync(MANIFEST_FILE_PATH, "utf8");
+    const parsed = JSON.parse(raw) as Partial<WorkspaceManifest>;
+    return {
+      version:
+        typeof parsed.version === "string" && parsed.version.trim()
+          ? parsed.version
+          : "1.0.0",
+      lastUpdated:
+        typeof parsed.lastUpdated === "string" && parsed.lastUpdated.trim()
+          ? parsed.lastUpdated
+          : new Date().toISOString(),
+      clients:
+        parsed.clients && typeof parsed.clients === "object"
+          ? parsed.clients
+          : undefined,
+      projects:
+        parsed.projects && typeof parsed.projects === "object"
+          ? parsed.projects
+          : {},
+    };
+  } catch {
+    return {
+      version: "1.0.0",
+      lastUpdated: new Date().toISOString(),
+      projects: {},
+    };
+  }
+}
+
+function writeWorkspaceManifest(manifest: WorkspaceManifest) {
+  const dir = path.dirname(MANIFEST_FILE_PATH);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  fs.writeFileSync(MANIFEST_FILE_PATH, JSON.stringify(manifest, null, 2));
+}
+
+function getTemplateSeed(template: WorkspaceTemplate): {
+  theme: Record<string, unknown>;
+  files: Record<string, Record<string, unknown>>;
+} {
+  if (template === "minimal") {
+    return {
+      theme: {
+        brand: {
+          primary: { $value: "#2563eb", $type: "color" },
+          secondary: { $value: "#0f172a", $type: "color" },
+        },
+      },
+      files: {
+        "colors.json": {
+          color: {
+            brand: {
+              primary: { $value: "{brand.primary}", $type: "color" },
+              secondary: { $value: "{brand.secondary}", $type: "color" },
+            },
+            surface: {
+              canvas: { $value: "#ffffff", $type: "color" },
+              subtle: { $value: "#f8fafc", $type: "color" },
+            },
+            text: {
+              default: { $value: "#0f172a", $type: "color" },
+              muted: { $value: "#475569", $type: "color" },
+            },
+          },
+        },
+      },
+    };
+  }
+
+  if (template === "editorial") {
+    return {
+      theme: {
+        brand: {
+          primary: { $value: "#7c3aed", $type: "color" },
+          secondary: { $value: "#1f2937", $type: "color" },
+        },
+      },
+      files: {
+        "colors.json": {
+          color: {
+            brand: {
+              primary: { $value: "{brand.primary}", $type: "color" },
+              secondary: { $value: "{brand.secondary}", $type: "color" },
+            },
+            text: {
+              headline: { $value: "#111827", $type: "color" },
+              body: { $value: "#374151", $type: "color" },
+              caption: { $value: "#6b7280", $type: "color" },
+            },
+            surface: {
+              article: { $value: "#ffffff", $type: "color" },
+              rail: { $value: "#f3f4f6", $type: "color" },
+            },
+          },
+        },
+        "typography.json": {
+          typography: {
+            heading: {
+              h1: { $value: "48", $type: "fontSizes" },
+              h2: { $value: "36", $type: "fontSizes" },
+              h3: { $value: "28", $type: "fontSizes" },
+            },
+            body: {
+              base: { $value: "18", $type: "fontSizes" },
+              small: { $value: "15", $type: "fontSizes" },
+            },
+          },
+        },
+      },
+    };
+  }
+
+  return {
+    theme: {
+      brand: {
+        primary: { $value: "#2563eb", $type: "color" },
+        secondary: { $value: "#4f46e5", $type: "color" },
+      },
+    },
+    files: {
+      "colors.json": {
+        color: {
+          brand: {
+            primary: { $value: "{brand.primary}", $type: "color" },
+            secondary: { $value: "{brand.secondary}", $type: "color" },
+          },
+          action: {
+            primary: { $value: "{color.brand.primary}", $type: "color" },
+            critical: { $value: "#dc2626", $type: "color" },
+          },
+          text: {
+            default: { $value: "#111827", $type: "color" },
+            subtle: { $value: "#6b7280", $type: "color" },
+          },
+          background: {
+            canvas: { $value: "#f8fafc", $type: "color" },
+            surface: { $value: "#ffffff", $type: "color" },
+          },
+        },
+      },
+      "typography.json": {
+        typography: {
+          font: {
+            family: {
+              heading: { $value: "Inter", $type: "fontFamilies" },
+              body: { $value: "Inter", $type: "fontFamilies" },
+            },
+            weight: {
+              regular: { $value: "400", $type: "fontWeights" },
+              medium: { $value: "500", $type: "fontWeights" },
+              bold: { $value: "700", $type: "fontWeights" },
+            },
+          },
+          size: {
+            body: { $value: "16", $type: "fontSizes" },
+            title: { $value: "24", $type: "fontSizes" },
+          },
+        },
+      },
+      "spacing.json": {
+        spacing: {
+          xs: { $value: "4", $type: "spacing" },
+          sm: { $value: "8", $type: "spacing" },
+          md: { $value: "16", $type: "spacing" },
+          lg: { $value: "24", $type: "spacing" },
+          xl: { $value: "32", $type: "spacing" },
+        },
+      },
+    },
+  };
+}
+
+function createWorkspaceProject(params: {
+  clientId: string;
+  brandId: string;
+  projectId: string;
+  template: WorkspaceTemplate;
+}): { projectKey: string; createdFiles: string[] } {
+  const { clientId, brandId, projectId, template } = params;
+  const projectKey = `${clientId}/${projectId}`;
+  const manifest = readWorkspaceManifest();
+
+  if (manifest.projects[projectKey]) {
+    throw {
+      statusCode: 409,
+      error: `Project "${projectKey}" already exists in manifest`,
+      code: "PROJECT_EXISTS",
+    } satisfies ApiErrorShape;
+  }
+
+  const clientRoot = path.join(PROJECT_ROOT, "tokens", "clients", clientId);
+  const projectsRoot = path.join(clientRoot, "projects");
+  const projectRoot = path.join(projectsRoot, projectId);
+
+  if (!isPathInsideRoot(PROJECT_ROOT, clientRoot)) {
+    throw {
+      statusCode: 403,
+      error: "Computed client path is outside project root",
+      code: "PATH_TRAVERSAL",
+    } satisfies ApiErrorShape;
+  }
+
+  if (fs.existsSync(projectRoot)) {
+    const existingEntries = fs.readdirSync(projectRoot);
+    if (existingEntries.length > 0) {
+      throw {
+        statusCode: 409,
+        error: `Project folder already exists: ${projectRoot}`,
+        code: "PROJECT_FOLDER_EXISTS",
+      } satisfies ApiErrorShape;
+    }
+  }
+
+  fs.mkdirSync(projectRoot, { recursive: true });
+
+  const seed = getTemplateSeed(template);
+  const createdFiles: string[] = [];
+
+  const themePath = path.join(clientRoot, "theme.json");
+  if (!fs.existsSync(themePath)) {
+    fs.writeFileSync(themePath, JSON.stringify(seed.theme, null, 2));
+    createdFiles.push(toProjectUrlPath(themePath));
+  }
+
+  for (const [filename, payload] of Object.entries(seed.files)) {
+    const filePath = path.join(projectRoot, filename);
+    if (fs.existsSync(filePath)) {
+      throw {
+        statusCode: 409,
+        error: `Seed file already exists: ${filename}`,
+        code: "PROJECT_FILE_EXISTS",
+      } satisfies ApiErrorShape;
+    }
+    fs.writeFileSync(filePath, JSON.stringify(payload, null, 2));
+    createdFiles.push(toProjectUrlPath(filePath));
+  }
+
+  if (!manifest.clients) {
+    manifest.clients = {};
+  }
+  if (!manifest.clients[clientId]) {
+    manifest.clients[clientId] = {
+      id: clientId,
+      name: clientId,
+      description: `${clientId} workspace profile`,
+    };
+  }
+
+  manifest.projects[projectKey] = {
+    name: projectKey,
+    client: clientId,
+    project: projectId,
+    path: `/tokens/${clientId}/${projectId}/variables.css`,
+    files: ["variables.css"],
+    lastBuild: new Date().toISOString(),
+    metadata: {
+      brand: brandId,
+      template,
+      createdBy: "workspace-wizard",
+    },
+  };
+
+  manifest.lastUpdated = new Date().toISOString();
+  writeWorkspaceManifest(manifest);
+
+  return { projectKey, createdFiles };
 }
 
 /**
@@ -693,6 +1031,84 @@ export function syncTokensPlugin(): Plugin {
               res.setHeader("Content-Type", "application/json");
               res.end(
                 JSON.stringify({ error: message, code: "INTERNAL_ERROR" }),
+              );
+            }
+          });
+
+          // ── Route: Create Client/Brand/Project Workspace ───────────────────
+        } else if (
+          req.url === "/api/workspace/create-project" &&
+          req.method === "POST"
+        ) {
+          let body = "";
+          req.on("data", (chunk) => {
+            body += chunk.toString();
+          });
+
+          req.on("end", async () => {
+            try {
+              const parsed = body
+                ? (JSON.parse(body) as {
+                    clientId?: string;
+                    brandId?: string;
+                    projectId?: string;
+                    template?: string;
+                  })
+                : {};
+
+              const clientId = normalizeWorkspaceSegment(parsed.clientId);
+              const projectId = normalizeWorkspaceSegment(parsed.projectId);
+              const brandId =
+                normalizeWorkspaceSegment(parsed.brandId) || "core";
+              const template = toWorkspaceTemplate(parsed.template);
+
+              if (!clientId || !projectId) {
+                res.statusCode = 400;
+                res.setHeader("Content-Type", "application/json");
+                return res.end(
+                  JSON.stringify({
+                    error: "clientId and projectId are required",
+                    code: "MISSING_PROJECT_FIELDS",
+                  }),
+                );
+              }
+
+              const created = createWorkspaceProject({
+                clientId,
+                brandId,
+                projectId,
+                template,
+              });
+
+              res.setHeader("Content-Type", "application/json");
+              res.end(
+                JSON.stringify({
+                  success: true,
+                  projectKey: created.projectKey,
+                  createdFiles: created.createdFiles,
+                }),
+              );
+            } catch (error: unknown) {
+              if (isApiErrorShape(error)) {
+                res.statusCode = error.statusCode;
+                res.setHeader("Content-Type", "application/json");
+                return res.end(
+                  JSON.stringify({
+                    error: error.error,
+                    code: error.code,
+                  }),
+                );
+              }
+
+              const message =
+                error instanceof Error ? error.message : "Unknown error";
+              res.statusCode = 500;
+              res.setHeader("Content-Type", "application/json");
+              res.end(
+                JSON.stringify({
+                  error: message,
+                  code: "WORKSPACE_CREATE_ERROR",
+                }),
               );
             }
           });

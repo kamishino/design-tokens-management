@@ -46,6 +46,7 @@ interface WorkspaceLayoutProps {
   manifest: Manifest;
   selectedProject: string;
   onProjectChange: (val: string) => void;
+  onManifestRefresh?: () => Promise<void> | void;
   overrides: TokenOverrides;
   updateOverride: (
     newValues: Record<string, string | number>,
@@ -63,6 +64,7 @@ export const WorkspaceLayout = ({
   manifest,
   selectedProject,
   onProjectChange,
+  onManifestRefresh,
   overrides,
   updateOverride,
   discardOverride,
@@ -360,6 +362,12 @@ export const WorkspaceLayout = ({
                     activePath={selectedProject}
                     onSelect={(_, key) => onProjectChange(key)}
                     onEditTokens={handleEditTokensByFile}
+                    onProjectCreated={async () => {
+                      if (onManifestRefresh) {
+                        await onManifestRefresh();
+                      }
+                      refresh();
+                    }}
                   />
                 </Box>
               )}

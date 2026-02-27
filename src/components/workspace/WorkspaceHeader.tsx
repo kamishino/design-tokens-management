@@ -45,10 +45,27 @@ export const WorkspaceHeader = ({
   onToggleInspector,
   onOpenGlobalBackups,
 }: WorkspaceHeaderProps) => {
+  const selectedProjectEntry = selectedProject
+    ? manifest.projects[selectedProject]
+    : undefined;
+
+  const selectedBrand =
+    selectedProjectEntry && selectedProjectEntry.metadata
+      ? (() => {
+          const maybeBrand = (selectedProjectEntry.metadata as Record<string, unknown>)
+            .brand;
+          return typeof maybeBrand === "string" && maybeBrand.trim()
+            ? maybeBrand
+            : "core";
+        })()
+      : "core";
+
   const selectedLabel = selectedProject
-    ? manifest.projects[selectedProject]?.project ||
-      manifest.projects[selectedProject]?.name ||
-      selectedProject
+    ? selectedProjectEntry
+      ? `${selectedProjectEntry.client} / ${selectedBrand} / ${
+          selectedProjectEntry.project || selectedProjectEntry.name
+        }`
+      : selectedProject
     : "All files";
 
   return (
