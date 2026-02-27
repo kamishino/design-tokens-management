@@ -18,6 +18,8 @@ import { TokenTree } from "../explorer/TokenTree";
 import { InspectorOverlay } from "../explorer/InspectorOverlay";
 import { StudioView } from "../studio/StudioView";
 import { InspectorPanel } from "./InspectorPanel";
+import { toaster } from "../ui/toaster";
+import { GlobalBackupHistoryDrawer } from "./GlobalBackupHistoryDrawer";
 
 // Wave 3: Lazy-load heavy modals — parsed only when first opened, not on boot
 const TokenEditModal = lazy(() =>
@@ -114,6 +116,8 @@ export const WorkspaceLayout = ({
   const [inspectedTokens, setInspectedTokens] = useState<string[] | undefined>(
     undefined,
   );
+  const [isGlobalBackupDrawerOpen, setIsGlobalBackupDrawerOpen] =
+    useState(false);
 
   const hasOverrides = Object.keys(overrides).length > 0;
 
@@ -182,8 +186,16 @@ export const WorkspaceLayout = ({
 
   const handleDelete = useCallback(
     async (token: TokenDoc) => {
+      const isGlobalToken = token.sourceFile.includes("/tokens/global/");
       if (!window.confirm(`Are you sure you want to delete ${token.name}?`))
         return;
+      if (isGlobalToken) {
+        const confirmation = window.prompt(
+          'Global token deletion is protected. Type "DELETE" to continue.',
+          "",
+        );
+        if (confirmation !== "DELETE") return;
+      }
       const dotPath = token.id.includes(":")
         ? token.id.split(":")[1]
         : token.id;
@@ -195,11 +207,28 @@ export const WorkspaceLayout = ({
             targetPath: token.sourceFile,
             tokenPath: dotPath,
             action: "delete",
+            confirmGlobalDelete: isGlobalToken,
           }),
         });
-        if (response.ok) refresh();
+        const json = await response.json().catch(() => ({}));
+        if (response.ok) {
+          refresh();
+          toaster.success({
+            title: "Token Deleted",
+            description: `"${token.name}" was removed from disk.`,
+          });
+        } else {
+          const msg =
+            (json as { error?: string }).error ||
+            `Server responded with ${response.status}`;
+          toaster.error({ title: "Delete Failed", description: msg });
+        }
       } catch (e) {
-        console.error("Error deleting token", e);
+        const msg =
+          e instanceof Error
+            ? e.message
+            : "Network error — is the dev server running?";
+        toaster.error({ title: "Delete Failed", description: msg });
       }
     },
     [refresh],
@@ -254,6 +283,7 @@ export const WorkspaceLayout = ({
         inspectorVisible={inspectorVisible}
         onToggleSidebar={() => setSidebarVisible((v) => !v)}
         onToggleInspector={() => setInspectorVisible((v) => !v)}
+        onOpenGlobalBackups={() => setIsGlobalBackupDrawerOpen(true)}
       />
 
       {/* Main Content */}
@@ -472,6 +502,12 @@ export const WorkspaceLayout = ({
           onMoveSelection={cmdPalette.moveSelection}
         />
       </Suspense>
+
+      <GlobalBackupHistoryDrawer
+        open={isGlobalBackupDrawerOpen}
+        onClose={() => setIsGlobalBackupDrawerOpen(false)}
+        onRestored={refresh}
+      />
     </VStack>
   );
 };

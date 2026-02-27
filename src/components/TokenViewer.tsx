@@ -21,6 +21,7 @@ import { TokenTree } from "./explorer/TokenTree";
 import { ExportModal } from "./export/ExportModal";
 import { CommandPalette } from "./command/CommandPalette";
 import { useCommandPalette } from "../hooks/useCommandPalette";
+import { toaster } from "./ui/toaster";
 import type {
   Manifest,
   TokenOverrides,
@@ -130,8 +131,16 @@ export const TokenViewer = ({
   }, []);
 
   const handleDelete = useCallback(async (token: TokenDoc) => {
+    const isGlobalToken = token.sourceFile.includes("/tokens/global/");
     if (!window.confirm(`Are you sure you want to delete ${token.name}?`))
       return;
+    if (isGlobalToken) {
+      const confirmation = window.prompt(
+        'Global token deletion is protected. Type "DELETE" to continue.',
+        "",
+      );
+      if (confirmation !== "DELETE") return;
+    }
 
     const dotPath = token.id.includes(":") ? token.id.split(":")[1] : token.id;
 
@@ -143,14 +152,28 @@ export const TokenViewer = ({
           targetPath: token.sourceFile,
           tokenPath: dotPath,
           action: "delete",
+          confirmGlobalDelete: isGlobalToken,
         }),
       });
-
+      const json = await response.json().catch(() => ({}));
       if (response.ok) {
+        toaster.success({
+          title: "Token Deleted",
+          description: `"${token.name}" was removed from disk.`,
+        });
         window.location.reload();
+      } else {
+        const msg =
+          (json as { error?: string }).error ||
+          `Server responded with ${response.status}`;
+        toaster.error({ title: "Delete Failed", description: msg });
       }
     } catch (e) {
-      console.error("Error deleting token", e);
+      const msg =
+        e instanceof Error
+          ? e.message
+          : "Network error — is the dev server running?";
+      toaster.error({ title: "Delete Failed", description: msg });
     }
   }, []);
 

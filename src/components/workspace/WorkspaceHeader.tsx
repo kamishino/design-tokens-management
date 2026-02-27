@@ -15,6 +15,7 @@ import {
   LuPanelRight,
   LuPanelRightClose,
   LuLayers,
+  LuShieldCheck,
 } from "react-icons/lu";
 import { Button } from "../ui/button";
 import type { Manifest } from "../../schemas/manifest";
@@ -29,6 +30,7 @@ interface WorkspaceHeaderProps {
   inspectorVisible: boolean;
   onToggleSidebar: () => void;
   onToggleInspector: () => void;
+  onOpenGlobalBackups: () => void;
 }
 
 export const WorkspaceHeader = ({
@@ -41,6 +43,7 @@ export const WorkspaceHeader = ({
   inspectorVisible,
   onToggleSidebar,
   onToggleInspector,
+  onOpenGlobalBackups,
 }: WorkspaceHeaderProps) => {
   const selectedLabel = selectedProject
     ? manifest.projects[selectedProject]?.project ||
@@ -168,6 +171,22 @@ export const WorkspaceHeader = ({
         >
           <LuDownload size={12} />
           Export
+        </Button>
+
+        {/* Global backup history */}
+        <Button
+          variant="ghost"
+          size="xs"
+          onClick={onOpenGlobalBackups}
+          gap={1}
+          color="gray.500"
+          _hover={{ color: "orange.600", bg: "orange.50" }}
+          h="28px"
+          px={2}
+          title="Open global backup history"
+        >
+          <LuShieldCheck size={12} />
+          <Text fontSize="10px">Backups</Text>
         </Button>
 
         {/* Divider */}
