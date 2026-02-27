@@ -8,6 +8,17 @@
 This project uses specialized agents with a KamiFlow-style lifecycle.  
 Every meaningful task should be traceable from idea to handoff with clear artifacts and verifiable outcomes.
 
+## Rule Source Of Truth
+
+Codex must treat these as mandatory project policy:
+
+1. `AGENTS.md` (this file) — workflow + closure contract.
+2. `.agent/config.json` — active `guardRails` and workflow registry.
+3. `.agent/rules/*.md` — rule documents listed under `guardRails`.
+4. `.agent/workflows/*.md` — execution patterns for commands like `/kamiflow`.
+
+If there is a conflict, follow instruction priority from runtime (system/developer), then apply this project policy.
+
 ## Core Workflow (KamiFlow)
 
 Use this sequence for feature or bug work:
@@ -28,6 +39,10 @@ Use this sequence for feature or bug work:
 4. `S4 HANDOFF`
 - Summarize what shipped, validation evidence, residual risks, and next actions.
 - Output: `.kamiflow/tasks/<ID>-S4-HANDOFF-<slug>.md`
+
+### Task Artifact Requirement
+
+For every S1-S4 file, include a `## Rules Applied` section that lists which `.agent/rules/*` documents were applied and how.
 
 ## Agent Roles (Recommended Routing)
 
@@ -66,6 +81,7 @@ Automation commands:
 - `npm run task:verify` checks tracker + optional KamiFlow artifacts.
 - `npm run task:close` runs test, build, then verification.
 - Optional: `npm run task:verify -- --task=<ID>` enforces S1-S4 artifacts for a task ID.
+- With `--task=<ID>`, verification also enforces guard-rail references from `.agent/config.json`.
 
 ## Commit Convention
 

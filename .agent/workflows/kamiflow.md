@@ -13,11 +13,12 @@ This workflow implements the KamiFlow Sniper Model for AntiGravity IDE — trans
 
 Read these KamiFlow rules before executing (they are already loaded as global rules):
 
-- `.gemini/rules/flow-factory-line-core.md` — The Factory Line Protocol (S1→S3)
-- `.gemini/rules/flow-execution-core.md` — Execute → Validate → Heal → Report
-- `.gemini/rules/flow-validation-core.md` — 3-Phase Validation
-- `.gemini/rules/flow-reflection-core.md` — Strategic Reflection + Quality Gate
-- `.gemini/rules/flow-checkpoint-core.md` — Checkpoint Protocol
+- `AGENTS.md` — Operational contract for task closure.
+- `.agent/config.json` — Active `guardRails` and workflows.
+- `.agent/rules/anti-hallucination.md` — Verification-first execution.
+- `.agent/rules/error-recovery.md` — Retry/escalation behavior.
+- `.agent/rules/validation-loop.md` — Validation gate model.
+- `.agent/rules/reflection.md` — Pre-exit quality gate and reflection.
 - `.kamiflow/PROJECT_CONTEXT.md` — Project state and active context
 
 ---
@@ -182,6 +183,7 @@ Read these KamiFlow rules before executing (they are already loaded as global ru
     - Technical Debt Assessment (None/Minor/Significant)
     - Lessons Learned
     - Follow-up Tasks
+    - Rules Applied summary
 
 ---
 
@@ -193,7 +195,10 @@ Read these KamiFlow rules before executing (they are already loaded as global ru
 
 // turbo 26. Run `npm run sync-all` to build and sync all artifacts.
 
-27. Stage all changes and create a unified commit with a descriptive message following the convention:
+27. Run closure verification:
+    - `npm run task:verify -- --task=<ID>`
+
+28. Stage all changes and create a unified commit with a descriptive message following the convention:
 
     ```
     feat|fix|chore(scope): description
@@ -201,7 +206,7 @@ Read these KamiFlow rules before executing (they are already loaded as global ru
     Task-ID: [NNN]
     ```
 
-28. Archive completed task artifacts to `.kamiflow/archive/`.
+29. Archive completed task artifacts to `.kamiflow/archive/`.
 
 ---
 

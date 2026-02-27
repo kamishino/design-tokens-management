@@ -4,11 +4,11 @@ Last updated: 2026-02-27
 
 ## In Progress
 
-- [x] Resolve existing unrelated TypeScript build errors in legacy files.
+- [ ] None.
 
 ## Pending
 
-- [x] Verify `npm run build` passes after TypeScript cleanup.
+- [ ] None.
 
 ## Completed
 
@@ -22,3 +22,9 @@ Last updated: 2026-02-27
 - [x] Block global token delete from UI actions (workspace + viewer).
 - [x] Fix legacy TypeScript errors in docs/explorer/playground/studio/tuning components.
 - [x] Confirm production build succeeds (`npm run build`).
+- [x] Add Figma pre-export validator API (`/api/validate-figma-export`) with structured error/warning summary.
+- [x] Add export-gating UI in Figma Export Panel: block on errors, allow explicit warning override.
+- [x] Add backend + UI tests for Figma validator flow and warning proceed behavior.
+- [x] Define rule source-of-truth in `AGENTS.md` (`.agent/config.json`, `.agent/rules`, `.agent/workflows`).
+- [x] Enforce guardRail/workflow integrity and task artifact rule references in `scripts/task-closure-check.js`.
+- [x] Align `.agent/workflows/kamiflow.md` with `.agent/rules/*` and require `npm run task:verify -- --task=<ID>` before closure.
