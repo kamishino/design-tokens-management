@@ -91,11 +91,16 @@ Before marking a task complete, agents must do all of the following:
   - commit hash
   - remaining open items
 
+5. Archive task artifacts
+- After S4 + validation are complete, move task artifacts from `.kamiflow/tasks/` to `.kamiflow/archive/`.
+- Keep `.kamiflow/tasks/.gitkeep` as the only long-lived file in `tasks/`.
+
 Automation commands:
 - `npm run task:start -- --task=<ID> --slug=<slug> [--title="..."]` scaffolds S1-S4 artifacts and updates `.memory/todo.md`.
+- `npm run task:archive -- --task=<ID>` archives S1-S4 artifacts from `tasks/` to `archive/`.
 - `npm run task:verify` checks tracker + optional KamiFlow artifacts.
-- `npm run task:close` runs test, build, then verification.
-- Optional: `npm run task:verify -- --task=<ID>` enforces S1-S4 artifacts and per-phase section requirements for a task ID.
+- `npm run task:close -- --task=<ID>` runs test, build, task verification, archive, and final verification.
+- Optional: `npm run task:verify -- --task=<ID>` enforces S1-S4 artifacts and per-phase section requirements for a task ID from either `tasks/` or `archive/`.
 - Optional: `npm run task:verify -- --task=<ID> --no-strict` downgrades to compatibility checks for legacy artifacts.
 - With `--task=<ID>`, verification also enforces guard-rail references from `.agent/config.json`.
 

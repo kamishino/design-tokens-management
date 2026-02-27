@@ -12,8 +12,9 @@
     "test": "vitest run",
     "prebuild:tokens": "node scripts/generate-scale.js",
     "task:start": "node scripts/task-start.js",
+    "task:archive": "node scripts/task-archive.js",
     "task:verify": "node scripts/task-closure-check.js",
-    "task:close": "npm run test && npm run build && npm run task:verify"
+    "task:close": "node scripts/task-close.js"
   },
   "dependencies": {
     "@tokens-studio/sd-transforms": "^2.0.3",

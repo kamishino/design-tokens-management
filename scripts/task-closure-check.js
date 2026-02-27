@@ -4,6 +4,7 @@ import path from "path";
 const projectRoot = process.cwd();
 const todoPath = path.join(projectRoot, ".memory", "todo.md");
 const tasksDir = path.join(projectRoot, ".kamiflow", "tasks");
+const archiveDir = path.join(projectRoot, ".kamiflow", "archive");
 const agentsGuidePath = path.join(projectRoot, "AGENTS.md");
 const agentConfigPath = path.join(projectRoot, ".agent", "config.json");
 const rulesDir = path.join(projectRoot, ".agent", "rules");
@@ -121,6 +122,29 @@ function findTaskArtifactFile(files, phasePrefix) {
   if (matches.length === 0) return "";
   matches.sort((a, b) => a.localeCompare(b));
   return matches[matches.length - 1];
+}
+
+function collectTaskArtifactsFromDirectory(phaseDescriptors, directoryPath) {
+  if (!fs.existsSync(directoryPath)) {
+    return null;
+  }
+
+  const files = fs.readdirSync(directoryPath);
+  const artifacts = [];
+
+  for (const descriptor of phaseDescriptors) {
+    const artifactFile = findTaskArtifactFile(files, descriptor.prefix);
+    if (!artifactFile) {
+      return null;
+    }
+
+    artifacts.push({
+      phase: descriptor.phase,
+      path: path.join(directoryPath, artifactFile),
+    });
+  }
+
+  return artifacts;
 }
 
 function assertSection(content, checks, sectionLabel, artifactName) {
@@ -267,28 +291,31 @@ function validateTaskArtifacts(taskId, guardRailStems, strictMode) {
     return;
   }
 
-  if (!fs.existsSync(tasksDir)) {
-    fail("Missing .kamiflow/tasks directory");
-  }
-
-  const files = fs.readdirSync(tasksDir);
   const phaseDescriptors = [
     { phase: "S1", prefix: `${taskId}-S1-IDEA-` },
     { phase: "S2", prefix: `${taskId}-S2-SPEC-` },
     { phase: "S3", prefix: `${taskId}-S3-BUILD-` },
     { phase: "S4", prefix: `${taskId}-S4-HANDOFF-` },
   ];
-  const artifacts = [];
 
-  for (const descriptor of phaseDescriptors) {
-    const artifactFile = findTaskArtifactFile(files, descriptor.prefix);
-    if (!artifactFile) {
-      fail(`Missing KamiFlow artifact for phase prefix: ${descriptor.prefix}`);
-    }
-    artifacts.push({
-      phase: descriptor.phase,
-      path: path.join(tasksDir, artifactFile),
-    });
+  const taskArtifacts = collectTaskArtifactsFromDirectory(phaseDescriptors, tasksDir);
+  const archivedArtifacts = collectTaskArtifactsFromDirectory(
+    phaseDescriptors,
+    archiveDir,
+  );
+
+  let artifacts = taskArtifacts;
+  let artifactLocation = ".kamiflow/tasks";
+
+  if (!artifacts && archivedArtifacts) {
+    artifacts = archivedArtifacts;
+    artifactLocation = ".kamiflow/archive";
+  }
+
+  if (!artifacts) {
+    fail(
+      `Missing KamiFlow artifacts for task ${taskId} in .kamiflow/tasks and .kamiflow/archive`,
+    );
   }
 
   for (const artifact of artifacts) {
@@ -318,7 +345,9 @@ function validateTaskArtifacts(taskId, guardRailStems, strictMode) {
   }
 
   const strictLabel = strictMode ? "strict" : "compat";
-  ok(`kamiflow artifacts found for task ${taskId} (${strictLabel} mode)`);
+  ok(
+    `kamiflow artifacts found for task ${taskId} in ${artifactLocation} (${strictLabel} mode)`,
+  );
 }
 
 function main() {
