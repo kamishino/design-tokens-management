@@ -507,6 +507,7 @@ export const WorkspaceLayout = ({
         open={isGlobalBackupDrawerOpen}
         onClose={() => setIsGlobalBackupDrawerOpen(false)}
         onRestored={refresh}
+        selectedProject={selectedProject}
       />
     </VStack>
   );
