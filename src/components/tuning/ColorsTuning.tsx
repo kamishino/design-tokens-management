@@ -43,14 +43,6 @@ const getWcagBadge = (ratio: number) => {
   return { label: "Fail", colorPalette: "red" };
 };
 
-const getApcaBadge = (lc: number) => {
-  const absLc = Math.abs(lc);
-  if (absLc >= 75) return { label: "Lc75+", colorPalette: "green" };
-  if (absLc >= 60) return { label: "Lc60+", colorPalette: "green" };
-  if (absLc >= 45) return { label: "Lc45", colorPalette: "yellow" };
-  return { label: "Lc<45", colorPalette: "red" };
-};
-
 // --- Constants ---
 const SEMANTIC_CHANNELS = [
   {

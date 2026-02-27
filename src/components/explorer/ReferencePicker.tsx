@@ -43,6 +43,12 @@ const TypeIcon = ({ type }: { type: string }) => {
 export const ReferencePicker = ({ 
   tokens, searchTerm, filterType, onSelect
 }: ReferencePickerProps) => {
+  const toSafeColor = (
+    val: string | number | boolean | object | undefined | null,
+  ) => {
+    if (typeof val === "string" || typeof val === "number") return String(val);
+    return "transparent";
+  };
   
   const filtered = useMemo(() => {
     // 1. Filter: Global Base only
@@ -86,7 +92,7 @@ export const ReferencePicker = ({
           {token.type === 'color' ? (
             <Box 
               w="20px" h="20px" 
-              bg={token.resolvedValue || token.value} 
+              bg={toSafeColor(token.resolvedValue || token.value)} 
               borderRadius="2px" 
               border="1px solid rgba(0,0,0,0.1)"
               flexShrink={0}

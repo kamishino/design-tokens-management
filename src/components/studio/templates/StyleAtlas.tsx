@@ -170,7 +170,7 @@ export const StyleAtlas = ({ data }: { data: StudioMockData }) => {
                     <Text fontSize="xs" fontWeight="bold">Icon Input</Text>
                     <HStack w="full" px={3} border="1px solid" borderColor="var(--brand-secondary)" borderRadius="var(--radius2)">
                       <LuMail color="gray" size={14} />
-                      <Input variant="plain" placeholder="Email address" size="sm" />
+                      <Input variant="subtle" placeholder="Email address" size="sm" />
                     </HStack>
                   </VStack>
                 </VStack>

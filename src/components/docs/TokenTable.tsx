@@ -49,11 +49,19 @@ const isColorValue = (val: string | number | boolean | object | undefined | null
   return /^(#|rgba?\(|hsla?\(|oklch\(|var\()|[a-z]{3,}$/i.test(val);
 };
 
+const toSafeColor = (
+  val: string | number | boolean | object | undefined | null,
+): string => {
+  if (typeof val === "string" || typeof val === "number") return String(val);
+  return "transparent";
+};
+
 const TokenRow = memo(({ 
   id, token, onHover, showSource, editMode, onEdit, onDelete 
 }: TokenRowProps) => {
   const displayColor = token.resolvedValue || token.value;
   const shouldShowSwatch = token.type === "color" || isColorValue(displayColor);
+  const swatchColor = toSafeColor(displayColor);
 
   return (
     <Table.Row
@@ -75,7 +83,7 @@ const TokenRow = memo(({
               minW="24px"
               w="24px"
               h="24px"
-              bg={displayColor}
+              bg={swatchColor}
               borderRadius="sm"
               border="1px solid rgba(0,0,0,0.1)"
               flexShrink={0}

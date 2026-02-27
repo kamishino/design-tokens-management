@@ -140,7 +140,7 @@ export const FontExplorer = ({
           bg="gray.50"
           borderRadius="md"
         />
-        <HStack gap={1} overflowX="auto" pb={1} sx={{ '&::-webkit-scrollbar': { display: 'none' } }}>
+        <HStack gap={1} overflowX="auto" pb={1}>
           {CATEGORIES.map(cat => (
             <Button 
               key={cat.id} 

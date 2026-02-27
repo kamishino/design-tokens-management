@@ -44,7 +44,7 @@ export const CommitCenter = ({ overrides, globalTokens, onCommitSuccess }: Commi
           cssVar,
           tokenPath: token.id,
           sourceFile: token.sourceFile,
-          originalValue: token.value,
+          originalValue: String(token.value),
           newValue
         });
       }
@@ -113,7 +113,7 @@ export const CommitCenter = ({ overrides, globalTokens, onCommitSuccess }: Commi
       </HStack>
 
       <Box overflowY="auto" border="1px solid" borderColor="gray.100" borderRadius="md">
-        <Table.Root size="sm" variant="simple">
+        <Table.Root size="sm" variant="line">
           <Table.Header bg="gray.50">
             <Table.Row>
               <Table.ColumnHeader fontSize="10px">Token</Table.ColumnHeader>
@@ -137,10 +137,7 @@ export const CommitCenter = ({ overrides, globalTokens, onCommitSuccess }: Commi
                   </HStack>
                 </Table.Cell>
               </Table.Row>
-            ))}Status: Showing lines 1-100 of 132 total lines.
-Action: To read more of the file, you can use the 'offset' and 'limit' parameters in a subsequent 'read_file' call. For example, to read the next section of the file, use offset: 100.
-
---- FILE CONTENT (truncated) ---
+            ))}
           </Table.Body>
         </Table.Root>
       </Box>
@@ -158,8 +155,9 @@ Action: To read more of the file, you can use the 'offset' and 'limit' parameter
         width="full" 
         loading={isCommitting}
         onClick={handleCommit}
-        leftIcon={<LuSave size={14} />}
+        gap={2}
       >
+        <LuSave size={14} />
         Commit to Disk
       </Button>
     </VStack>
