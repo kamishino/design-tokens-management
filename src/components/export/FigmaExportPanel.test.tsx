@@ -45,7 +45,7 @@ describe("FigmaExportPanel validation flow", () => {
     cleanup();
   });
 
-  it("blocks export when validation has errors", async () => {
+  it("blocks progression when validation has errors", async () => {
     fetchMock.mockResolvedValueOnce(
       await mockJsonResponse({
         success: true,
@@ -71,7 +71,7 @@ describe("FigmaExportPanel validation flow", () => {
     );
 
     renderPanel();
-    fireEvent.click(screen.getByRole("button", { name: /Download tokens-figma\.json/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Run Intake Validation/i }));
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith("/api/validate-figma-export");
@@ -79,10 +79,14 @@ describe("FigmaExportPanel validation flow", () => {
     expect(
       await screen.findByText(/\[FIGMA_REFERENCE_NOT_FOUND\] color\.primary/i),
     ).toBeTruthy();
-    expect(screen.queryByRole("button", { name: /Proceed Anyway/i })).toBeNull();
+    expect(
+      screen
+        .getByRole("button", { name: /Continue to Readiness/i })
+        .hasAttribute("disabled"),
+    ).toBe(true);
   });
 
-  it("requires override on warnings and proceeds when confirmed", async () => {
+  it("requires readiness checklist before showing export actions", async () => {
     fetchMock.mockResolvedValueOnce(
       await mockJsonResponse({
         success: true,
@@ -109,13 +113,122 @@ describe("FigmaExportPanel validation flow", () => {
     );
 
     renderPanel();
-    fireEvent.click(screen.getByRole("button", { name: /Copy JSON/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Run Intake Validation/i }));
 
-    expect(await screen.findByRole("button", { name: /Proceed Anyway/i })).toBeTruthy();
+    const continueToReadiness = await screen.findByRole("button", {
+      name: /Continue to Readiness/i,
+    });
+    fireEvent.click(continueToReadiness);
 
-    fireEvent.click(screen.getByRole("button", { name: /Proceed Anyway/i }));
+    const continueToExport = await screen.findByRole("button", {
+      name: /Continue to Export/i,
+    });
+    expect(continueToExport.hasAttribute("disabled")).toBe(true);
+
+    fireEvent.click(screen.getByText(/I reviewed warning items before export/i));
+    fireEvent.click(
+      screen.getByText(
+        /I have a plan to map token groups to Figma Variable collections/i,
+      ),
+    );
+    fireEvent.click(
+      screen.getByText(/This export is ready to share with the dev team/i),
+    );
 
     await waitFor(() => {
+      expect(continueToExport.hasAttribute("disabled")).toBe(false);
+    });
+    fireEvent.click(continueToExport);
+
+    expect(
+      await screen.findByRole("button", { name: /Copy JSON/i }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: /Download tokens-figma\.json/i }),
+    ).toBeTruthy();
+  });
+
+  it("re-validates before copy and proceeds when checklist is complete", async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        await mockJsonResponse({
+          success: true,
+          valid: true,
+          tokens: {
+            "Color.Primary": { $value: "#3366FF", $type: "color" },
+          },
+          errors: [],
+          warnings: [
+            {
+              code: "FIGMA_TOKEN_NAMING",
+              token: "Color.Primary",
+              message:
+                "Token name should use lowercase letters, numbers, dots, or hyphens.",
+            },
+          ],
+          summary: {
+            totalTokens: 1,
+            errorCount: 0,
+            warningCount: 1,
+            typeCounts: { color: 1 },
+          },
+        }),
+      )
+      .mockResolvedValueOnce(
+        await mockJsonResponse({
+          success: true,
+          valid: true,
+          tokens: {
+            "Color.Primary": { $value: "#3366FF", $type: "color" },
+          },
+          errors: [],
+          warnings: [
+            {
+              code: "FIGMA_TOKEN_NAMING",
+              token: "Color.Primary",
+              message:
+                "Token name should use lowercase letters, numbers, dots, or hyphens.",
+            },
+          ],
+          summary: {
+            totalTokens: 1,
+            errorCount: 0,
+            warningCount: 1,
+            typeCounts: { color: 1 },
+          },
+        }),
+      );
+
+    renderPanel();
+    fireEvent.click(
+      screen.getByRole("button", { name: /Run Intake Validation/i }),
+    );
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: /Continue to Readiness/i }),
+    );
+    fireEvent.click(screen.getByText(/I reviewed warning items before export/i));
+    fireEvent.click(
+      screen.getByText(
+        /I have a plan to map token groups to Figma Variable collections/i,
+      ),
+    );
+    fireEvent.click(
+      screen.getByText(/This export is ready to share with the dev team/i),
+    );
+    await waitFor(() => {
+      expect(
+        screen
+          .getByRole("button", { name: /Continue to Export/i })
+          .hasAttribute("disabled"),
+      ).toBe(false);
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Continue to Export/i }));
+
+    fireEvent.click(screen.getByRole("button", { name: /Copy JSON/i }));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledTimes(2);
       expect(navigator.clipboard.writeText).toHaveBeenCalledTimes(1);
     });
   });

@@ -6,6 +6,7 @@ import {
   Heading,
   Separator,
   Badge,
+  Checkbox,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import {
@@ -26,6 +27,7 @@ interface FigmaToken {
 
 type FigmaTokenMap = Record<string, FigmaToken>;
 type ExportAction = "download" | "copy";
+type IntakeStep = 0 | 1 | 2 | 3;
 
 interface FigmaValidationIssue {
   code: string;
@@ -59,14 +61,18 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 export const FigmaExportPanel = () => {
+  const [activeStep, setActiveStep] = useState<IntakeStep>(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [preview, setPreview] = useState<FigmaTokenMap | null>(null);
   const [validation, setValidation] = useState<FigmaValidationResponse | null>(
     null,
   );
-  const [pendingWarningAction, setPendingWarningAction] =
-    useState<ExportAction | null>(null);
+  const [checklist, setChecklist] = useState({
+    reviewedWarnings: false,
+    mappedCollections: false,
+    readyForHandoff: false,
+  });
   const [error, setError] = useState<string | null>(null);
 
   const fetchValidatedExport = async (): Promise<FigmaValidationResponse> => {
@@ -109,14 +115,30 @@ export const FigmaExportPanel = () => {
     }
   };
 
-  const handleAction = async (action: ExportAction) => {
+  const hasValidation = Boolean(validation);
+  const hasErrors = (validation?.errors.length ?? 0) > 0;
+  const hasWarnings = (validation?.warnings.length ?? 0) > 0;
+  const warningCheckSatisfied = hasWarnings
+    ? checklist.reviewedWarnings
+    : hasValidation;
+  const readinessComplete =
+    warningCheckSatisfied &&
+    checklist.mappedCollections &&
+    checklist.readyForHandoff;
+  const exportLocked = activeStep !== 3 || !hasValidation || hasErrors || !readinessComplete;
+
+  const handleRunValidation = async () => {
     setIsLoading(true);
     setError(null);
-    setPendingWarningAction(null);
     try {
       const result = await fetchValidatedExport();
       setValidation(result);
       setPreview(result.tokens);
+      setChecklist((prev) => ({
+        ...prev,
+        reviewedWarnings: result.warnings.length === 0,
+      }));
+      setActiveStep(1);
 
       if (result.errors.length > 0) {
         toaster.error({
@@ -126,12 +148,10 @@ export const FigmaExportPanel = () => {
         return;
       }
 
-      if (result.warnings.length > 0) {
-        setPendingWarningAction(action);
-        return;
-      }
-
-      await executeAction(action, result.tokens);
+      toaster.success({
+        title: "Validation Complete",
+        description: `${result.summary.totalTokens} token(s) analyzed. Continue to readiness checks.`,
+      });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Unknown error";
       setError(msg);
@@ -141,12 +161,42 @@ export const FigmaExportPanel = () => {
     }
   };
 
-  const handleProceedWithWarnings = async () => {
-    if (!validation || !pendingWarningAction) return;
+  const handleAction = async (action: ExportAction) => {
+    if (exportLocked) {
+      toaster.error({
+        title: "Complete Intake Steps",
+        description: "Finish validation and readiness checks before exporting.",
+      });
+      return;
+    }
+
     setIsLoading(true);
+    setError(null);
     try {
-      await executeAction(pendingWarningAction, validation.tokens);
-      setPendingWarningAction(null);
+      // Final re-validation right before export keeps the JSON handoff deterministic.
+      const result = await fetchValidatedExport();
+      setValidation(result);
+      setPreview(result.tokens);
+
+      if (result.errors.length > 0) {
+        setActiveStep(1);
+        toaster.error({
+          title: "Validation Failed",
+          description: `${result.errors.length} error(s) must be fixed before export.`,
+        });
+        return;
+      }
+
+      if (result.warnings.length > 0 && !checklist.reviewedWarnings) {
+        setActiveStep(2);
+        toaster.error({
+          title: "Warnings Need Confirmation",
+          description: "Review warnings in Step 3 before exporting.",
+        });
+        return;
+      }
+
+      await executeAction(action, result.tokens);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Unknown error";
       setError(msg);
@@ -183,92 +233,286 @@ export const FigmaExportPanel = () => {
 
       <Separator />
 
-      {/* Validation status */}
-      {validation && (
-        <Box
-          bg={validation.valid ? "green.50" : "red.50"}
-          borderRadius="lg"
-          p={4}
-          border="1px solid"
-          borderColor={validation.valid ? "green.100" : "red.200"}
-        >
-          <VStack align="stretch" gap={2}>
-            <HStack justify="space-between">
-              <Text
-                fontSize="xs"
-                fontWeight="700"
-                color={validation.valid ? "green.700" : "red.700"}
-              >
-                Validation {validation.valid ? "Passed" : "Failed"}
-              </Text>
-              <HStack gap={2}>
-                <Badge colorPalette="gray" variant="subtle">
-                  {validation.summary.totalTokens} total
-                </Badge>
-                <Badge colorPalette="red" variant="subtle">
-                  {validation.summary.errorCount} errors
-                </Badge>
-                <Badge colorPalette="yellow" variant="subtle">
-                  {validation.summary.warningCount} warnings
+      {/* Guided intake stepper */}
+      <Box bg="gray.50" border="1px solid" borderColor="gray.100" borderRadius="lg" p={4}>
+        <Text fontSize="xs" fontWeight="700" color="gray.700" mb={2}>
+          Guided Token Intake
+        </Text>
+        <VStack align="stretch" gap={2}>
+          {[
+            "1. Validate source tokens",
+            "2. Review validation output",
+            "3. Confirm readiness checklist",
+            "4. Export JSON for Figma",
+          ].map((step, idx) => {
+            const isComplete = idx < activeStep;
+            const isCurrent = idx === activeStep;
+            return (
+              <HStack key={step} justify="space-between">
+                <Text
+                  fontSize="xs"
+                  fontWeight={isCurrent ? "700" : "500"}
+                  color={isCurrent ? "blue.700" : isComplete ? "green.700" : "gray.500"}
+                >
+                  {step}
+                </Text>
+                <Badge
+                  colorPalette={isComplete ? "green" : isCurrent ? "blue" : "gray"}
+                  variant="subtle"
+                >
+                  {isComplete ? "Done" : isCurrent ? "Current" : "Pending"}
                 </Badge>
               </HStack>
-            </HStack>
-            {validation.errors.length > 0 && (
-              <VStack align="stretch" gap={1}>
-                <Text fontSize="11px" fontWeight="700" color="red.700">
-                  Errors
-                </Text>
-                {validation.errors.slice(0, 5).map((issue, idx) => (
-                  <Text key={`${issue.code}-${idx}`} fontSize="11px" color="red.600">
-                    [{issue.code}] {issue.token}: {issue.message}
-                  </Text>
-                ))}
-              </VStack>
-            )}
-            {validation.warnings.length > 0 && (
-              <VStack align="stretch" gap={1}>
-                <Text fontSize="11px" fontWeight="700" color="orange.700">
-                  Warnings
-                </Text>
-                {validation.warnings.slice(0, 5).map((issue, idx) => (
+            );
+          })}
+        </VStack>
+      </Box>
+
+      {/* Step 1 */}
+      <Box border="1px solid" borderColor="gray.200" borderRadius="lg" p={4}>
+        <VStack align="stretch" gap={3}>
+          <Text fontSize="xs" fontWeight="700" color="gray.700">
+            Step 1: Validate Source
+          </Text>
+          <Text fontSize="xs" color="gray.600">
+            Run schema, type, and reference checks before any export action.
+          </Text>
+          <Button
+            size="sm"
+            colorPalette="blue"
+            loading={isLoading}
+            onClick={handleRunValidation}
+            alignSelf="flex-start"
+          >
+            Run Intake Validation
+          </Button>
+        </VStack>
+      </Box>
+
+      {/* Step 2 */}
+      {hasValidation && (
+        <Box border="1px solid" borderColor="gray.200" borderRadius="lg" p={4}>
+          <VStack align="stretch" gap={3}>
+            <Text fontSize="xs" fontWeight="700" color="gray.700">
+              Step 2: Review Results
+            </Text>
+            <Box
+              bg={validation!.valid ? "green.50" : "red.50"}
+              borderRadius="lg"
+              p={4}
+              border="1px solid"
+              borderColor={validation!.valid ? "green.100" : "red.200"}
+            >
+              <VStack align="stretch" gap={2}>
+                <HStack justify="space-between">
                   <Text
-                    key={`${issue.code}-${idx}`}
-                    fontSize="11px"
-                    color="orange.700"
+                    fontSize="xs"
+                    fontWeight="700"
+                    color={validation!.valid ? "green.700" : "red.700"}
                   >
-                    [{issue.code}] {issue.token}: {issue.message}
+                    Validation {validation!.valid ? "Passed" : "Failed"}
                   </Text>
-                ))}
+                  <HStack gap={2}>
+                    <Badge colorPalette="gray" variant="subtle">
+                      {validation!.summary.totalTokens} total
+                    </Badge>
+                    <Badge colorPalette="red" variant="subtle">
+                      {validation!.summary.errorCount} errors
+                    </Badge>
+                    <Badge colorPalette="yellow" variant="subtle">
+                      {validation!.summary.warningCount} warnings
+                    </Badge>
+                  </HStack>
+                </HStack>
+                {validation!.errors.length > 0 && (
+                  <VStack align="stretch" gap={1}>
+                    <Text fontSize="11px" fontWeight="700" color="red.700">
+                      Errors
+                    </Text>
+                    {validation!.errors.slice(0, 5).map((issue, idx) => (
+                      <Text
+                        key={`${issue.code}-${idx}`}
+                        fontSize="11px"
+                        color="red.600"
+                      >
+                        [{issue.code}] {issue.token}: {issue.message}
+                      </Text>
+                    ))}
+                  </VStack>
+                )}
+                {validation!.warnings.length > 0 && (
+                  <VStack align="stretch" gap={1}>
+                    <Text fontSize="11px" fontWeight="700" color="orange.700">
+                      Warnings
+                    </Text>
+                    {validation!.warnings.slice(0, 5).map((issue, idx) => (
+                      <Text
+                        key={`${issue.code}-${idx}`}
+                        fontSize="11px"
+                        color="orange.700"
+                      >
+                        [{issue.code}] {issue.token}: {issue.message}
+                      </Text>
+                    ))}
+                  </VStack>
+                )}
               </VStack>
-            )}
+            </Box>
+
+            <HStack justify="space-between">
+              <Text fontSize="xs" color={hasErrors ? "red.600" : "gray.600"}>
+                {hasErrors
+                  ? "Fix validation errors and rerun Step 1."
+                  : "Review complete. Continue to readiness checks."}
+              </Text>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setActiveStep(2)}
+                disabled={hasErrors}
+              >
+                Continue to Readiness
+              </Button>
+            </HStack>
           </VStack>
         </Box>
       )}
 
-      {/* Instructions */}
-      <Box
-        bg="blue.50"
-        borderRadius="lg"
-        p={4}
-        border="1px solid"
-        borderColor="blue.100"
-      >
-        <Text fontSize="xs" color="blue.700" fontWeight="600" mb={2}>
-          How to use in Figma:
-        </Text>
-        <VStack align="start" gap={1}>
-          {[
-            "1. Export the JSON file below",
-            "2. Open Figma → Plugins → Variables Importer (or similar)",
-            '3. Import the "tokens-figma.json" file',
-            "4. Map token groups to Figma Variable collections",
-          ].map((step) => (
-            <Text key={step} fontSize="xs" color="blue.600">
-              {step}
+      {/* Step 3 */}
+      {activeStep >= 2 && hasValidation && (
+        <Box border="1px solid" borderColor="gray.200" borderRadius="lg" p={4}>
+          <VStack align="stretch" gap={3}>
+            <Text fontSize="xs" fontWeight="700" color="gray.700">
+              Step 3: Readiness Checklist
             </Text>
-          ))}
-        </VStack>
-      </Box>
+
+            <Checkbox.Root
+              checked={hasWarnings ? checklist.reviewedWarnings : hasValidation}
+              disabled={!hasWarnings}
+              onCheckedChange={(details) =>
+                setChecklist((prev) => ({
+                  ...prev,
+                  reviewedWarnings: details.checked === true,
+                }))
+              }
+            >
+              <Checkbox.HiddenInput />
+              <Checkbox.Control>
+                <Checkbox.Indicator />
+              </Checkbox.Control>
+              <Checkbox.Label fontSize="xs">
+                {hasWarnings
+                  ? "I reviewed warning items before export."
+                  : "No warnings detected in validation."}
+              </Checkbox.Label>
+            </Checkbox.Root>
+
+            <Checkbox.Root
+              checked={checklist.mappedCollections}
+              onCheckedChange={(details) =>
+                setChecklist((prev) => ({
+                  ...prev,
+                  mappedCollections: details.checked === true,
+                }))
+              }
+            >
+              <Checkbox.HiddenInput />
+              <Checkbox.Control>
+                <Checkbox.Indicator />
+              </Checkbox.Control>
+              <Checkbox.Label fontSize="xs">
+                I have a plan to map token groups to Figma Variable collections.
+              </Checkbox.Label>
+            </Checkbox.Root>
+
+            <Checkbox.Root
+              checked={checklist.readyForHandoff}
+              onCheckedChange={(details) =>
+                setChecklist((prev) => ({
+                  ...prev,
+                  readyForHandoff: details.checked === true,
+                }))
+              }
+            >
+              <Checkbox.HiddenInput />
+              <Checkbox.Control>
+                <Checkbox.Indicator />
+              </Checkbox.Control>
+              <Checkbox.Label fontSize="xs">
+                This export is ready to share with the dev team.
+              </Checkbox.Label>
+            </Checkbox.Root>
+
+            <HStack justify="flex-end">
+              <Button
+                size="sm"
+                colorPalette="blue"
+                onClick={() => setActiveStep(3)}
+                disabled={!readinessComplete || hasErrors}
+              >
+                Continue to Export
+              </Button>
+            </HStack>
+          </VStack>
+        </Box>
+      )}
+
+      {/* Step 4 */}
+      {activeStep === 3 && (
+        <>
+          <Box
+            bg="blue.50"
+            borderRadius="lg"
+            p={4}
+            border="1px solid"
+            borderColor="blue.100"
+          >
+            <Text fontSize="xs" color="blue.700" fontWeight="600" mb={2}>
+              Step 4: Export to Figma
+            </Text>
+            <VStack align="start" gap={1}>
+              {[
+                "1. Export or copy JSON below",
+                "2. Open Figma → Plugins → Variables Importer",
+                '3. Import the "tokens-figma.json" file',
+                "4. Map token groups to Variable collections",
+              ].map((step) => (
+                <Text key={step} fontSize="xs" color="blue.600">
+                  {step}
+                </Text>
+              ))}
+            </VStack>
+          </Box>
+
+          {/* CTA buttons */}
+          <HStack gap={2}>
+            <Button
+              colorPalette="blue"
+              size="sm"
+              flex={1}
+              loading={isLoading}
+              disabled={exportLocked}
+              onClick={handleDownload}
+              gap={2}
+            >
+              <LuDownload size={14} />
+              Download tokens-figma.json
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCopy}
+              loading={isLoading}
+              disabled={exportLocked}
+              minW="120px"
+              gap={2}
+            >
+              {isCopied ? <LuCheck size={14} /> : <LuClipboard size={14} />}
+              {isCopied ? "Copied!" : "Copy JSON"}
+            </Button>
+          </HStack>
+        </>
+      )}
 
       {/* Error state */}
       {error && (
@@ -285,65 +529,6 @@ export const FigmaExportPanel = () => {
           <Text fontSize="sm" color="red.700">
             {error}
           </Text>
-        </HStack>
-      )}
-
-      {/* CTA buttons */}
-      <HStack gap={2}>
-        <Button
-          colorPalette="blue"
-          size="sm"
-          flex={1}
-          loading={isLoading}
-          onClick={handleDownload}
-          gap={2}
-        >
-          <LuDownload size={14} />
-          Download tokens-figma.json
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleCopy}
-          loading={isLoading}
-          minW="120px"
-          gap={2}
-        >
-          {isCopied ? <LuCheck size={14} /> : <LuClipboard size={14} />}
-          {isCopied ? "Copied!" : "Copy JSON"}
-        </Button>
-      </HStack>
-
-      {pendingWarningAction && validation && validation.errors.length === 0 && (
-        <HStack
-          bg="orange.50"
-          border="1px solid"
-          borderColor="orange.200"
-          borderRadius="md"
-          px={4}
-          py={3}
-          justify="space-between"
-        >
-          <Text fontSize="sm" color="orange.700">
-            {validation.warnings.length} warning(s) found. Continue anyway?
-          </Text>
-          <HStack gap={2}>
-            <Button
-              size="xs"
-              variant="ghost"
-              onClick={() => setPendingWarningAction(null)}
-            >
-              Cancel
-            </Button>
-            <Button
-              size="xs"
-              colorPalette="orange"
-              onClick={handleProceedWithWarnings}
-              loading={isLoading}
-            >
-              Proceed Anyway
-            </Button>
-          </HStack>
         </HStack>
       )}
 

@@ -28,3 +28,6 @@ Last updated: 2026-02-27
 - [x] Define rule source-of-truth in `AGENTS.md` (`.agent/config.json`, `.agent/rules`, `.agent/workflows`).
 - [x] Enforce guardRail/workflow integrity and task artifact rule references in `scripts/task-closure-check.js`.
 - [x] Align `.agent/workflows/kamiflow.md` with `.agent/rules/*` and require `npm run task:verify -- --task=<ID>` before closure.
+- [x] Add guided intake workflow in Figma Export Panel (Validate → Review → Checklist → Export).
+- [x] Re-validate export payload at action time to keep Figma JSON handoff deterministic.
+- [x] Update Figma export panel tests for intake gating, checklist enforcement, and warning-confirmed copy flow.
