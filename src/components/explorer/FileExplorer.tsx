@@ -1,4 +1,4 @@
-import { Box, VStack, Text } from "@chakra-ui/react";
+import { Box, VStack, Text, Tabs } from "@chakra-ui/react";
 import { useMemo, useEffect, useState } from "react";
 import type { FileNode } from "../../utils/path-tree";
 import { mapManifestToTree } from "../../utils/path-tree";
@@ -16,6 +16,10 @@ interface FileExplorerProps {
   onEditTokens?: (filePath: string) => void;
   onProjectCreated?: (projectKey: string) => Promise<void> | void;
 }
+
+type ExplorerMode = "files" | "projects";
+
+const EXPLORER_MODE_STORAGE_KEY = "sidebar_explorer_mode";
 
 export const FileExplorer = ({
   manifest,
@@ -37,6 +41,12 @@ export const FileExplorer = ({
       }
     }
     return [];
+  });
+
+  const [explorerMode, setExplorerMode] = useState<ExplorerMode>(() => {
+    if (typeof window === "undefined") return "files";
+    const saved = localStorage.getItem(EXPLORER_MODE_STORAGE_KEY);
+    return saved === "projects" ? "projects" : "files";
   });
 
   const tree = useMemo(() => {
@@ -73,6 +83,11 @@ export const FileExplorer = ({
     );
   }, [expandedPaths]);
 
+  useEffect(() => {
+    if (context !== "explorer") return;
+    localStorage.setItem(EXPLORER_MODE_STORAGE_KEY, explorerMode);
+  }, [context, explorerMode]);
+
   const handleToggle = (id: string) => {
     setExpandedPaths((prev) =>
       prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id],
@@ -82,6 +97,23 @@ export const FileExplorer = ({
   const handleSelect = (node: FileNode) => {
     onSelect(node.fullPath, node.id);
   };
+
+  const fileTree = (
+    <Box h="full" overflowY="auto" p={2}>
+      {tree.map((node) => (
+        <FileTreeNode
+          key={node.id}
+          node={node}
+          depth={0}
+          expandedPaths={expandedPaths}
+          activePath={activePath}
+          onToggle={handleToggle}
+          onSelect={handleSelect}
+          onEditTokens={onEditTokens}
+        />
+      ))}
+    </Box>
+  );
 
   if (context === "search")
     return (
@@ -115,31 +147,62 @@ export const FileExplorer = ({
         </Text>
       </Box>
 
-      {context === "explorer" && (
-        <Box px={3} pb={3}>
-          <ClientProjectManager
-            manifest={manifest}
-            selectedProject={activePath}
-            onSelectProject={(projectKey) => onSelect(projectKey, projectKey)}
-            onProjectCreated={onProjectCreated}
-          />
+      {context === "explorer" ? (
+        <Tabs.Root
+          value={explorerMode}
+          onValueChange={(details: { value: string }) =>
+            setExplorerMode(details.value === "projects" ? "projects" : "files")
+          }
+          variant="subtle"
+          size="sm"
+          display="flex"
+          flexDirection="column"
+          flex={1}
+          minH={0}
+        >
+          <Tabs.List
+            mx={3}
+            mb={2}
+            p={1}
+            gap={1}
+            bg="white"
+            border="1px solid"
+            borderColor="gray.200"
+            borderRadius="md"
+          >
+            <Tabs.Trigger value="files" flex={1} fontSize="10px" fontWeight="700">
+              Files
+            </Tabs.Trigger>
+            <Tabs.Trigger
+              value="projects"
+              flex={1}
+              fontSize="10px"
+              fontWeight="700"
+            >
+              Projects
+            </Tabs.Trigger>
+          </Tabs.List>
+
+          <Tabs.Content value="files" p={0} flex={1} minH={0}>
+            {fileTree}
+          </Tabs.Content>
+
+          <Tabs.Content value="projects" p={0} flex={1} minH={0}>
+            <Box h="full" overflowY="auto" px={3} pb={3}>
+              <ClientProjectManager
+                manifest={manifest}
+                selectedProject={activePath}
+                onSelectProject={(projectKey) => onSelect(projectKey, projectKey)}
+                onProjectCreated={onProjectCreated}
+              />
+            </Box>
+          </Tabs.Content>
+        </Tabs.Root>
+      ) : (
+        <Box flex={1} minH={0}>
+          {fileTree}
         </Box>
       )}
-
-      <Box flex={1} overflowY="auto" p={2}>
-        {tree.map((node) => (
-          <FileTreeNode
-            key={node.id}
-            node={node}
-            depth={0}
-            expandedPaths={expandedPaths}
-            activePath={activePath}
-            onToggle={handleToggle}
-            onSelect={handleSelect}
-            onEditTokens={onEditTokens}
-          />
-        ))}
-      </Box>
     </VStack>
   );
 };
