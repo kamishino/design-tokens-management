@@ -5,6 +5,7 @@ import {
   Text,
   Heading,
   Separator,
+  Badge,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import {
@@ -24,6 +25,27 @@ interface FigmaToken {
 }
 
 type FigmaTokenMap = Record<string, FigmaToken>;
+type ExportAction = "download" | "copy";
+
+interface FigmaValidationIssue {
+  code: string;
+  token: string;
+  message: string;
+}
+
+interface FigmaValidationResponse {
+  success: boolean;
+  tokens: FigmaTokenMap;
+  valid: boolean;
+  errors: FigmaValidationIssue[];
+  warnings: FigmaValidationIssue[];
+  summary: {
+    totalTokens: number;
+    errorCount: number;
+    warningCount: number;
+    typeCounts: Record<string, number>;
+  };
+}
 
 const TYPE_COLORS: Record<string, string> = {
   color: "#3B82F6",
@@ -40,25 +62,26 @@ export const FigmaExportPanel = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [preview, setPreview] = useState<FigmaTokenMap | null>(null);
+  const [validation, setValidation] = useState<FigmaValidationResponse | null>(
+    null,
+  );
+  const [pendingWarningAction, setPendingWarningAction] =
+    useState<ExportAction | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchTokens = async (): Promise<FigmaTokenMap | null> => {
-    const res = await fetch("/api/export-figma");
+  const fetchValidatedExport = async (): Promise<FigmaValidationResponse> => {
+    const res = await fetch("/api/validate-figma-export");
     const json = await res.json();
     if (!res.ok) {
-      throw new Error((json as { error?: string }).error || "Export failed");
+      throw new Error(
+        (json as { error?: string }).error || "Validation request failed",
+      );
     }
-    return json as FigmaTokenMap;
+    return json as FigmaValidationResponse;
   };
 
-  const handleDownload = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const tokens = await fetchTokens();
-      if (!tokens) return;
-      setPreview(tokens);
-
+  const executeAction = async (action: ExportAction, tokens: FigmaTokenMap) => {
+    if (action === "download") {
       const blob = new Blob([JSON.stringify(tokens, null, 2)], {
         type: "application/json",
       });
@@ -73,6 +96,57 @@ export const FigmaExportPanel = () => {
         title: "Figma Export Ready",
         description: `${Object.keys(tokens).length} tokens exported as W3C DTCG JSON.`,
       });
+      return;
+    }
+    if (action === "copy") {
+      await navigator.clipboard.writeText(JSON.stringify(tokens, null, 2));
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+      toaster.success({
+        title: "Copied to Clipboard",
+        description: "Paste into your Figma Variables importer plugin.",
+      });
+    }
+  };
+
+  const handleAction = async (action: ExportAction) => {
+    setIsLoading(true);
+    setError(null);
+    setPendingWarningAction(null);
+    try {
+      const result = await fetchValidatedExport();
+      setValidation(result);
+      setPreview(result.tokens);
+
+      if (result.errors.length > 0) {
+        toaster.error({
+          title: "Validation Failed",
+          description: `${result.errors.length} error(s) must be fixed before export.`,
+        });
+        return;
+      }
+
+      if (result.warnings.length > 0) {
+        setPendingWarningAction(action);
+        return;
+      }
+
+      await executeAction(action, result.tokens);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Unknown error";
+      setError(msg);
+      toaster.error({ title: "Validation Failed", description: msg });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleProceedWithWarnings = async () => {
+    if (!validation || !pendingWarningAction) return;
+    setIsLoading(true);
+    try {
+      await executeAction(pendingWarningAction, validation.tokens);
+      setPendingWarningAction(null);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Unknown error";
       setError(msg);
@@ -82,30 +156,9 @@ export const FigmaExportPanel = () => {
     }
   };
 
-  const handleCopy = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const tokens = await fetchTokens();
-      if (!tokens) return;
-      setPreview(tokens);
-      await navigator.clipboard.writeText(JSON.stringify(tokens, null, 2));
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-      toaster.success({
-        title: "Copied to Clipboard",
-        description: "Paste into your Figma Variables importer plugin.",
-      });
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Unknown error";
-      setError(msg);
-      toaster.error({ title: "Copy Failed", description: msg });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const handleDownload = () => handleAction("download");
+  const handleCopy = () => handleAction("copy");
 
-  // Summarize token types
   const typeSummary = preview
     ? Object.values(preview).reduce<Record<string, number>>((acc, t) => {
         acc[t.$type] = (acc[t.$type] || 0) + 1;
@@ -129,6 +182,68 @@ export const FigmaExportPanel = () => {
       </HStack>
 
       <Separator />
+
+      {/* Validation status */}
+      {validation && (
+        <Box
+          bg={validation.valid ? "green.50" : "red.50"}
+          borderRadius="lg"
+          p={4}
+          border="1px solid"
+          borderColor={validation.valid ? "green.100" : "red.200"}
+        >
+          <VStack align="stretch" gap={2}>
+            <HStack justify="space-between">
+              <Text
+                fontSize="xs"
+                fontWeight="700"
+                color={validation.valid ? "green.700" : "red.700"}
+              >
+                Validation {validation.valid ? "Passed" : "Failed"}
+              </Text>
+              <HStack gap={2}>
+                <Badge colorPalette="gray" variant="subtle">
+                  {validation.summary.totalTokens} total
+                </Badge>
+                <Badge colorPalette="red" variant="subtle">
+                  {validation.summary.errorCount} errors
+                </Badge>
+                <Badge colorPalette="yellow" variant="subtle">
+                  {validation.summary.warningCount} warnings
+                </Badge>
+              </HStack>
+            </HStack>
+            {validation.errors.length > 0 && (
+              <VStack align="stretch" gap={1}>
+                <Text fontSize="11px" fontWeight="700" color="red.700">
+                  Errors
+                </Text>
+                {validation.errors.slice(0, 5).map((issue, idx) => (
+                  <Text key={`${issue.code}-${idx}`} fontSize="11px" color="red.600">
+                    [{issue.code}] {issue.token}: {issue.message}
+                  </Text>
+                ))}
+              </VStack>
+            )}
+            {validation.warnings.length > 0 && (
+              <VStack align="stretch" gap={1}>
+                <Text fontSize="11px" fontWeight="700" color="orange.700">
+                  Warnings
+                </Text>
+                {validation.warnings.slice(0, 5).map((issue, idx) => (
+                  <Text
+                    key={`${issue.code}-${idx}`}
+                    fontSize="11px"
+                    color="orange.700"
+                  >
+                    [{issue.code}] {issue.token}: {issue.message}
+                  </Text>
+                ))}
+              </VStack>
+            )}
+          </VStack>
+        </Box>
+      )}
 
       {/* Instructions */}
       <Box
@@ -198,6 +313,39 @@ export const FigmaExportPanel = () => {
           {isCopied ? "Copied!" : "Copy JSON"}
         </Button>
       </HStack>
+
+      {pendingWarningAction && validation && validation.errors.length === 0 && (
+        <HStack
+          bg="orange.50"
+          border="1px solid"
+          borderColor="orange.200"
+          borderRadius="md"
+          px={4}
+          py={3}
+          justify="space-between"
+        >
+          <Text fontSize="sm" color="orange.700">
+            {validation.warnings.length} warning(s) found. Continue anyway?
+          </Text>
+          <HStack gap={2}>
+            <Button
+              size="xs"
+              variant="ghost"
+              onClick={() => setPendingWarningAction(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="xs"
+              colorPalette="orange"
+              onClick={handleProceedWithWarnings}
+              loading={isLoading}
+            >
+              Proceed Anyway
+            </Button>
+          </HStack>
+        </HStack>
+      )}
 
       {/* Preview — shown after first fetch */}
       {typeSummary && (

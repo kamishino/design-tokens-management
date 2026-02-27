@@ -135,6 +135,12 @@ function ensureTestFile(filePath: string, value: string) {
   );
 }
 
+function ensureRawTestFile(filePath: string, payload: unknown) {
+  const absolute = path.join(PROJECT_ROOT, filePath.replace(/^\//, ""));
+  fs.mkdirSync(path.dirname(absolute), { recursive: true });
+  fs.writeFileSync(absolute, JSON.stringify(payload, null, 2));
+}
+
 function readTestFileValue(filePath: string): string {
   const absolute = path.join(PROJECT_ROOT, filePath.replace(/^\//, ""));
   const parsed = JSON.parse(fs.readFileSync(absolute, "utf8")) as {
@@ -291,5 +297,49 @@ describe("vite-plugin-sync-tokens global guard", () => {
     expect(restoreResponse.json.success).toBe(true);
     expect(restoreResponse.json.restoredPath).toBe(file);
     expect(readTestFileValue(file)).toBe("#666666");
+  });
+
+  it("returns figma validation summary with token payload", async () => {
+    const middleware = getMiddleware();
+
+    const response = await sendRequest(middleware, {
+      method: "GET",
+      url: "/api/validate-figma-export",
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json.success).toBe(true);
+    expect(response.json.valid).toBeTypeOf("boolean");
+    expect(response.json.tokens).toBeTypeOf("object");
+    expect(response.json.summary).toBeTypeOf("object");
+    expect(response.json.errors).toBeInstanceOf(Array);
+    expect(response.json.warnings).toBeInstanceOf(Array);
+  });
+
+  it("flags broken figma references as validation errors", async () => {
+    const middleware = getMiddleware();
+    const file = "/tokens/global/__guard-tests__/broken-figma-ref.json";
+    ensureRawTestFile(file, {
+      color: {
+        guard: {
+          broken: {
+            $value: "{missing.reference.token}",
+            $type: "color",
+          },
+        },
+      },
+    });
+
+    const response = await sendRequest(middleware, {
+      method: "GET",
+      url: "/api/validate-figma-export",
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json.valid).toBe(false);
+    const errors = (response.json.errors as Array<{ code: string }>) ?? [];
+    expect(errors.some((item) => item.code === "FIGMA_REFERENCE_NOT_FOUND")).toBe(
+      true,
+    );
   });
 });

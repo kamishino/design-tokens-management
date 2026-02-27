@@ -253,6 +253,150 @@ function buildFigmaExport(): Record<
   return result;
 }
 
+interface FigmaValidationIssue {
+  code: string;
+  token: string;
+  message: string;
+}
+
+interface FigmaValidationResult {
+  valid: boolean;
+  errors: FigmaValidationIssue[];
+  warnings: FigmaValidationIssue[];
+  summary: {
+    totalTokens: number;
+    errorCount: number;
+    warningCount: number;
+    typeCounts: Record<string, number>;
+  };
+}
+
+const FIGMA_SUPPORTED_TYPES = new Set([
+  "color",
+  "dimension",
+  "fontFamilies",
+  "fontWeights",
+  "lineHeights",
+  "duration",
+  "cubicBezier",
+  "spacing",
+  "borderRadius",
+  "borderWidth",
+  "opacity",
+  "boxShadow",
+  "fontSizes",
+  "letterSpacing",
+  "other",
+]);
+
+function validateFigmaExport(
+  tokens: Record<string, { $value: unknown; $type: string; $description?: string }>,
+): FigmaValidationResult {
+  const errors: FigmaValidationIssue[] = [];
+  const warnings: FigmaValidationIssue[] = [];
+  const entries = Object.entries(tokens);
+  const tokenSet = new Set(entries.map(([name]) => name));
+
+  if (entries.length === 0) {
+    errors.push({
+      code: "FIGMA_EMPTY_EXPORT",
+      token: "*",
+      message: "No tokens were found for export.",
+    });
+  }
+
+  for (const [name, token] of entries) {
+    if (!name.trim()) {
+      errors.push({
+        code: "FIGMA_EMPTY_TOKEN_NAME",
+        token: name || "*",
+        message: "Token name cannot be empty.",
+      });
+      continue;
+    }
+
+    if (!/^[a-z0-9.-]+$/.test(name)) {
+      warnings.push({
+        code: "FIGMA_TOKEN_NAMING",
+        token: name,
+        message:
+          "Token name should use lowercase letters, numbers, dots, or hyphens.",
+      });
+    }
+
+    if (
+      token.$value === undefined ||
+      token.$value === null ||
+      (typeof token.$value === "string" && token.$value.trim() === "")
+    ) {
+      errors.push({
+        code: "FIGMA_EMPTY_VALUE",
+        token: name,
+        message: "Token has an empty $value.",
+      });
+    }
+
+    const tokenType = typeof token.$type === "string" ? token.$type : "";
+    if (!tokenType.trim()) {
+      errors.push({
+        code: "FIGMA_MISSING_TYPE",
+        token: name,
+        message: "Token is missing a $type.",
+      });
+    } else if (!FIGMA_SUPPORTED_TYPES.has(tokenType)) {
+      warnings.push({
+        code: "FIGMA_UNKNOWN_TYPE",
+        token: name,
+        message: `Token type "${tokenType}" may not be recognized by your Figma importer.`,
+      });
+    }
+
+    if (typeof token.$value === "string") {
+      const referenceMatch = token.$value.match(/^\{(.+)\}$/);
+      if (referenceMatch) {
+        const reference = referenceMatch[1].trim();
+        if (!reference) {
+          errors.push({
+            code: "FIGMA_INVALID_REFERENCE",
+            token: name,
+            message: "Token reference is empty.",
+          });
+        } else if (reference === name) {
+          errors.push({
+            code: "FIGMA_SELF_REFERENCE",
+            token: name,
+            message: "Token cannot reference itself.",
+          });
+        } else if (!tokenSet.has(reference)) {
+          errors.push({
+            code: "FIGMA_REFERENCE_NOT_FOUND",
+            token: name,
+            message: `Reference "${reference}" was not found in this export.`,
+          });
+        }
+      }
+    }
+  }
+
+  const typeCounts = entries.reduce<Record<string, number>>((acc, [, token]) => {
+    const key = token.$type || "other";
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+
+  return {
+    valid: errors.length === 0,
+    errors,
+    warnings,
+    summary: {
+      totalTokens: entries.length,
+      errorCount: errors.length,
+      warningCount: warnings.length,
+      typeCounts,
+    },
+  };
+}
+
 /**
  * Enhanced Sync Plugin supporting universal file writing, deletion, and Figma export.
  * Security: All writes are restricted to paths within the project root.
@@ -712,6 +856,36 @@ export function syncTokensPlugin(): Plugin {
               );
             }
           });
+
+          // ── Route: Validate Figma Export ───────────────────────────────────
+        } else if (
+          req.url === "/api/validate-figma-export" &&
+          req.method === "GET"
+        ) {
+          try {
+            const tokens = buildFigmaExport();
+            const validation = validateFigmaExport(tokens);
+
+            res.setHeader("Content-Type", "application/json");
+            res.end(
+              JSON.stringify({
+                success: true,
+                tokens,
+                ...validation,
+              }),
+            );
+          } catch (error: unknown) {
+            const message =
+              error instanceof Error ? error.message : "Unknown error";
+            res.statusCode = 500;
+            res.setHeader("Content-Type", "application/json");
+            res.end(
+              JSON.stringify({
+                error: message,
+                code: "FIGMA_VALIDATE_ERROR",
+              }),
+            );
+          }
 
           // ── Route: Figma Export ─────────────────────────────────────────────
         } else if (req.url === "/api/export-figma" && req.method === "GET") {
