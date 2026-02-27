@@ -132,15 +132,16 @@ export const TokenViewer = ({
 
   const handleDelete = useCallback(async (token: TokenDoc) => {
     const isGlobalToken = token.sourceFile.includes("/tokens/global/");
+    if (isGlobalToken) {
+      toaster.error({
+        title: "Delete Blocked",
+        description:
+          "Global token deletion is disabled in UI. Edit value instead or use backup restore controls.",
+      });
+      return;
+    }
     if (!window.confirm(`Are you sure you want to delete ${token.name}?`))
       return;
-    if (isGlobalToken) {
-      const confirmation = window.prompt(
-        'Global token deletion is protected. Type "DELETE" to continue.',
-        "",
-      );
-      if (confirmation !== "DELETE") return;
-    }
 
     const dotPath = token.id.includes(":") ? token.id.split(":")[1] : token.id;
 
